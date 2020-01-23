@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            val renderer = GLSurfaceViewRenderer()
+            val renderer = GLSurfaceViewRenderer(this)
             val glView = GLSurfaceView(this)
             glView.setEGLContextClientVersion(2)
             glView.setRenderer(renderer)
