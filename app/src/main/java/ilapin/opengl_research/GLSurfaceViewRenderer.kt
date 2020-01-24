@@ -1,12 +1,16 @@
 package ilapin.opengl_research
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLU
 import ilapin.common.android.log.L
+import ilapin.common.kotlin.safeLet
 import ilapin.opengl_research.App.Companion.LOG_TAG
 import org.joml.*
+import java.io.BufferedOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.Charset
@@ -17,7 +21,8 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
     private val cameraPosition = Vector3f(0f, 0f, 2f)
     private val cameraRotation = Quaternionf().identity()
-    private var surfaceAspect: Float? = null
+    private var surfaceWidth: Int? = null
+    private var surfaceHeight: Int? = null
 
     private val triangleVertices: List<Vector3fc> = listOf(
         Vector3f(0f, 0.5f, 0f),
@@ -48,12 +53,14 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     )
     private var isOpenGLErrorDetected = false
 
+    private var isDataSaved = false
+
     override fun onDrawFrame(gl: GL10) {
         if (isOpenGLErrorDetected) {
             return
         }
 
-        val surfaceAspect = this.surfaceAspect ?: return
+        val surfaceAspect = safeLet(surfaceWidth, surfaceHeight) { width, height -> width.toFloat() / height } ?: return
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
@@ -80,13 +87,14 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val mvpMatrix = tmpMatrix
         getViewProjectionMatrix(surfaceAspect, FIELD_OF_VIEW, Z_NEAR, Z_FAR).get(mvpMatrix)
         // Model transformation
-        /*mvpMatrix.translate()
+        mvpMatrix.translate(0.5f, 0f, 0f)
+        /*
         mvpMatrix.scale()
         mvpMatrix.rotate()*/
         mvpMatrix.get(tmpFloatArray)
         GLES20.glUniformMatrix4fv(mvpMatrixUniformLocation, 1, false, tmpFloatArray, 0)
 
-        GLES20.glUniform3f(GLES20.glGetUniformLocation(shaderProgramName, "color"), 1f, 1f, 1f)
+        GLES20.glUniform3f(GLES20.glGetUniformLocation(shaderProgramName, "color"), 0f, 0f, 1f)
 
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES,
@@ -97,11 +105,14 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         GLES20.glDisableVertexAttribArray(vertexCoordinateAttributeLocation)
 
+        saveData()
+
         dispatchOpenGLErrors("onDrawFrame()")
     }
 
     override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
-        surfaceAspect = width.toFloat() / height.toFloat()
+        surfaceWidth = width
+        surfaceHeight = height
 
         GLES20.glViewport(0, 0, width, height)
         GLES20.glClearColor(0f, 0f, 0.5f, 1f)
@@ -120,6 +131,30 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig) {
         // do nothing
+    }
+
+    private fun saveData() {
+        if (isDataSaved) {
+            return
+        }
+
+        safeLet(surfaceWidth, surfaceHeight) { width, height ->
+            isDataSaved = true
+
+            val buffer = ByteBuffer.allocateDirect(width * height * 4)
+            GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buffer)
+
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            bitmap.copyPixelsFromBuffer(buffer)
+            val flipMatrix = Matrix().apply { postScale(1f, -1f, width / 2f, height / 2f); }
+            val flippedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, flipMatrix, false)
+
+            val os = BufferedOutputStream(context.openFileOutput("screenshot.png", Context.MODE_PRIVATE))
+            flippedBitmap.compress(Bitmap.CompressFormat.PNG, 0, os)
+            os.close()
+        }
+
+        dispatchOpenGLErrors("saveData()")
     }
 
     private fun dispatchOpenGLErrors(locationName: String) {
