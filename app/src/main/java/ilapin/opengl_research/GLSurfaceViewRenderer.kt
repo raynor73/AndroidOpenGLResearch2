@@ -41,6 +41,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private var triangleVerticesBufferName = 0
     private var triangleIndicesBufferName = 0
     private var shaderProgramName = 0
+    private var framebufferName = 0
 
     private val openGLErrorMap = mapOf(
         GLES20.GL_INVALID_ENUM to "GL_INVALID_ENUM",
@@ -51,6 +52,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         GLES20.GL_OUT_OF_MEMORY to "GL_OUT_OF_MEMORY",
         GLES20.GL_INVALID_FRAMEBUFFER_OPERATION to "GL_INVALID_FRAMEBUFFER_OPERATION"
     )
+    private val framebufferStatusMap = mapOf(
+        GLES20.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT to "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT",
+        GLES20.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT to "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT",
+        GLES20.GL_FRAMEBUFFER_UNSUPPORTED to "GL_FRAMEBUFFER_UNSUPPORTED"
+    )
     private var isOpenGLErrorDetected = false
 
     private var isDataSaved = false
@@ -60,6 +66,143 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             return
         }
 
+        render()
+
+        dispatchOpenGLErrors("onDrawFrame()")
+    }
+
+    override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
+        surfaceWidth = width
+        surfaceHeight = height
+
+        GLES20.glViewport(0, 0, width, height)
+        GLES20.glClearColor(0f, 0f, 0.5f, 1f)
+
+        GLES20.glFrontFace(GLES20.GL_CCW)
+        GLES20.glCullFace(GLES20.GL_BACK)
+
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST)
+        GLES20.glEnable(GLES20.GL_CULL_FACE)
+
+        setupTriangle()
+        setupShaders()
+        setupFramebuffer()
+
+        dispatchOpenGLErrors("onSurfaceChanged()")
+    }
+
+    override fun onSurfaceCreated(gl: GL10?, config: EGLConfig) {
+        // do nothing
+    }
+
+    private fun setupFramebuffer() {
+        safeLet(surfaceWidth, surfaceHeight) { width, height ->
+            GLES20.glGenFramebuffers(1, tmpIntArray, 0)
+            framebufferName = tmpIntArray[0]
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebufferName)
+
+            GLES20.glGenTextures(1, tmpIntArray, 0)
+            val colorTexture = tmpIntArray[0]
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, colorTexture)
+
+            GLES20.glTexImage2D(
+                GLES20.GL_TEXTURE_2D,
+                0,
+                GLES20.GL_RGBA,
+                width,
+                height,
+                0,
+                GLES20.GL_RGBA,
+                GLES20.GL_UNSIGNED_BYTE,
+                null
+            )
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST)
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+
+            GLES20.glGenRenderbuffers(1, tmpIntArray, 0)
+            val depthRenderBuffer = tmpIntArray[0]
+            GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, depthRenderBuffer)
+            GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, width, height)
+            GLES20.glFramebufferRenderbuffer(
+                GLES20.GL_FRAMEBUFFER,
+                GLES20.GL_DEPTH_ATTACHMENT,
+                GLES20.GL_RENDERBUFFER,
+                depthRenderBuffer
+            )
+
+            // Set "renderedTexture" as our colour attachement #0
+            GLES20.glFramebufferTexture2D(
+                GLES20.GL_FRAMEBUFFER,
+                GLES20.GL_COLOR_ATTACHMENT0,
+                GLES20.GL_TEXTURE_2D,
+                colorTexture,
+                0
+            )
+
+            // Set the list of draw buffers.
+            //GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+            //GLES20.glDra glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+            val framebufferStatus = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
+            if(framebufferStatus != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+                isOpenGLErrorDetected = true
+                val statusDescription = framebufferStatusMap[framebufferStatus] ?: "Unknown status $framebufferStatus"
+                L.d(LOG_TAG, "Incomplete framebuffer status: $statusDescription")
+            }
+
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+            GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0)
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+
+            /*GLES20.glGenFramebuffers(1, tmpIntArray, 0)
+            framebufferName = tmpIntArray[0]
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebufferName)
+
+            GLES20.glGenTextures(1, tmpIntArray, 0)
+            val textureId = tmpIntArray[0]
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
+
+            GLES20.glTexImage2D(
+                GLES20.GL_TEXTURE_2D,
+                0,
+                GLES20.GL_DEPTH_COMPONENT,
+                width,
+                height,
+                0,
+                GLES20.GL_DEPTH_COMPONENT,
+                GLES20.GL_UNSIGNED_SHORT,
+                null
+            )
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST)
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+
+            GLES20.glFramebufferTexture2D(
+                GLES20.GL_FRAMEBUFFER,
+                GLES20.GL_DEPTH_ATTACHMENT,
+                GLES20.GL_TEXTURE_2D,
+                textureId,
+                0
+            )
+
+            val framebufferStatus = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
+            if(framebufferStatus != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+                isOpenGLErrorDetected = true
+                val statusDescription = framebufferStatusMap[framebufferStatus] ?: "Unknown status $framebufferStatus"
+                L.d(LOG_TAG, "Incomplete framebuffer status: $statusDescription")
+            }
+
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)*/
+        }
+
+        dispatchOpenGLErrors("setupFramebuffer()")
+    }
+
+    private fun render() {
         val surfaceAspect = safeLet(surfaceWidth, surfaceHeight) { width, height -> width.toFloat() / height } ?: return
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
@@ -104,33 +247,12 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         )
 
         GLES20.glDisableVertexAttribArray(vertexCoordinateAttributeLocation)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
 
         saveData()
 
-        dispatchOpenGLErrors("onDrawFrame()")
-    }
-
-    override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
-        surfaceWidth = width
-        surfaceHeight = height
-
-        GLES20.glViewport(0, 0, width, height)
-        GLES20.glClearColor(0f, 0f, 0.5f, 1f)
-
-        GLES20.glFrontFace(GLES20.GL_CCW)
-        GLES20.glCullFace(GLES20.GL_BACK)
-
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST)
-        GLES20.glEnable(GLES20.GL_CULL_FACE)
-
-        setupTriangle()
-        setupShaders()
-
-        dispatchOpenGLErrors("onSurfaceChanged()")
-    }
-
-    override fun onSurfaceCreated(gl: GL10?, config: EGLConfig) {
-        // do nothing
+        dispatchOpenGLErrors("render()")
     }
 
     private fun saveData() {
@@ -156,12 +278,15 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             }
 
             run {
-                val buffer = ByteBuffer.allocateDirect(width * height * BYTES_IN_FLOAT)
+                val buffer = ByteBuffer.allocateDirect(width * height * BYTES_IN_SHORT)
                 buffer.order(ByteOrder.nativeOrder())
+                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebufferName)
                 dispatchOpenGLErrors("+++")
-                GLES20.glReadPixels(0, 0, width, height, GLES20.GL_DEPTH_COMPONENT, GLES20.GL_UNSIGNED_INT, buffer)
+                GLES20.glReadPixels(0, 0, width, height, GLES20.GL_DEPTH_COMPONENT16, GLES20.GL_UNSIGNED_SHORT, buffer)
                 dispatchOpenGLErrors("glReadPixels(...)")
-                buffer.position(0)
+                GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+
+                /*buffer.position(0)
                 val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                 for (y in 0 until height) {
                     for (x in 0 until width) {
@@ -177,7 +302,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
                 val os = BufferedOutputStream(context.openFileOutput("depthBuffer.png", Context.MODE_PRIVATE))
                 flippedBitmap.compress(Bitmap.CompressFormat.PNG, 0, os)
-                os.close()
+                os.close()*/
             }
         }
 
