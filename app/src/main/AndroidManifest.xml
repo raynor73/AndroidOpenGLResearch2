@@ -9,6 +9,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/NoAppBarTheme"
+        android:name=".App"
         tools:ignore="GoogleAppIndexingWarning">
 
         <activity android:name=".MainActivity" android:screenOrientation="landscape">
