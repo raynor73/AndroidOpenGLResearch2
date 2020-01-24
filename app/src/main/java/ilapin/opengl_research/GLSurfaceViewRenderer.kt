@@ -15,7 +15,7 @@ import javax.microedition.khronos.opengles.GL10
 
 class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
-    private val cameraPosition = Vector3f(0f, 0f, 1f)
+    private val cameraPosition = Vector3f(0f, 0f, 2f)
     private val cameraRotation = Quaternionf().identity()
     private var surfaceAspect: Float? = null
 
@@ -56,18 +56,15 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val surfaceAspect = this.surfaceAspect ?: return
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-        dispatchOpenGLErrors("GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)")
 
         GLES20.glUseProgram(shaderProgramName)
-        dispatchOpenGLErrors("GLES20.glUseProgram(shaderProgramName)")
 
         val vertexCoordinateAttributeLocation = GLES20.glGetAttribLocation(
             shaderProgramName, "vertexCoordinateAttribute"
         )
-        dispatchOpenGLErrors("GLES20.glGetAttribLocation(shaderProgramName, vertexCoordinateAttribute)")
 
-        GLES20.glEnableVertexAttribArray(vertexCoordinateAttributeLocation)
-        dispatchOpenGLErrors("GLES20.glEnableVertexAttribArray(vertexCoordinateAttributeLocation)")
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, triangleVerticesBufferName)
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, triangleIndicesBufferName)
 
         GLES20.glVertexAttribPointer(
             vertexCoordinateAttributeLocation,
@@ -75,8 +72,9 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             GLES20.GL_FLOAT,
             false,
             0,
-            triangleVerticesBufferName
+            0
         )
+        GLES20.glEnableVertexAttribArray(vertexCoordinateAttributeLocation)
 
         val mvpMatrixUniformLocation = GLES20.glGetUniformLocation(shaderProgramName, "mvpMatrixUniform")
         val mvpMatrix = tmpMatrix
@@ -94,7 +92,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             GLES20.GL_TRIANGLES,
             triangleIndices.size,
             GLES20.GL_UNSIGNED_SHORT,
-            triangleIndicesBufferName
+            0
         )
 
         GLES20.glDisableVertexAttribArray(vertexCoordinateAttributeLocation)
