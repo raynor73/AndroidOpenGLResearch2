@@ -141,17 +141,44 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         safeLet(surfaceWidth, surfaceHeight) { width, height ->
             isDataSaved = true
 
-            val buffer = ByteBuffer.allocateDirect(width * height * 4)
-            GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buffer)
+            run {
+                val buffer = ByteBuffer.allocateDirect(width * height * 4)
+                GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buffer)
 
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            bitmap.copyPixelsFromBuffer(buffer)
-            val flipMatrix = Matrix().apply { postScale(1f, -1f, width / 2f, height / 2f); }
-            val flippedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, flipMatrix, false)
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                bitmap.copyPixelsFromBuffer(buffer)
+                val flipMatrix = Matrix().apply { postScale(1f, -1f, width / 2f, height / 2f); }
+                val flippedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, flipMatrix, false)
 
-            val os = BufferedOutputStream(context.openFileOutput("screenshot.png", Context.MODE_PRIVATE))
-            flippedBitmap.compress(Bitmap.CompressFormat.PNG, 0, os)
-            os.close()
+                val os = BufferedOutputStream(context.openFileOutput("screenshot.png", Context.MODE_PRIVATE))
+                flippedBitmap.compress(Bitmap.CompressFormat.PNG, 0, os)
+                os.close()
+            }
+
+            run {
+                val buffer = ByteBuffer.allocateDirect(width * height * BYTES_IN_FLOAT)
+                buffer.order(ByteOrder.nativeOrder())
+                dispatchOpenGLErrors("+++")
+                GLES20.glReadPixels(0, 0, width, height, GLES20.GL_DEPTH_COMPONENT, GLES20.GL_UNSIGNED_INT, buffer)
+                dispatchOpenGLErrors("glReadPixels(...)")
+                buffer.position(0)
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                for (y in 0 until height) {
+                    for (x in 0 until width) {
+                        val colorComponent = (buffer.float * 255).toInt()
+                        bitmap.setPixel(
+                            x, y,
+                            0xff000000.toInt() or (colorComponent shl 16) or (colorComponent shl 8) or colorComponent
+                        )
+                    }
+                }
+                val flipMatrix = Matrix().apply { postScale(1f, -1f, width / 2f, height / 2f); }
+                val flippedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, flipMatrix, false)
+
+                val os = BufferedOutputStream(context.openFileOutput("depthBuffer.png", Context.MODE_PRIVATE))
+                flippedBitmap.compress(Bitmap.CompressFormat.PNG, 0, os)
+                os.close()
+            }
         }
 
         dispatchOpenGLErrors("saveData()")
@@ -216,7 +243,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             verticesComponentsArray[2 + i * VERTEX_COORDINATE_COMPONENTS] = triangleVertices[i].z()
         }
         val verticesBuffer =
-            ByteBuffer.allocateDirect(verticesComponentsArray.size * BYTES_PER_FLOAT).run {
+            ByteBuffer.allocateDirect(verticesComponentsArray.size * BYTES_IN_FLOAT).run {
                 order(ByteOrder.nativeOrder())
                 asFloatBuffer().apply {
                     put(verticesComponentsArray)
@@ -228,7 +255,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         for (i in triangleIndices.indices) {
             indicesArray[i] = triangleIndices[i]
         }
-        val indicesBuffer = ByteBuffer.allocateDirect(triangleIndices.size * BYTES_PER_SHORT).run {
+        val indicesBuffer = ByteBuffer.allocateDirect(triangleIndices.size * BYTES_IN_SHORT).run {
             order(ByteOrder.nativeOrder())
             asShortBuffer().apply {
                 put(indicesArray)
@@ -241,7 +268,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, triangleVerticesBufferName)
         GLES20.glBufferData(
             GLES20.GL_ARRAY_BUFFER,
-            verticesComponentsArray.size * BYTES_PER_FLOAT,
+            verticesComponentsArray.size * BYTES_IN_FLOAT,
             verticesBuffer,
             GLES20.GL_STATIC_DRAW
         )
@@ -252,7 +279,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, triangleIndicesBufferName)
         GLES20.glBufferData(
             GLES20.GL_ELEMENT_ARRAY_BUFFER,
-            indicesArray.size * BYTES_PER_SHORT,
+            indicesArray.size * BYTES_IN_SHORT,
             indicesBuffer,
             GLES20.GL_STATIC_DRAW
         )
@@ -300,15 +327,15 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
     companion object {
 
-        private const val BYTES_PER_FLOAT = 4
-        private const val BYTES_PER_SHORT = 2
+        private const val BYTES_IN_FLOAT = 4
+        private const val BYTES_IN_SHORT = 2
         private const val VERTEX_COORDINATE_COMPONENTS = 3
 
         private val DEFAULT_LOOK_AT_DIRECTION: Vector3fc = Vector3f(0f, 0f, -1f)
         private val DEFAULT_CAMERA_UP_DIRECTION: Vector3fc = Vector3f(0f, 1f, 0f)
 
         private const val FIELD_OF_VIEW = 45f
-        private const val Z_NEAR = 0.1f
-        private const val Z_FAR = 5000f
+        private const val Z_NEAR = 1f
+        private const val Z_FAR = 10f
     }
 }
