@@ -5,11 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import android.opengl.GLU
 import android.os.SystemClock
-import ilapin.common.android.log.L
 import ilapin.common.kotlin.safeLet
-import ilapin.opengl_research.App.Companion.LOG_TAG
 import org.joml.*
 import java.io.BufferedOutputStream
 import java.nio.ByteBuffer
@@ -19,6 +16,8 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Renderer {
+
+    private val openGLErrorDetector = OpenGLErrorDetector()
 
     private val cameraPosition = Vector3f(0f, 0f, 2f)
     private val cameraRotation = Quaternionf().identity()
@@ -48,26 +47,10 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private var triangleZ = 0f
     private var triangleSpeed = -1f
 
-    private val openGLErrorMap = mapOf(
-        GLES20.GL_INVALID_ENUM to "GL_INVALID_ENUM",
-        GLES20.GL_INVALID_VALUE to "GL_INVALID_VALUE",
-        GLES20.GL_INVALID_OPERATION to "GL_INVALID_OPERATION",
-        GL10.GL_STACK_OVERFLOW to "GL_STACK_OVERFLOW",
-        GL10.GL_STACK_UNDERFLOW to "GL_STACK_UNDERFLOW",
-        GLES20.GL_OUT_OF_MEMORY to "GL_OUT_OF_MEMORY",
-        GLES20.GL_INVALID_FRAMEBUFFER_OPERATION to "GL_INVALID_FRAMEBUFFER_OPERATION"
-    )
-    private val framebufferStatusMap = mapOf(
-        GLES20.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT to "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT",
-        GLES20.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT to "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT",
-        GLES20.GL_FRAMEBUFFER_UNSUPPORTED to "GL_FRAMEBUFFER_UNSUPPORTED"
-    )
-    private var isOpenGLErrorDetected = false
-
     private var isDataSaved = false
 
     override fun onDrawFrame(gl: GL10) {
-        if (isOpenGLErrorDetected) {
+        if (openGLErrorDetector.isOpenGLErrorDetected) {
             return
         }
 
@@ -78,8 +61,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         }
         prevTimestamp = currentTimestamp
 
-
-        dispatchOpenGLErrors("onDrawFrame()")
+        openGLErrorDetector.dispatchOpenGLErrors("onDrawFrame()")
     }
 
     override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
@@ -99,7 +81,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         setupShaders()
         //setupFramebuffer()
 
-        dispatchOpenGLErrors("onSurfaceChanged()")
+        openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged()")
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig) {
@@ -178,12 +160,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                 0
             )
 
-            val framebufferStatus = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
-            if(framebufferStatus != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-                isOpenGLErrorDetected = true
-                val statusDescription = framebufferStatusMap[framebufferStatus] ?: "Unknown status $framebufferStatus"
-                L.d(LOG_TAG, "Incomplete framebuffer status: $statusDescription")
-            }
+            openGLErrorDetector.checkFramebufferStatus("setupFramebuffer()")
 
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
@@ -289,7 +266,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)*/
         }
 
-        dispatchOpenGLErrors("setupFramebuffer()")
+        openGLErrorDetector.dispatchOpenGLErrors("setupFramebuffer()")
     }
 
     private fun render(dt: Float) {
@@ -357,7 +334,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         saveData()
 
-        dispatchOpenGLErrors("render()")
+        openGLErrorDetector.dispatchOpenGLErrors("render()")
     }
 
     private fun saveData() {
@@ -411,25 +388,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             }
         }
 
-        dispatchOpenGLErrors("saveData()")
-    }
-
-    private fun dispatchOpenGLErrors(locationName: String) {
-        var error = GLES20.glGetError()
-        while(error != GLES20.GL_NO_ERROR) {
-            isOpenGLErrorDetected = true
-            val errorDescription = openGLErrorMap[error] ?: "Unknown error $error"
-            L.d(LOG_TAG, "OpenGL error detected at $locationName: $errorDescription ${GLU.gluErrorString(error)}")
-            error = GLES20.glGetError()
-        }
-    }
-
-    private fun dispatchShaderError(shader: Int, locationName: String) {
-        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, tmpIntArray, 0)
-        if (tmpIntArray[0] == GLES20.GL_FALSE) {
-            isOpenGLErrorDetected = true
-            L.d(LOG_TAG, "OpenGL shader compilation failure detected at $locationName: ${GLES20.glGetShaderInfoLog(shader)}")
-        }
+        openGLErrorDetector.dispatchOpenGLErrors("saveData()")
     }
 
     private fun setupShaders() {
@@ -439,7 +398,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             context.assets.open("vertexShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
         GLES20.glCompileShader(vertexShaderName)
-        dispatchShaderError(vertexShaderName, "GLES20.glCompileShader(vertexShaderName)")
+        openGLErrorDetector.dispatchShaderCompilationError(vertexShaderName, "GLES20.glCompileShader(vertexShaderName)")
 
         val fragmentShaderName = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER)
         GLES20.glShaderSource(
@@ -447,20 +406,16 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             context.assets.open("fragmentShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
         GLES20.glCompileShader(fragmentShaderName)
-        dispatchShaderError(fragmentShaderName, "GLES20.glCompileShader(fragmentShaderName)")
+        openGLErrorDetector.dispatchShaderCompilationError(fragmentShaderName, "GLES20.glCompileShader(fragmentShaderName)")
 
         shaderProgramName = GLES20.glCreateProgram()
         GLES20.glAttachShader(shaderProgramName, vertexShaderName)
         GLES20.glAttachShader(shaderProgramName, fragmentShaderName)
         GLES20.glLinkProgram(shaderProgramName)
 
-        GLES20.glGetProgramiv(shaderProgramName, GLES20.GL_LINK_STATUS, tmpIntArray, 0)
-        if (tmpIntArray[0] == GLES20.GL_FALSE) {
-            isOpenGLErrorDetected = true
-            L.d(LOG_TAG, "OpenGL shader linking failure detected: ${GLES20.glGetShaderInfoLog(shaderProgramName)}")
-        }
+        openGLErrorDetector.dispatchShaderLinkingError(shaderProgramName, "setupShaders()")
 
-        dispatchOpenGLErrors("setupShaders()")
+        openGLErrorDetector.dispatchOpenGLErrors("setupShaders()")
     }
 
     private fun setupTriangle() {
@@ -515,7 +470,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         )
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
 
-        dispatchOpenGLErrors("setupTriangle()")
+        openGLErrorDetector.dispatchOpenGLErrors("setupTriangle()")
     }
 
     private fun getViewProjectionMatrix(
@@ -558,10 +513,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     companion object {
 
         private const val NANOS_IN_SECOND = 1e9f
-
-        private const val BYTES_IN_FLOAT = 4
-        private const val BYTES_IN_SHORT = 2
-        private const val VERTEX_COORDINATE_COMPONENTS = 3
 
         private val DEFAULT_LOOK_AT_DIRECTION: Vector3fc = Vector3f(0f, 0f, -1f)
         private val DEFAULT_CAMERA_UP_DIRECTION: Vector3fc = Vector3f(0f, 1f, 0f)
