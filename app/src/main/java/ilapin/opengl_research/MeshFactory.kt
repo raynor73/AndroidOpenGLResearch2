@@ -20,5 +20,16 @@ class MeshFactory {
                 listOf(0, 1, 2, 2, 3, 0)
             )
         }
+
+        fun createTriangle(): Mesh {
+            return Mesh(
+                listOf(
+                    Vector3f(0f, 0.5f, 0f),
+                    Vector3f(-0.5f, -0.5f, 0f),
+                    Vector3f(0.5f, -0.5f, 0f)
+                ),
+                listOf(0, 1, 2)
+            )
+        }
     }
 }
