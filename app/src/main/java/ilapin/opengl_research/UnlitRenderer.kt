@@ -3,11 +3,9 @@ package ilapin.opengl_research
 import android.opengl.GLES20
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
+import org.joml.Vector4fc
 
-/**
- * @author ilapin on 25.01.2020.
- */
-class DepthVisualizationRenderer(
+class UnlitRenderer(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector
 ) {
@@ -20,9 +18,10 @@ class DepthVisualizationRenderer(
         iboName: String,
         modelMatrix: Matrix4fc,
         viewMatrix: Matrix4fc,
-        projectionMatrix: Matrix4fc
+        projectionMatrix: Matrix4fc,
+        color: Vector4fc
     ) {
-        val shaderProgram = openGLObjectsRepository.findShaderProgram("depth_visualizer_shader_program") ?: return
+        val shaderProgram = openGLObjectsRepository.findShaderProgram("unlit_shader_program") ?: return
         val vbo = openGLObjectsRepository.findVbo(vboName) ?: return
         val ibo = openGLObjectsRepository.findIbo(iboName) ?: return
 
@@ -50,6 +49,14 @@ class DepthVisualizationRenderer(
         tmpMatrix.get(tmpFloatArray)
         GLES20.glUniformMatrix4fv(mvpMatrixUniformLocation, 1, false, tmpFloatArray, 0)
 
+        GLES20.glUniform4f(
+            GLES20.glGetUniformLocation(shaderProgram, "color"),
+            color.x(),
+            color.y(),
+            color.z(),
+            color.w()
+        )
+
         GLES20.glGetBufferParameteriv(GLES20.GL_ELEMENT_ARRAY_BUFFER, GLES20.GL_BUFFER_SIZE, tmpIntArray, 0)
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES,
@@ -62,6 +69,6 @@ class DepthVisualizationRenderer(
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
 
-        openGLErrorDetector.dispatchOpenGLErrors("DepthVisualizationRenderer.render")
+        openGLErrorDetector.dispatchOpenGLErrors("UnlitRenderer.render")
     }
 }
