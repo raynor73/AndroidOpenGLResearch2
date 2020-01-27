@@ -5,10 +5,10 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fc
 import org.joml.Vector4fc
 
-class UnlitRenderer(
+class UnlitRendererComponent(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector
-) {
+) : RendererComponent() {
     private val tmpFloatArray = FloatArray(16)
     private val tmpIntArray = IntArray(1)
     private val tmpMatrix = Matrix4f()
@@ -21,6 +21,10 @@ class UnlitRenderer(
         projectionMatrix: Matrix4fc,
         color: Vector4fc
     ) {
+        if (!isEnabled) {
+            return
+        }
+
         val shaderProgram = openGLObjectsRepository.findShaderProgram("unlit_shader_program") ?: return
         val vbo = openGLObjectsRepository.findVbo(vboName) ?: return
         val ibo = openGLObjectsRepository.findIbo(iboName) ?: return

@@ -1,16 +1,17 @@
 package ilapin.opengl_research
 
 import android.opengl.GLES20
+import ilapin.engine3d.GameObjectComponent
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
 
 /**
  * @author ilapin on 25.01.2020.
  */
-class DepthVisualizationRenderer(
+class DepthVisualizationRendererComponent(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector
-) {
+) : RendererComponent() {
     private val tmpFloatArray = FloatArray(16)
     private val tmpIntArray = IntArray(1)
     private val tmpMatrix = Matrix4f()
@@ -22,6 +23,10 @@ class DepthVisualizationRenderer(
         viewMatrix: Matrix4fc,
         projectionMatrix: Matrix4fc
     ) {
+        if (!isEnabled) {
+            return
+        }
+
         val shaderProgram = openGLObjectsRepository.findShaderProgram("depth_visualizer_shader_program") ?: return
         val vbo = openGLObjectsRepository.findVbo(vboName) ?: return
         val ibo = openGLObjectsRepository.findIbo(iboName) ?: return

@@ -1,6 +1,8 @@
 package ilapin.opengl_research
 
+import android.graphics.Bitmap
 import android.opengl.GLES20
+import android.opengl.GLUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -26,6 +28,10 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     fun findShaderProgram(name: String) = shaderPrograms[name]
 
     fun createStaticVbo(name: String, verticesData: FloatArray): Int {
+        if (vbos.containsKey(name)) {
+            throw IllegalArgumentException("VBO $name already exists")
+        }
+
         val verticesBuffer = ByteBuffer.allocateDirect(verticesData.size * BYTES_IN_FLOAT).apply {
             order(ByteOrder.nativeOrder())
             asFloatBuffer().apply {
@@ -53,6 +59,10 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     }
 
     fun createStaticIbo(name: String, indices: ShortArray): Int {
+        if (ibos.containsKey(name)) {
+            throw IllegalArgumentException("IBO $name already exists")
+        }
+
         val indicesBuffer = ByteBuffer.allocateDirect(indices.size * BYTES_IN_SHORT).apply {
             order(ByteOrder.nativeOrder())
             asShortBuffer().apply {
@@ -80,6 +90,10 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     }
 
     fun createVertexShader(name: String, source: String): Int {
+        if (vertexShaders.containsKey(name)) {
+            throw IllegalArgumentException("Vertex shader $name already exists")
+        }
+
         val shader = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER)
         GLES20.glShaderSource(shader, source)
         GLES20.glCompileShader(shader)
@@ -92,6 +106,10 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     }
 
     fun createFragmentShader(name: String, source: String): Int {
+        if (fragmentShaders.containsKey(name)) {
+            throw IllegalArgumentException("Fragment shader $name already exists")
+        }
+
         val shader = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER)
         GLES20.glShaderSource(shader, source)
         GLES20.glCompileShader(shader)
@@ -104,6 +122,10 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     }
 
     fun createShaderProgram(name: String, vertexShader: Int, fragmentShader: Int): Int {
+        if (shaderPrograms.containsKey(name)) {
+            throw IllegalArgumentException("Shader program $name already exists")
+        }
+
         val shaderProgram = GLES20.glCreateProgram()
         GLES20.glAttachShader(shaderProgram, vertexShader)
         GLES20.glAttachShader(shaderProgram, fragmentShader)
@@ -117,9 +139,37 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
         return shaderProgram
     }
 
-    //fun createTexture
+    fun createTexture(name: String, width: Int, height: Int, data: IntArray) {
+        if (textures.containsKey(name)) {
+            throw IllegalArgumentException("Texture $name already exists")
+        }
+
+        GLES20.glGenTextures(1, tmpIntArray, 0)
+        val texture = tmpIntArray[0]
+
+        val bitmap = Bitmap.createBitmap(data, width, height, Bitmap.Config.ARGB_8888)
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+
+        bitmap.recycle()
+
+        textures[name] = texture
+
+        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+    }
 
     private fun createFramebuffer(name: String, width: Int, height: Int) {
+        if (fbos.containsKey(name)) {
+            throw IllegalArgumentException("FBO $name already exists")
+        }
+
         // Create a frame buffer
         GLES20.glGenFramebuffers(1, tmpIntArray, 0)
         val framebuffer = tmpIntArray[0]
@@ -190,9 +240,9 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
             0
         )
 
-        openGLErrorDetector.checkFramebufferStatus("setupFramebuffer()")
-
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+
+        fbos[name] = framebuffer
 
         /*GLES20.glGenFramebuffers(1, tmpIntArray, 0)
         framebufferName = tmpIntArray[0]

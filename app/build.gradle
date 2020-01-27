@@ -43,6 +43,7 @@ dependencies {
 
     implementation 'com.github.raynor73:Commons:0.2'
     implementation 'com.github.raynor73:AndroidCommons:0.3'
+    implementation 'com.github.raynor73:Engine3DJvm:0.3.4'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'

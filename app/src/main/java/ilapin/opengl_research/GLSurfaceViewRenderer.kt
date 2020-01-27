@@ -4,20 +4,26 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.SystemClock
-import org.joml.*
+import ilapin.engine3d.GameObject
+import ilapin.engine3d.MaterialComponent
+import ilapin.engine3d.TransformationComponent
+import org.joml.Matrix4f
+import org.joml.Quaternionf
+import org.joml.Vector3f
+import org.joml.Vector4f
 import java.nio.charset.Charset
+import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.math.PI
 
 class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
     private val openGLErrorDetector = OpenGLErrorDetector()
     private val openGLObjectsRepository = OpenGLObjectsRepository(openGLErrorDetector)
-    private val depthVisualizationRenderer = DepthVisualizationRenderer(openGLObjectsRepository, openGLErrorDetector)
-    private val unlitRenderer = UnlitRenderer(openGLObjectsRepository, openGLErrorDetector)
+    private val depthVisualizationRenderer = DepthVisualizationRendererComponent(openGLObjectsRepository, openGLErrorDetector)
+    private val unlitRenderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
 
-    private val cameraPosition = Vector3f(0f, 0f, 2f)
-    private val cameraRotation = Quaternionf().identity()
     private var surfaceWidth: Int? = null
     private var surfaceHeight: Int? = null
 
@@ -25,10 +31,12 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private val matrixPool = ObjectsPool { Matrix4f() }
 
     private var prevTimestamp: Long? = null
-    private var triangleZ = 0f
-    private var triangleSpeed = -1f
 
-    private val color = Vector4f(0f, 0.5f, 0f, 1f)
+    private
+    private val rootGameObject = GameObject("root")
+    private val green = Vector4f(0f, 0.5f, 0f, 1f)
+
+    private val renderers = LinkedList<RendererComponent>()
 
     override fun onDrawFrame(gl: GL10) {
         if (openGLErrorDetector.isOpenGLErrorDetected) {
@@ -53,14 +61,27 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
         GLES20.glEnable(GLES20.GL_CULL_FACE)
 
-        setupTriangle()
+        setupTextures()
+        setupGeometry()
         setupShaders()
+        setupCamera()
 
         openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged")
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig) {
         // do nothing
+    }
+
+    private fun setupCamera() {
+        val gameObject = GameObject("camera")
+        gameObject.addComponent(TransformationComponent(
+            Vector3f(0f, 0f, 2f),
+            Quaternionf().identity(),
+            Vector3f(1f, 1f, 1f)
+        ))
+        gameObject.addComponent(PerspectiveCameraComponent(vectorsPool))
+        rootGameObject.addChild(gameObject)
     }
 
     private fun render(dt: Float) {
@@ -76,14 +97,34 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
 
-        unlitRenderer.render(
-            "triangle_vertices",
-            "triangle_indices",
-            modelMatrix.setTranslation(0.5f, 0f, triangleZ),
-            calculateViewMatrix(vectorsPool, cameraPosition, cameraRotation, viewMatrix),
-            calculateProjectionMatrix(surfaceAspect, projectionMatrix),
-            color
-        )
+        renderers.clear()
+        rootGameObject.findAllRendererComponents(renderers)
+
+        val camera =
+
+        renderers.forEach {
+            when (it) {
+                is DepthVisualizationRendererComponent -> {
+
+                }
+
+                is UnlitRendererComponent -> {
+                    val meshName = it.gameObject?.getComponent(MeshComponent::class.java)!!.name
+                    val transform = it.gameObject?.getComponent(TransformationComponent::class.java)!!
+                    unlitRenderer.render(
+                        meshName,
+                        meshName,
+                        modelMatrix.identity()
+                            .scale(transform.scale)
+                            .rotate(transform.rotation)
+                            .translate(transform.position),
+                        calculateViewMatrix(vectorsPool, cameraPosition, cameraRotation, viewMatrix),
+                        calculateProjectionMatrix(surfaceAspect, projectionMatrix),
+                        green
+                    )
+                }
+            }
+        }
 
         val debugViewportWidth = (width / 3f).toInt()
         val debugViewportHeight = (height / 3f).toInt()
@@ -103,18 +144,16 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         GLES20.glDisable(GLES20.GL_SCISSOR_TEST)
 
-        triangleZ += triangleSpeed * dt
-        if (triangleZ <= -8) {
-            triangleSpeed = 1f
-        } else if (triangleZ >= 1) {
-            triangleSpeed = -1f
-        }
-
         matrixPool.recycle(modelMatrix)
         matrixPool.recycle(viewMatrix)
         matrixPool.recycle(projectionMatrix)
 
         openGLErrorDetector.dispatchOpenGLErrors("render")
+    }
+
+    private fun setupTextures() {
+        openGLObjectsRepository.createTexture("green", 1, 1, intArrayOf(0xff008000.toInt()))
+        openGLObjectsRepository.createTexture("blue", 1, 1, intArrayOf(0xff000080.toInt()))
     }
 
     private fun setupShaders() {
@@ -147,73 +186,40 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         )
     }
 
-    private fun setupTriangle() {
-        val mesh = MeshFactory.createTriangle()
+    private fun setupGeometry() {
+        val mesh = MeshFactory.createQuad()
+        openGLObjectsRepository.createStaticVbo("quad", mesh.verticesAsArray())
+        openGLObjectsRepository.createStaticIbo("quad", mesh.indices.toShortArray())
 
-        val verticesComponentsArray = FloatArray(
-            mesh.vertexCoordinates.size * VERTEX_COORDINATE_COMPONENTS
-        )
-        for (i in mesh.indices.indices) {
-            verticesComponentsArray[0 + i * VERTEX_COORDINATE_COMPONENTS] = mesh.vertexCoordinates[i].x()
-            verticesComponentsArray[1 + i * VERTEX_COORDINATE_COMPONENTS] = mesh.vertexCoordinates[i].y()
-            verticesComponentsArray[2 + i * VERTEX_COORDINATE_COMPONENTS] = mesh.vertexCoordinates[i].z()
+        run {
+            val gameObject = GameObject("ground_plane")
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, -2f, 0f),
+                Quaternionf().identity().rotationX(-(PI / 2).toFloat()),
+                Vector3f(10f, 10f, 1f)
+            ))
+            gameObject.addComponent(unlitRenderer)
+            gameObject.addComponent(MaterialComponent("green"))
+            gameObject.addComponent(MeshComponent("quad"))
+            rootGameObject.addChild(gameObject)
         }
-        openGLObjectsRepository.createStaticVbo("triangle_vertices", verticesComponentsArray)
 
-        val indicesArray = ShortArray(mesh.indices.size)
-        for (i in mesh.indices.indices) {
-            indicesArray[i] = mesh.indices[i]
+        run {
+            val gameObject = GameObject("floating_plane")
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, -1f, 0f),
+                Quaternionf().identity().rotationX(-(PI / 2).toFloat()),
+                Vector3f(1f, 1f, 1f)
+            ))
+            gameObject.addComponent(unlitRenderer)
+            gameObject.addComponent(MaterialComponent("blue"))
+            gameObject.addComponent(MeshComponent("quad"))
+            rootGameObject.addChild(gameObject)
         }
-        openGLObjectsRepository.createStaticIbo("triangle_indices", indicesArray)
-    }
-
-    private fun calculateViewMatrix(
-        vectorsPool: ObjectsPool<Vector3f>,
-        cameraPosition: Vector3fc,
-        cameraRotation: Quaternionfc,
-        dest: Matrix4f
-    ): Matrix4f {
-        val lookAtDirection = vectorsPool.obtain()
-        val up = vectorsPool.obtain()
-
-        lookAtDirection.set(DEFAULT_LOOK_AT_DIRECTION)
-        lookAtDirection.rotate(cameraRotation)
-        up.set(DEFAULT_CAMERA_UP_DIRECTION)
-        up.rotate(cameraRotation)
-
-        dest.setLookAt(
-            cameraPosition.x(),
-            cameraPosition.y(),
-            cameraPosition.z(),
-            cameraPosition.x() + lookAtDirection.x,
-            cameraPosition.y() + lookAtDirection.y,
-            cameraPosition.z() + lookAtDirection.z,
-            up.x,
-            up.y,
-            up.z
-        )
-
-        vectorsPool.recycle(lookAtDirection)
-        vectorsPool.recycle(up)
-
-        return dest
-    }
-
-    private fun calculateProjectionMatrix(aspect: Float, dest: Matrix4f): Matrix4f {
-        dest.setPerspective(FIELD_OF_VIEW, aspect, Z_NEAR, Z_FAR)
-
-        return dest
     }
 
     companion object {
 
         private const val NANOS_IN_SECOND = 1e9f
-
-        private val DEFAULT_LOOK_AT_DIRECTION: Vector3fc = Vector3f(0f, 0f, -1f)
-        private val DEFAULT_CAMERA_UP_DIRECTION: Vector3fc = Vector3f(0f, 1f, 0f)
-
-        private const val FIELD_OF_VIEW = 45f
-        private const val Z_NEAR = 1f
-        private const val Z_FAR = 10f
     }
 }
