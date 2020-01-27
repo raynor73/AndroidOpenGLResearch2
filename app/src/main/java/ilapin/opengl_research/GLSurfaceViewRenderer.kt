@@ -28,8 +28,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private var triangleZ = 0f
     private var triangleSpeed = -1f
 
-    //private var isDataSaved = false
-
     override fun onDrawFrame(gl: GL10) {
         if (openGLErrorDetector.isOpenGLErrorDetected) {
             return
@@ -58,7 +56,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         setupTriangle()
         setupShaders()
-        //setupFramebuffer()
 
         openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged")
     }
@@ -91,38 +88,12 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             triangleSpeed = -1f
         }
 
-        //saveData()
-
         matrixPool.recycle(modelMatrix)
         matrixPool.recycle(viewMatrix)
         matrixPool.recycle(projectionMatrix)
 
         openGLErrorDetector.dispatchOpenGLErrors("render()")
     }
-
-    /*private fun saveData() {
-        if (isDataSaved) {
-            return
-        }
-
-        safeLet(surfaceWidth, surfaceHeight) { width, height ->
-            isDataSaved = true
-
-            val buffer = ByteBuffer.allocateDirect(width * height * 4)
-            GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buffer)
-
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            bitmap.copyPixelsFromBuffer(buffer)
-            val flipMatrix = Matrix().apply { postScale(1f, -1f, width / 2f, height / 2f); }
-            val flippedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, flipMatrix, false)
-
-            val os = BufferedOutputStream(context.openFileOutput("screenshot.png", Context.MODE_PRIVATE))
-            flippedBitmap.compress(Bitmap.CompressFormat.PNG, 0, os)
-            os.close()
-        }
-
-        openGLErrorDetector.dispatchOpenGLErrors("saveData")
-    }*/
 
     private fun setupShaders() {
         openGLObjectsRepository.createVertexShader(
@@ -197,43 +168,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         return dest
     }
-
-    /*private fun getViewProjectionMatrix(
-        aspect: Float,
-        fov: Float,
-        zNear: Float,
-        zFar: Float
-    ): Matrix4fc {
-        val projectionMatrix = tmpMatrix
-        val viewProjectionMatrix = tmpMatrix2
-        val lookAtDirection = tmpVector
-        val up = tmpVector2
-
-        lookAtDirection.set(DEFAULT_LOOK_AT_DIRECTION)
-        lookAtDirection.rotate(cameraRotation)
-        up.set(DEFAULT_CAMERA_UP_DIRECTION)
-        up.rotate(cameraRotation)
-
-        projectionMatrix.identity().perspective(
-            Math.toRadians(fov.toDouble()).toFloat(),
-            aspect,
-            zNear,
-            zFar
-        )
-
-        return projectionMatrix.lookAt(
-            cameraPosition.x,
-            cameraPosition.y,
-            cameraPosition.z,
-            cameraPosition.x + lookAtDirection.x,
-            cameraPosition.y + lookAtDirection.y,
-            cameraPosition.z + lookAtDirection.z,
-            up.x,
-            up.y,
-            up.z,
-            viewProjectionMatrix
-        )
-    }*/
 
     companion object {
 
