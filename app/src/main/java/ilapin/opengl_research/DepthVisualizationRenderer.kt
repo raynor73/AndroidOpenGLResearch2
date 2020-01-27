@@ -44,23 +44,13 @@ class DepthVisualizationRenderer(
         GLES20.glEnableVertexAttribArray(vertexCoordinateAttributeLocation)
 
         val mvpMatrixUniformLocation = GLES20.glGetUniformLocation(shaderProgram, "mvpMatrixUniform")
-        /*tmpMatrix.set(modelMatrix)
-        tmpMatrix.mul(viewMatrix)
-        tmpMatrix.mul(projectionMatrix)*/
         tmpMatrix.set(projectionMatrix)
         tmpMatrix.mul(viewMatrix)
         tmpMatrix.mul(modelMatrix)
         tmpMatrix.get(tmpFloatArray)
+
         GLES20.glUniformMatrix4fv(mvpMatrixUniformLocation, 1, false, tmpFloatArray, 0)
 
-        /*val mvMatrixUniformLocation = GLES20.glGetUniformLocation(shaderProgram, "mvMatrixUniform")
-        val mvMatrix = tmpMatrix
-        tmpMatrix.set(viewMatrix)
-        tmpMatrix.mul(modelMatrix)
-        mvMatrix.get(tmpFloatArray)
-        GLES20.glUniformMatrix4fv(mvMatrixUniformLocation, 1, false, tmpFloatArray, 0)*/
-
-        // TODO Check if this glGet... method is good idea
         GLES20.glGetBufferParameteriv(GLES20.GL_ELEMENT_ARRAY_BUFFER, GLES20.GL_BUFFER_SIZE, tmpIntArray, 0)
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES,
