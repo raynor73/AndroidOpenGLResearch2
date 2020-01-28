@@ -13,12 +13,12 @@ fun Mesh.verticesAsArray(): FloatArray {
     return vertexComponentsArray
 }
 
-fun GameObject.getRendererComponent(): RendererComponent? {
+/*fun GameObject.getRendererComponent(): RendererComponent? {
     return getComponent(UnlitRendererComponent::class.java) ?:
     getComponent(DepthVisualizationRendererComponent::class.java)
-}
+}*/
 
-fun GameObject.findAllRendererComponents(dest: LinkedList<RendererComponent>) {
+/*fun GameObject.findAllRendererComponents(dest: LinkedList<RendererComponent>) {
     getRendererComponent()?.let { dest += it }
     children.forEach { it.findAllRendererComponents(dest) }
-}
+}*/

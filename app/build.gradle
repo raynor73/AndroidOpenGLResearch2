@@ -40,6 +40,7 @@ dependencies {
 
     implementation 'org.joml:joml:1.9.19'
     implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation("com.google.guava:guava:28.2-android")
 
     implementation 'com.github.raynor73:Commons:0.2'
     implementation 'com.github.raynor73:AndroidCommons:0.3'

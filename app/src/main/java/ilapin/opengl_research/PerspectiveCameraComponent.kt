@@ -3,22 +3,19 @@ package ilapin.opengl_research
 import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
 import org.joml.Matrix4f
-import org.joml.Matrix4fc
 import org.joml.Vector3f
 import org.joml.Vector3fc
 
 /**
  * @author raynor on 27.01.20.
  */
-class PerspectiveCameraComponent(
-    private val vectorsPool: ObjectsPool<Vector3f>
-) : GameObjectComponent() {
+class PerspectiveCameraComponent(private val vectorsPool: ObjectsPool<Vector3f>) : GameObjectComponent() {
 
     var fov = DEFAULT_FIELD_OF_VIEW
     var zNear = DEFAULT_Z_NEAR
     var zFar = DEFAULT_Z_FAR
 
-    private fun calculateViewMatrix(dest: Matrix4f): Matrix4f {
+    fun calculateViewMatrix(dest: Matrix4f): Matrix4f {
         val transform = gameObject?.getComponent(TransformationComponent::class.java) ?: return dest
 
         val lookAtDirection = vectorsPool.obtain()
@@ -48,7 +45,7 @@ class PerspectiveCameraComponent(
         return dest
     }
 
-    private fun calculateProjectionMatrix(aspect: Float, dest: Matrix4f): Matrix4f {
+    fun calculateProjectionMatrix(aspect: Float, dest: Matrix4f): Matrix4f {
         dest.setPerspective(fov, aspect, zNear, zFar)
 
         return dest

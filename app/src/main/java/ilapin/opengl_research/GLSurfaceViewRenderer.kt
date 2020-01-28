@@ -4,7 +4,9 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.SystemClock
+import com.google.common.collect.HashMultimap
 import ilapin.engine3d.GameObject
+import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.MaterialComponent
 import ilapin.engine3d.TransformationComponent
 import org.joml.Matrix4f
@@ -15,6 +17,7 @@ import java.nio.charset.Charset
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.collections.ArrayList
 import kotlin.math.PI
 
 class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Renderer {
@@ -32,11 +35,14 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
     private var prevTimestamp: Long? = null
 
-    private
     private val rootGameObject = GameObject("root")
     private val green = Vector4f(0f, 0.5f, 0f, 1f)
 
-    private val renderers = LinkedList<RendererComponent>()
+    //private val renderers = LinkedList<RendererComponent>()
+    //private val cameraRenderingTargets = HashMultimap.create<String, String>()
+    //private val rendererCameras = HashMultimap.create<RendererComponent, String>()
+    private val cameras = ArrayList<CameraComponent>()
+    private val layerRenderers = HashMultimap.create<String, GameObjectComponent>()
 
     override fun onDrawFrame(gl: GL10) {
         if (openGLErrorDetector.isOpenGLErrorDetected) {
@@ -97,36 +103,36 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
 
-        renderers.clear()
-        rootGameObject.findAllRendererComponents(renderers)
+        cameras.forEach { camera ->
+            camera.layerNames.forEach { layerName ->
+                layerRenderers[layerName].forEach { renderer ->
+                    when (renderer) {
+                        is DepthVisualizationRendererComponent -> {
 
-        val camera =
+                        }
 
-        renderers.forEach {
-            when (it) {
-                is DepthVisualizationRendererComponent -> {
+                        is UnlitRendererComponent -> {
+                            val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
+                            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
+                            unlitRenderer.render(
+                                meshName,
+                                meshName,
+                                modelMatrix.identity()
+                                    .scale(transform.scale)
+                                    .rotate(transform.rotation)
+                                    .translate(transform.position),
+                                camera.calculateViewMatrix(vectorsPool, cameraPosition, cameraRotation, viewMatrix),
+                                camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix),
+                                green
+                            )
+                        }
+                    }
 
-                }
-
-                is UnlitRendererComponent -> {
-                    val meshName = it.gameObject?.getComponent(MeshComponent::class.java)!!.name
-                    val transform = it.gameObject?.getComponent(TransformationComponent::class.java)!!
-                    unlitRenderer.render(
-                        meshName,
-                        meshName,
-                        modelMatrix.identity()
-                            .scale(transform.scale)
-                            .rotate(transform.rotation)
-                            .translate(transform.position),
-                        calculateViewMatrix(vectorsPool, cameraPosition, cameraRotation, viewMatrix),
-                        calculateProjectionMatrix(surfaceAspect, projectionMatrix),
-                        green
-                    )
                 }
             }
         }
 
-        val debugViewportWidth = (width / 3f).toInt()
+        /*val debugViewportWidth = (width / 3f).toInt()
         val debugViewportHeight = (height / 3f).toInt()
         GLES20.glScissor(0, 0, debugViewportWidth, debugViewportHeight)
         GLES20.glViewport(0, 0, debugViewportWidth, debugViewportHeight)
@@ -142,7 +148,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             calculateProjectionMatrix(surfaceAspect, projectionMatrix)
         )
 
-        GLES20.glDisable(GLES20.GL_SCISSOR_TEST)
+        GLES20.glDisable(GLES20.GL_SCISSOR_TEST)*/
 
         matrixPool.recycle(modelMatrix)
         matrixPool.recycle(viewMatrix)
