@@ -1,11 +1,8 @@
 package ilapin.opengl_research
 
-import ilapin.engine3d.GameObject
-import java.util.*
-
 fun Mesh.verticesAsArray(): FloatArray {
     val vertexComponentsArray = FloatArray(vertexCoordinates.size * VERTEX_COORDINATE_COMPONENTS)
-    for (i in indices.indices) {
+    for (i in vertexCoordinates.indices) {
         vertexComponentsArray[0 + i * VERTEX_COORDINATE_COMPONENTS] = vertexCoordinates[i].x()
         vertexComponentsArray[1 + i * VERTEX_COORDINATE_COMPONENTS] = vertexCoordinates[i].y()
         vertexComponentsArray[2 + i * VERTEX_COORDINATE_COMPONENTS] = vertexCoordinates[i].z()

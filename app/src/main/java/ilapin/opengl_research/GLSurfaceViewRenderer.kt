@@ -14,18 +14,14 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import java.nio.charset.Charset
-import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
-import kotlin.collections.ArrayList
 import kotlin.math.PI
 
 class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
     private val openGLErrorDetector = OpenGLErrorDetector()
     private val openGLObjectsRepository = OpenGLObjectsRepository(openGLErrorDetector)
-    private val depthVisualizationRenderer = DepthVisualizationRendererComponent(openGLObjectsRepository, openGLErrorDetector)
-    private val unlitRenderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
 
     private var surfaceWidth: Int? = null
     private var surfaceHeight: Int? = null
@@ -35,7 +31,9 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
     private var prevTimestamp: Long? = null
 
-    private val rootGameObject = GameObject("root")
+    private val rootGameObject = GameObject("root").apply {
+        addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
+    }
     private val green = Vector4f(0f, 0.5f, 0f, 1f)
 
     //private val renderers = LinkedList<RendererComponent>()
@@ -86,8 +84,10 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             Quaternionf().identity(),
             Vector3f(1f, 1f, 1f)
         ))
-        gameObject.addComponent(PerspectiveCameraComponent(vectorsPool))
+        val cameraComponent = PerspectiveCameraComponent(vectorsPool, listOf(DEFAULT_LAYER_NAME))
+        gameObject.addComponent(cameraComponent)
         rootGameObject.addChild(gameObject)
+        cameras += cameraComponent
     }
 
     private fun render(dt: Float) {
@@ -114,15 +114,21 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                         is UnlitRendererComponent -> {
                             val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
                             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
-                            unlitRenderer.render(
+                            when (camera) {
+                                is PerspectiveCameraComponent -> {
+                                    camera.calculateViewMatrix(viewMatrix)
+                                    camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
+                                }
+                            }
+                            renderer.render(
                                 meshName,
                                 meshName,
                                 modelMatrix.identity()
-                                    .scale(transform.scale)
+                                    .translate(transform.position)
                                     .rotate(transform.rotation)
-                                    .translate(transform.position),
-                                camera.calculateViewMatrix(vectorsPool, cameraPosition, cameraRotation, viewMatrix),
-                                camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix),
+                                    .scale(transform.scale),
+                                viewMatrix,
+                                projectionMatrix,
                                 green
                             )
                         }
@@ -200,11 +206,13 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         run {
             val gameObject = GameObject("ground_plane")
             gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, -2f, 0f),
-                Quaternionf().identity().rotationX(-(PI / 2).toFloat()),
+                Vector3f(0f, -1f, 0f),
+                Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
                 Vector3f(10f, 10f, 1f)
             ))
-            gameObject.addComponent(unlitRenderer)
+            val renderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
+            layerRenderers[DEFAULT_LAYER_NAME] += renderer
+            gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent("green"))
             gameObject.addComponent(MeshComponent("quad"))
             rootGameObject.addChild(gameObject)
@@ -213,11 +221,13 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         run {
             val gameObject = GameObject("floating_plane")
             gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, -1f, 0f),
-                Quaternionf().identity().rotationX(-(PI / 2).toFloat()),
+                Vector3f(0f, -0.25f, 0f),
+                Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
                 Vector3f(1f, 1f, 1f)
             ))
-            gameObject.addComponent(unlitRenderer)
+            val renderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
+            layerRenderers[DEFAULT_LAYER_NAME] += renderer
+            gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent("blue"))
             gameObject.addComponent(MeshComponent("quad"))
             rootGameObject.addChild(gameObject)
@@ -227,5 +237,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     companion object {
 
         private const val NANOS_IN_SECOND = 1e9f
+
+        private const val DEFAULT_LAYER_NAME = "defaultLayer"
     }
 }

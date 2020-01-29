@@ -1,6 +1,5 @@
 package ilapin.opengl_research
 
-import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -9,7 +8,10 @@ import org.joml.Vector3fc
 /**
  * @author raynor on 27.01.20.
  */
-class PerspectiveCameraComponent(private val vectorsPool: ObjectsPool<Vector3f>) : GameObjectComponent() {
+class PerspectiveCameraComponent(
+    private val vectorsPool: ObjectsPool<Vector3f>,
+    layerNames: List<String>
+) : CameraComponent(layerNames) {
 
     var fov = DEFAULT_FIELD_OF_VIEW
     var zNear = DEFAULT_Z_NEAR
@@ -27,7 +29,7 @@ class PerspectiveCameraComponent(private val vectorsPool: ObjectsPool<Vector3f>)
         up.rotate(transform.rotation)
 
         val position = transform.position
-        dest.setLookAt(
+        dest.identity().setLookAt(
             position.x(),
             position.y(),
             position.z(),
@@ -46,7 +48,7 @@ class PerspectiveCameraComponent(private val vectorsPool: ObjectsPool<Vector3f>)
     }
 
     fun calculateProjectionMatrix(aspect: Float, dest: Matrix4f): Matrix4f {
-        dest.setPerspective(fov, aspect, zNear, zFar)
+        dest.identity().setPerspective(fov, aspect, zNear, zFar)
 
         return dest
     }
