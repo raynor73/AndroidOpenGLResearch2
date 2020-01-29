@@ -12,7 +12,6 @@ import ilapin.engine3d.TransformationComponent
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import org.joml.Vector4f
 import java.nio.charset.Charset
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -34,11 +33,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private val rootGameObject = GameObject("root").apply {
         addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
     }
-    private val green = Vector4f(0f, 0.5f, 0f, 1f)
 
-    //private val renderers = LinkedList<RendererComponent>()
-    //private val cameraRenderingTargets = HashMultimap.create<String, String>()
-    //private val rendererCameras = HashMultimap.create<RendererComponent, String>()
     private val cameras = ArrayList<CameraComponent>()
     private val layerRenderers = HashMultimap.create<String, GameObjectComponent>()
 
@@ -128,8 +123,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                                     .rotate(transform.rotation)
                                     .scale(transform.scale),
                                 viewMatrix,
-                                projectionMatrix,
-                                green
+                                projectionMatrix
                             )
                         }
                     }

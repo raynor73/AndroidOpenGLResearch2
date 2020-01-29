@@ -7,3 +7,4 @@ package ilapin.opengl_research
 const val BYTES_IN_FLOAT = 4
 const val BYTES_IN_SHORT = 2
 const val VERTEX_COORDINATE_COMPONENTS = 3
+const val TEXTURE_COORDINATE_COMPONENTS = 2

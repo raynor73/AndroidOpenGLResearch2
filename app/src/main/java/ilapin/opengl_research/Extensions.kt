@@ -1,11 +1,14 @@
 package ilapin.opengl_research
 
 fun Mesh.verticesAsArray(): FloatArray {
-    val vertexComponentsArray = FloatArray(vertexCoordinates.size * VERTEX_COORDINATE_COMPONENTS)
-    for (i in vertexCoordinates.indices) {
-        vertexComponentsArray[0 + i * VERTEX_COORDINATE_COMPONENTS] = vertexCoordinates[i].x()
-        vertexComponentsArray[1 + i * VERTEX_COORDINATE_COMPONENTS] = vertexCoordinates[i].y()
-        vertexComponentsArray[2 + i * VERTEX_COORDINATE_COMPONENTS] = vertexCoordinates[i].z()
+    val totalComponentsPerVertex = VERTEX_COORDINATE_COMPONENTS + TEXTURE_COORDINATE_COMPONENTS
+    val vertexComponentsArray = FloatArray(vertices.size * totalComponentsPerVertex)
+    for (i in vertices.indices) {
+        vertexComponentsArray[0 + i * totalComponentsPerVertex] = vertices[i].vertexCoordinates.x()
+        vertexComponentsArray[1 + i * totalComponentsPerVertex] = vertices[i].vertexCoordinates.y()
+        vertexComponentsArray[2 + i * totalComponentsPerVertex] = vertices[i].vertexCoordinates.z()
+        vertexComponentsArray[3 + i * totalComponentsPerVertex] = vertices[i].textureCoordinates.x()
+        vertexComponentsArray[4 + i * totalComponentsPerVertex] = vertices[i].textureCoordinates.y()
     }
     return vertexComponentsArray
 }

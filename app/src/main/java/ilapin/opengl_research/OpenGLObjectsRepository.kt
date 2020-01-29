@@ -26,6 +26,7 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     fun findVertexShader(name: String) = vertexShaders[name]
     fun findFragmentShader(name: String) = fragmentShaders[name]
     fun findShaderProgram(name: String) = shaderPrograms[name]
+    fun findTexture(name: String) = textures[name]
 
     fun createStaticVbo(name: String, verticesData: FloatArray): Int {
         if (vbos.containsKey(name)) {
