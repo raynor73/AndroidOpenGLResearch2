@@ -11,10 +11,10 @@ import java.nio.ByteOrder
  */
 class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetector) {
 
-    private val textures = HashMap<String, Int>()
+    private val textures = HashMap<String, TextureInfo>()
     private val fbos = HashMap<String, Int>()
     private val vbos = HashMap<String, Int>()
-    private val ibos = HashMap<String, Int>()
+    private val ibos = HashMap<String, IboInfo>()
     private val vertexShaders = HashMap<String, Int>()
     private val fragmentShaders = HashMap<String, Int>()
     private val shaderPrograms = HashMap<String, Int>()
@@ -83,7 +83,7 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
         )
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
 
-        ibos[name] = ibo
+        ibos[name] = IboInfo(ibo, indices.size)
 
         openGLErrorDetector.dispatchOpenGLErrors("createStaticIbo")
 
@@ -160,7 +160,7 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
 
         bitmap.recycle()
 
-        textures[name] = texture
+        textures[name] = TextureInfo(texture, width, height)
 
         GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)

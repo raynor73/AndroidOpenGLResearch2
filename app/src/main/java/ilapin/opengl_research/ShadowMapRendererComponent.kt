@@ -5,9 +5,9 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fc
 
 /**
- * @author ilapin on 25.01.2020.
+ * @author ilapin on 2020-01-30.
  */
-class DepthVisualizationRendererComponent(
+class ShadowMapRendererComponent(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector
 ) : RendererComponent() {
@@ -25,12 +25,12 @@ class DepthVisualizationRendererComponent(
             return
         }
 
-        val shaderProgram = openGLObjectsRepository.findShaderProgram("depth_visualizer_shader_program") ?: return
+        val shaderProgram = openGLObjectsRepository.findShaderProgram("shadow_map_shader_program") ?: return
         val vbo = openGLObjectsRepository.findVbo(vboName) ?: return
         val iboInfo = openGLObjectsRepository.findIbo(iboName) ?: return
 
-        GLES20.glUseProgram(shaderProgram)
 
+        GLES20.glUseProgram(shaderProgram)
         val vertexCoordinateAttributeLocation = GLES20.glGetAttribLocation(shaderProgram, "vertexCoordinateAttribute")
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo)
@@ -41,7 +41,7 @@ class DepthVisualizationRendererComponent(
             VERTEX_COORDINATE_COMPONENTS,
             GLES20.GL_FLOAT,
             false,
-            0,
+            (VERTEX_COORDINATE_COMPONENTS + TEXTURE_COORDINATE_COMPONENTS) * BYTES_IN_FLOAT,
             0
         )
         GLES20.glEnableVertexAttribArray(vertexCoordinateAttributeLocation)
@@ -64,6 +64,7 @@ class DepthVisualizationRendererComponent(
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
 
-        openGLErrorDetector.dispatchOpenGLErrors("DepthVisualizationRenderer.render")
+        openGLErrorDetector.dispatchOpenGLErrors("ShadowMapRendererComponent.render")
+
     }
 }

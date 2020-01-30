@@ -5,15 +5,15 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3fc
 
-/**
- * @author raynor on 27.01.20.
- */
-class PerspectiveCameraComponent(
+class OrthoCameraComponent(
     private val vectorsPool: ObjectsPool<Vector3f>,
+    var left: Float,
+    var right: Float,
+    var bottom: Float,
+    var top: Float,
     layerNames: List<String>
 ) : CameraComponent(layerNames) {
 
-    var fov = DEFAULT_FIELD_OF_VIEW
     var zNear = DEFAULT_Z_NEAR
     var zFar = DEFAULT_Z_FAR
 
@@ -47,8 +47,8 @@ class PerspectiveCameraComponent(
         return dest
     }
 
-    fun calculateProjectionMatrix(aspect: Float, dest: Matrix4f): Matrix4f {
-        dest.identity().setPerspective(fov, aspect, zNear, zFar)
+    fun calculateProjectionMatrix(dest: Matrix4f): Matrix4f {
+        dest.identity().setOrtho(left, right, bottom, top, zNear, zFar)
 
         return dest
     }
@@ -58,7 +58,6 @@ class PerspectiveCameraComponent(
         private val DEFAULT_LOOK_AT_DIRECTION: Vector3fc = Vector3f(0f, 0f, -1f)
         private val DEFAULT_CAMERA_UP_DIRECTION: Vector3fc = Vector3f(0f, 1f, 0f)
 
-        private const val DEFAULT_FIELD_OF_VIEW = 45f
         private const val DEFAULT_Z_NEAR = 1f
         private const val DEFAULT_Z_FAR = 10f
     }

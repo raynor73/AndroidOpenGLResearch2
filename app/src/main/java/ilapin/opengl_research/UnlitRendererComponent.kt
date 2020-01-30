@@ -10,7 +10,6 @@ class UnlitRendererComponent(
     private val openGLErrorDetector: OpenGLErrorDetector
 ) : RendererComponent() {
     private val tmpFloatArray = FloatArray(16)
-    private val tmpIntArray = IntArray(1)
     private val tmpMatrix = Matrix4f()
 
     fun render(
@@ -26,7 +25,7 @@ class UnlitRendererComponent(
 
         val shaderProgram = openGLObjectsRepository.findShaderProgram("unlit_shader_program") ?: return
         val vbo = openGLObjectsRepository.findVbo(vboName) ?: return
-        val ibo = openGLObjectsRepository.findIbo(iboName) ?: return
+        val iboInfo = openGLObjectsRepository.findIbo(iboName) ?: return
         val material = gameObject?.getComponent(MaterialComponent::class.java) ?: return
 
         GLES20.glUseProgram(shaderProgram)
@@ -35,7 +34,7 @@ class UnlitRendererComponent(
         val uvAttributeLocation = GLES20.glGetAttribLocation(shaderProgram, "uvAttribute")
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo)
-        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, ibo)
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, iboInfo.ibo)
 
         GLES20.glVertexAttribPointer(
             vertexCoordinateAttributeLocation,
@@ -66,13 +65,12 @@ class UnlitRendererComponent(
 
         val textureUniformLocation = GLES20.glGetUniformLocation(shaderProgram, "textureUniform")
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, openGLObjectsRepository.findTexture(material.textureName)!!)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, openGLObjectsRepository.findTexture(material.textureName)!!.texture)
         GLES20.glUniform1i(textureUniformLocation, 0)
 
-        GLES20.glGetBufferParameteriv(GLES20.GL_ELEMENT_ARRAY_BUFFER, GLES20.GL_BUFFER_SIZE, tmpIntArray, 0)
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES,
-            tmpIntArray[0] / BYTES_IN_SHORT,
+            iboInfo.numberOfIndices,
             GLES20.GL_UNSIGNED_SHORT,
             0
         )

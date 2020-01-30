@@ -72,17 +72,52 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         // do nothing
     }
 
-    private fun setupCamera() {
-        val gameObject = GameObject("camera")
-        gameObject.addComponent(TransformationComponent(
-            Vector3f(0f, 0f, 2f),
-            Quaternionf().identity(),
-            Vector3f(1f, 1f, 1f)
-        ))
-        val cameraComponent = PerspectiveCameraComponent(vectorsPool, listOf(DEFAULT_LAYER_NAME))
-        gameObject.addComponent(cameraComponent)
-        rootGameObject.addChild(gameObject)
-        cameras += cameraComponent
+    private fun setupCamera(displayWidth: Int, displayHeight: Int) {
+        run {
+            val gameObject = GameObject("camera")
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, 0f, 2f),
+                Quaternionf().identity(),
+                Vector3f(1f, 1f, 1f)
+            ))
+            val cameraComponent = PerspectiveCameraComponent(vectorsPool, listOf(DEFAULT_LAYER_NAME))
+            gameObject.addComponent(cameraComponent)
+            rootGameObject.addChild(gameObject)
+            cameras += cameraComponent
+        }
+
+        run {
+            val gameObject = GameObject("directionalLightShadowMapCamera")
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, 2f, 0f),
+                Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
+                Vector3f(1f, 1f, 1f)
+            ))
+            val cameraComponent = OrthoCameraComponent(
+                vectorsPool,
+                -6f, 6f, -6f, 6f,
+                listOf(SHADOW_CAST_LAYER_NAME)
+            )
+            gameObject.addComponent(cameraComponent)
+            rootGameObject.addChild(gameObject)
+            cameras += cameraComponent
+        }
+
+        run {
+            val gameObject = GameObject("uiCamera")
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, 2f, 0f),
+                Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
+                Vector3f(1f, 1f, 1f)
+            ))
+            val cameraComponent = OrthoCameraComponent(
+                vectorsPool,
+                listOf(UI_LAYER_NAME)
+            )
+            gameObject.addComponent(cameraComponent)
+            rootGameObject.addChild(gameObject)
+            cameras += cameraComponent
+        }
     }
 
     private fun render(dt: Float) {
@@ -99,6 +134,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val projectionMatrix = matrixPool.obtain()
 
         cameras.forEach { camera ->
+            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
             camera.layerNames.forEach { layerName ->
                 layerRenderers[layerName].forEach { renderer ->
                     when (renderer) {
@@ -190,6 +226,20 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             openGLObjectsRepository.findVertexShader("unlit_vertex_shader")!!,
             openGLObjectsRepository.findFragmentShader("unlit_fragment_shader")!!
         )
+
+        openGLObjectsRepository.createVertexShader(
+            "shadow_map_vertex_shader",
+            context.assets.open("shadowMap/shadowMapVertexShader.glsl").readBytes().toString(Charset.defaultCharset())
+        )
+        openGLObjectsRepository.createFragmentShader(
+            "shadow_map_fragment_shader",
+            context.assets.open("shadowMap/shadowMapFragmentShader.glsl").readBytes().toString(Charset.defaultCharset())
+        )
+        openGLObjectsRepository.createShaderProgram(
+            "shadow_map_shader_program",
+            openGLObjectsRepository.findVertexShader("shadow_map_vertex_shader")!!,
+            openGLObjectsRepository.findFragmentShader("shadow_map_fragment_shader")!!
+        )
     }
 
     private fun setupGeometry() {
@@ -222,6 +272,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             val renderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
+
+            val shadowMapRenderer = ShadowMapRendererComponent(openGLObjectsRepository, openGLErrorDetector)
+            layerRenderers[SHADOW_CAST_LAYER_NAME] += shadowMapRenderer
+            gameObject.addComponent(shadowMapRenderer)
+
             gameObject.addComponent(MaterialComponent("blue"))
             gameObject.addComponent(MeshComponent("quad"))
             rootGameObject.addChild(gameObject)
@@ -233,5 +288,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         private const val NANOS_IN_SECOND = 1e9f
 
         private const val DEFAULT_LAYER_NAME = "defaultLayer"
+        private const val SHADOW_CAST_LAYER_NAME = "shadowCastLayer"
+        private const val UI_LAYER_NAME = "uiLayer"
     }
 }
