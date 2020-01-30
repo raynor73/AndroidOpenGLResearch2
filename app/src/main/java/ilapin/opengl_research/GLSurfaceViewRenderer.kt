@@ -57,13 +57,13 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         GLES20.glFrontFace(GLES20.GL_CCW)
         GLES20.glCullFace(GLES20.GL_BACK)
 
-        GLES20.glEnable(GLES20.GL_DEPTH_TEST)
-        GLES20.glEnable(GLES20.GL_CULL_FACE)
+        /*GLES20.glEnable(GLES20.GL_DEPTH_TEST)
+        GLES20.glEnable(GLES20.GL_CULL_FACE)*/
 
         setupTextures()
-        setupGeometry()
+        setupGeometry(width, height)
         setupShaders()
-        setupCamera()
+        setupCamera(width, height)
 
         openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged")
     }
@@ -86,7 +86,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             cameras += cameraComponent
         }
 
-        run {
+        /*run {
             val gameObject = GameObject("directionalLightShadowMapCamera")
             gameObject.addComponent(TransformationComponent(
                 Vector3f(0f, 2f, 0f),
@@ -101,17 +101,19 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             gameObject.addComponent(cameraComponent)
             rootGameObject.addChild(gameObject)
             cameras += cameraComponent
-        }
+        }*/
 
         run {
             val gameObject = GameObject("uiCamera")
             gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, 2f, 0f),
-                Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
+                Vector3f(0f, 0f, 0f),
+                Quaternionf().identity(),
                 Vector3f(1f, 1f, 1f)
             ))
             val cameraComponent = OrthoCameraComponent(
                 vectorsPool,
+                0f, displayWidth.toFloat(),
+                displayHeight.toFloat(), 0f,
                 listOf(UI_LAYER_NAME)
             )
             gameObject.addComponent(cameraComponent)
@@ -149,6 +151,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                                 is PerspectiveCameraComponent -> {
                                     camera.calculateViewMatrix(viewMatrix)
                                     camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
+                                }
+
+                                is OrthoCameraComponent -> {
+                                    camera.calculateViewMatrix(viewMatrix)
+                                    camera.calculateProjectionMatrix(projectionMatrix)
                                 }
                             }
                             renderer.render(
@@ -242,7 +249,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         )
     }
 
-    private fun setupGeometry() {
+    private fun setupGeometry(displayWidth: Int, displayHeight: Int) {
         val mesh = MeshFactory.createQuad()
         openGLObjectsRepository.createStaticVbo("quad", mesh.verticesAsArray())
         openGLObjectsRepository.createStaticIbo("quad", mesh.indices.toShortArray())
@@ -278,6 +285,23 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             gameObject.addComponent(shadowMapRenderer)
 
             gameObject.addComponent(MaterialComponent("blue"))
+            gameObject.addComponent(MeshComponent("quad"))
+            rootGameObject.addChild(gameObject)
+        }
+
+        run {
+            val gameObject = GameObject("shadow_map_texture_visualization")
+            val size = displayWidth / 3f
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, 0f, -2f),
+                Quaternionf().identity(),
+                Vector3f(size, size, 1f)
+            ))
+            val renderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
+            layerRenderers[UI_LAYER_NAME] += renderer
+            gameObject.addComponent(renderer)
+
+            gameObject.addComponent(MaterialComponent("green"))
             gameObject.addComponent(MeshComponent("quad"))
             rootGameObject.addChild(gameObject)
         }

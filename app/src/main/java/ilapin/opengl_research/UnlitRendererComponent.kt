@@ -77,7 +77,7 @@ class UnlitRendererComponent(
 
         GLES20.glDisableVertexAttribArray(vertexCoordinateAttributeLocation)
         GLES20.glDisableVertexAttribArray(uvAttributeLocation)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE0, 0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
 
