@@ -64,7 +64,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         setupGeometry(width, height)
         setupShaders()
         setupCameras(width, height)
-        setupFrameBuffers()
+        setupFrameBuffers(width, height)
 
         openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged")
     }
@@ -203,8 +203,9 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         openGLErrorDetector.dispatchOpenGLErrors("render")
     }
 
-    private fun setupFrameBuffers() {
-        openGLObjectsRepository.createDepthOnlyFramebuffer("shadowMap", 1920, 1080)
+    // TODO Find out why issues appear if framebuffer is not the same size as display
+    private fun setupFrameBuffers(displayWidth: Int, displayHeight: Int) {
+        openGLObjectsRepository.createDepthOnlyFramebuffer("shadowMap", displayWidth, displayHeight)
     }
 
     private fun setupCameras(displayWidth: Int, displayHeight: Int) {
