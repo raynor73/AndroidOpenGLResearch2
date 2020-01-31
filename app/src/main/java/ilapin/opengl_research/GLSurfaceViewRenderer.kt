@@ -204,7 +204,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     }
 
     private fun setupFrameBuffers() {
-        openGLObjectsRepository.createDepthOnlyFramebuffer("shadowMap", 1024, 1024)
+        openGLObjectsRepository.createDepthOnlyFramebuffer("shadowMap", 1920, 1080)
     }
 
     private fun setupCameras(displayWidth: Int, displayHeight: Int) {
@@ -224,7 +224,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         run {
             val gameObject = GameObject("directionalLightShadowMapCamera")
             gameObject.addComponent(TransformationComponent(
-                Vector3f(2f, 2f, 0f),
+                Vector3f(0f, 2f, 0f),
                 Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
                 Vector3f(1f, 1f, 1f)
             ))
