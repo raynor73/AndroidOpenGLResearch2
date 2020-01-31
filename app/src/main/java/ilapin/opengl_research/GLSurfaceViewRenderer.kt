@@ -63,7 +63,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         setupTextures()
         setupGeometry(width, height)
         setupShaders()
-        setupCamera(width, height)
+        setupCameras(width, height)
         setupFrameBuffers()
 
         openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged")
@@ -207,7 +207,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         openGLObjectsRepository.createDepthOnlyFramebuffer("shadowMap", 1024, 1024)
     }
 
-    private fun setupCamera(displayWidth: Int, displayHeight: Int) {
+    private fun setupCameras(displayWidth: Int, displayHeight: Int) {
         run {
             val gameObject = GameObject("camera")
             gameObject.addComponent(TransformationComponent(
@@ -221,10 +221,10 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             cameras += cameraComponent
         }
 
-        /*run {
+        run {
             val gameObject = GameObject("directionalLightShadowMapCamera")
             gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, 2f, 0f),
+                Vector3f(2f, 2f, 0f),
                 Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
                 Vector3f(1f, 1f, 1f)
             ))
@@ -236,7 +236,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             gameObject.addComponent(cameraComponent)
             rootGameObject.addChild(gameObject)
             cameras += cameraComponent
-        }*/
+        }
 
         run {
             val gameObject = GameObject("uiCamera")

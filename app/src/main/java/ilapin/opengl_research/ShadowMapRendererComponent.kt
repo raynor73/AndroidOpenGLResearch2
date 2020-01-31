@@ -28,10 +28,9 @@ class ShadowMapRendererComponent(
 
         val shaderProgram = openGLObjectsRepository.findShaderProgram("shadow_map_shader_program") ?: return
         val frameBufferInfo =
-            openGLObjectsRepository.findFrameBuffer("shadowMap") as FrameBufferInfo.DepthFrameBufferInfo
+            openGLObjectsRepository.findFrameBuffer(frameBufferName) as FrameBufferInfo.DepthFrameBufferInfo
         val vbo = openGLObjectsRepository.findVbo(vboName) ?: return
         val iboInfo = openGLObjectsRepository.findIbo(iboName) ?: return
-
 
         GLES20.glUseProgram(shaderProgram)
         val vertexCoordinateAttributeLocation = GLES20.glGetAttribLocation(shaderProgram, "vertexCoordinateAttribute")
@@ -71,6 +70,5 @@ class ShadowMapRendererComponent(
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
 
         openGLErrorDetector.dispatchOpenGLErrors("ShadowMapRendererComponent.render")
-
     }
 }
