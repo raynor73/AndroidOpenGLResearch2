@@ -6,6 +6,7 @@ import android.opengl.GLUtils
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+
 /**
  * @author ilapin on 25.01.2020.
  */
@@ -18,6 +19,7 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     private val vertexShaders = HashMap<String, Int>()
     private val fragmentShaders = HashMap<String, Int>()
     private val shaderPrograms = HashMap<String, Int>()
+    private val frameBuffers = HashMap<String, FrameBufferInfo>()
 
     private val tmpIntArray = IntArray(1)
 
@@ -27,6 +29,7 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     fun findFragmentShader(name: String) = fragmentShaders[name]
     fun findShaderProgram(name: String) = shaderPrograms[name]
     fun findTexture(name: String) = textures[name]
+    fun findFrameBuffer(name: String) = frameBuffers[name]
 
     fun createStaticVbo(name: String, verticesData: FloatArray): Int {
         if (vbos.containsKey(name)) {
@@ -164,9 +167,70 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
 
         GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+
+        openGLErrorDetector.dispatchOpenGLErrors("createTexture")
     }
 
-    private fun createFramebuffer(name: String, width: Int, height: Int) {
+    fun createDepthOnlyFramebuffer(name: String, width: Int, height: Int) {
+        GLES20.glGenFramebuffers(1, tmpIntArray, 0)
+        val framebuffer = tmpIntArray[0]
+
+        // create render buffer and bind 16-bit depth buffer
+        /*GLES20.glGenRenderbuffers(1, tmpIntArray, 0)
+        val renderbuffer = tmpIntArray[0]
+        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderbuffer)
+        GLES20.glRenderbufferStorage(
+            GLES20.GL_RENDERBUFFER,
+            GLES20.GL_DEPTH_COMPONENT16,
+            width,
+            height
+        )*/
+
+        // Try to use a texture depth component
+        GLES20.glGenTextures(1, tmpIntArray, 0)
+        val texture = tmpIntArray[0]
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture)
+
+        // GL_LINEAR does not make sense for depth texture. However, next tutorial shows usage of GL_LINEAR and PCF. Using GL_NEAREST
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST)
+        // Remove artifact on the edges of the shadowmap
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffer)
+
+        // Use a depth texture
+        GLES20.glTexImage2D(
+            GLES20.GL_TEXTURE_2D,
+            0,
+            GLES20.GL_DEPTH_COMPONENT,
+            width,
+            height,
+            0,
+            GLES20.GL_DEPTH_COMPONENT,
+            GLES20.GL_UNSIGNED_INT,
+            null
+        )
+        // Attach the depth texture to FBO depth attachment point
+        GLES20.glFramebufferTexture2D(
+            GLES20.GL_FRAMEBUFFER,
+            GLES20.GL_DEPTH_ATTACHMENT,
+            GLES20.GL_TEXTURE_2D,
+            texture,
+            0
+        )
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+
+        frameBuffers[name] = FrameBufferInfo.DepthFrameBufferInfo(framebuffer, TextureInfo(texture, width, height))
+
+        openGLErrorDetector.dispatchOpenGLErrors("createDepthOnlyFramebuffer")
+        openGLErrorDetector.checkFramebufferStatus("createDepthOnlyFramebuffer")
+    }
+
+    fun createFramebuffer(name: String, width: Int, height: Int) {
         if (fbos.containsKey(name)) {
             throw IllegalArgumentException("FBO $name already exists")
         }

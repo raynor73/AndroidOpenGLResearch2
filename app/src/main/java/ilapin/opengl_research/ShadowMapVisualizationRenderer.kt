@@ -5,9 +5,9 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fc
 
 /**
- * @author ilapin on 2020-01-30.
+ * @author raynor on 31.01.20.
  */
-class ShadowMapRendererComponent(
+class ShadowMapVisualizationRenderer(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector
 ) : RendererComponent() {
@@ -17,7 +17,6 @@ class ShadowMapRendererComponent(
     fun render(
         vboName: String,
         iboName: String,
-        frameBufferName: String,
         modelMatrix: Matrix4fc,
         viewMatrix: Matrix4fc,
         projectionMatrix: Matrix4fc
@@ -26,15 +25,17 @@ class ShadowMapRendererComponent(
             return
         }
 
-        val shaderProgram = openGLObjectsRepository.findShaderProgram("shadow_map_shader_program") ?: return
-        val frameBufferInfo =
+        val shaderProgram =
+            openGLObjectsRepository.findShaderProgram("shadow_map_visualization_shader_program") ?: return
+        val depthFrameBufferInfo =
             openGLObjectsRepository.findFrameBuffer("shadowMap") as FrameBufferInfo.DepthFrameBufferInfo
         val vbo = openGLObjectsRepository.findVbo(vboName) ?: return
         val iboInfo = openGLObjectsRepository.findIbo(iboName) ?: return
 
-
         GLES20.glUseProgram(shaderProgram)
+
         val vertexCoordinateAttributeLocation = GLES20.glGetAttribLocation(shaderProgram, "vertexCoordinateAttribute")
+        val uvAttributeLocation = GLES20.glGetAttribLocation(shaderProgram, "uvAttribute")
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo)
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, iboInfo.ibo)
@@ -49,6 +50,16 @@ class ShadowMapRendererComponent(
         )
         GLES20.glEnableVertexAttribArray(vertexCoordinateAttributeLocation)
 
+        GLES20.glVertexAttribPointer(
+            uvAttributeLocation,
+            TEXTURE_COORDINATE_COMPONENTS,
+            GLES20.GL_FLOAT,
+            false,
+            (VERTEX_COORDINATE_COMPONENTS + TEXTURE_COORDINATE_COMPONENTS) * BYTES_IN_FLOAT,
+            VERTEX_COORDINATE_COMPONENTS * BYTES_IN_FLOAT
+        )
+        GLES20.glEnableVertexAttribArray(uvAttributeLocation)
+
         val mvpMatrixUniformLocation = GLES20.glGetUniformLocation(shaderProgram, "mvpMatrixUniform")
         tmpMatrix.set(projectionMatrix)
         tmpMatrix.mul(viewMatrix)
@@ -56,7 +67,10 @@ class ShadowMapRendererComponent(
         tmpMatrix.get(tmpFloatArray)
         GLES20.glUniformMatrix4fv(mvpMatrixUniformLocation, 1, false, tmpFloatArray, 0)
 
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBufferInfo.frameBuffer)
+        val textureUniformLocation = GLES20.glGetUniformLocation(shaderProgram, "textureUniform")
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, depthFrameBufferInfo.depthTextureInfo.texture)
+        GLES20.glUniform1i(textureUniformLocation, 0)
 
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES,
@@ -65,12 +79,12 @@ class ShadowMapRendererComponent(
             0
         )
 
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
         GLES20.glDisableVertexAttribArray(vertexCoordinateAttributeLocation)
+        GLES20.glDisableVertexAttribArray(uvAttributeLocation)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
 
-        openGLErrorDetector.dispatchOpenGLErrors("ShadowMapRendererComponent.render")
-
+        openGLErrorDetector.dispatchOpenGLErrors("UnlitRenderer.render")
     }
 }

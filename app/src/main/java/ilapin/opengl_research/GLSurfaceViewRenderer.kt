@@ -64,6 +64,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         setupGeometry(width, height)
         setupShaders()
         setupCamera(width, height)
+        setupFrameBuffers()
 
         openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged")
     }
@@ -94,6 +95,59 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
                         }
 
+                        is ShadowMapVisualizationRenderer -> {
+                            val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
+                            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
+                            when (camera) {
+                                is PerspectiveCameraComponent -> {
+                                    camera.calculateViewMatrix(viewMatrix)
+                                    camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
+                                }
+
+                                is OrthoCameraComponent -> {
+                                    camera.calculateViewMatrix(viewMatrix)
+                                    camera.calculateProjectionMatrix(projectionMatrix)
+                                }
+                            }
+                            renderer.render(
+                                meshName,
+                                meshName,
+                                modelMatrix.identity()
+                                    .translate(transform.position)
+                                    .rotate(transform.rotation)
+                                    .scale(transform.scale),
+                                viewMatrix,
+                                projectionMatrix
+                            )
+                        }
+
+                        is ShadowMapRendererComponent -> {
+                            val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
+                            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
+                            when (camera) {
+                                is PerspectiveCameraComponent -> {
+                                    camera.calculateViewMatrix(viewMatrix)
+                                    camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
+                                }
+
+                                is OrthoCameraComponent -> {
+                                    camera.calculateViewMatrix(viewMatrix)
+                                    camera.calculateProjectionMatrix(projectionMatrix)
+                                }
+                            }
+                            renderer.render(
+                                meshName,
+                                meshName,
+                                "shadowMap",
+                                modelMatrix.identity()
+                                    .translate(transform.position)
+                                    .rotate(transform.rotation)
+                                    .scale(transform.scale),
+                                viewMatrix,
+                                projectionMatrix
+                            )
+                        }
+
                         is UnlitRendererComponent -> {
                             val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
                             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
@@ -120,7 +174,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                             )
                         }
                     }
-
                 }
             }
         }
@@ -148,6 +201,10 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         matrixPool.recycle(projectionMatrix)
 
         openGLErrorDetector.dispatchOpenGLErrors("render")
+    }
+
+    private fun setupFrameBuffers() {
+        openGLObjectsRepository.createDepthOnlyFramebuffer("shadowMap", 1024, 1024)
     }
 
     private fun setupCamera(displayWidth: Int, displayHeight: Int) {
@@ -247,6 +304,24 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             openGLObjectsRepository.findVertexShader("shadow_map_vertex_shader")!!,
             openGLObjectsRepository.findFragmentShader("shadow_map_fragment_shader")!!
         )
+
+        openGLObjectsRepository.createVertexShader(
+            "shadow_map_visualization_vertex_shader",
+            context.assets.open("unlit/unlitVertexShader.glsl").readBytes().toString(Charset.defaultCharset())
+        )
+        openGLObjectsRepository.createFragmentShader(
+            "shadow_map_visualization_fragment_shader",
+            context
+                .assets
+                .open("depthVisualization/depthTextureFragmentShader.glsl")
+                .readBytes()
+                .toString(Charset.defaultCharset())
+        )
+        openGLObjectsRepository.createShaderProgram(
+            "shadow_map_visualization_shader_program",
+            openGLObjectsRepository.findVertexShader("shadow_map_visualization_vertex_shader")!!,
+            openGLObjectsRepository.findFragmentShader("shadow_map_visualization_fragment_shader")!!
+        )
     }
 
     private fun setupGeometry(displayWidth: Int, displayHeight: Int) {
@@ -297,11 +372,10 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                 Quaternionf().identity(),
                 Vector3f(size, size, 1f)
             ))
-            val renderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
+            val renderer = ShadowMapVisualizationRenderer(openGLObjectsRepository, openGLErrorDetector)
             layerRenderers[UI_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
 
-            gameObject.addComponent(MaterialComponent("blue"))
             gameObject.addComponent(MeshComponent("quad"))
             rootGameObject.addChild(gameObject)
         }
