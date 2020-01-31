@@ -57,8 +57,8 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         GLES20.glFrontFace(GLES20.GL_CCW)
         GLES20.glCullFace(GLES20.GL_BACK)
 
-        /*GLES20.glEnable(GLES20.GL_DEPTH_TEST)
-        GLES20.glEnable(GLES20.GL_CULL_FACE)*/
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST)
+        GLES20.glEnable(GLES20.GL_CULL_FACE)
 
         setupTextures()
         setupGeometry(width, height)
@@ -70,56 +70,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig) {
         // do nothing
-    }
-
-    private fun setupCamera(displayWidth: Int, displayHeight: Int) {
-        run {
-            val gameObject = GameObject("camera")
-            gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, 0f, 2f),
-                Quaternionf().identity(),
-                Vector3f(1f, 1f, 1f)
-            ))
-            val cameraComponent = PerspectiveCameraComponent(vectorsPool, listOf(DEFAULT_LAYER_NAME))
-            gameObject.addComponent(cameraComponent)
-            rootGameObject.addChild(gameObject)
-            cameras += cameraComponent
-        }
-
-        /*run {
-            val gameObject = GameObject("directionalLightShadowMapCamera")
-            gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, 2f, 0f),
-                Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
-                Vector3f(1f, 1f, 1f)
-            ))
-            val cameraComponent = OrthoCameraComponent(
-                vectorsPool,
-                -6f, 6f, -6f, 6f,
-                listOf(SHADOW_CAST_LAYER_NAME)
-            )
-            gameObject.addComponent(cameraComponent)
-            rootGameObject.addChild(gameObject)
-            cameras += cameraComponent
-        }*/
-
-        run {
-            val gameObject = GameObject("uiCamera")
-            gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, 0f, 0f),
-                Quaternionf().identity(),
-                Vector3f(1f, 1f, 1f)
-            ))
-            val cameraComponent = OrthoCameraComponent(
-                vectorsPool,
-                0f, displayWidth.toFloat(),
-                displayHeight.toFloat(), 0f,
-                listOf(UI_LAYER_NAME)
-            )
-            gameObject.addComponent(cameraComponent)
-            rootGameObject.addChild(gameObject)
-            cameras += cameraComponent
-        }
     }
 
     private fun render(dt: Float) {
@@ -198,6 +148,56 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         matrixPool.recycle(projectionMatrix)
 
         openGLErrorDetector.dispatchOpenGLErrors("render")
+    }
+
+    private fun setupCamera(displayWidth: Int, displayHeight: Int) {
+        run {
+            val gameObject = GameObject("camera")
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, 0f, 2f),
+                Quaternionf().identity(),
+                Vector3f(1f, 1f, 1f)
+            ))
+            val cameraComponent = PerspectiveCameraComponent(vectorsPool, listOf(DEFAULT_LAYER_NAME))
+            gameObject.addComponent(cameraComponent)
+            rootGameObject.addChild(gameObject)
+            cameras += cameraComponent
+        }
+
+        /*run {
+            val gameObject = GameObject("directionalLightShadowMapCamera")
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, 2f, 0f),
+                Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
+                Vector3f(1f, 1f, 1f)
+            ))
+            val cameraComponent = OrthoCameraComponent(
+                vectorsPool,
+                -6f, 6f, -6f, 6f,
+                listOf(SHADOW_CAST_LAYER_NAME)
+            )
+            gameObject.addComponent(cameraComponent)
+            rootGameObject.addChild(gameObject)
+            cameras += cameraComponent
+        }*/
+
+        run {
+            val gameObject = GameObject("uiCamera")
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, 0f, 0f),
+                Quaternionf().identity(),
+                Vector3f(1f, 1f, 1f)
+            ))
+            val cameraComponent = OrthoCameraComponent(
+                vectorsPool,
+                0f, displayWidth.toFloat(),
+                0f, displayHeight.toFloat(),
+                listOf(UI_LAYER_NAME)
+            )
+            gameObject.addComponent(cameraComponent)
+            rootGameObject.addChild(gameObject)
+            cameras += cameraComponent
+        }
     }
 
     private fun setupTextures() {
@@ -293,7 +293,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             val gameObject = GameObject("shadow_map_texture_visualization")
             val size = displayWidth / 3f
             gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, 0f, -2f),
+                Vector3f(size / 2f, size / 2f, -2f),
                 Quaternionf().identity(),
                 Vector3f(size, size, 1f)
             ))
@@ -301,7 +301,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             layerRenderers[UI_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
 
-            gameObject.addComponent(MaterialComponent("green"))
+            gameObject.addComponent(MaterialComponent("blue"))
             gameObject.addComponent(MeshComponent("quad"))
             rootGameObject.addChild(gameObject)
         }
