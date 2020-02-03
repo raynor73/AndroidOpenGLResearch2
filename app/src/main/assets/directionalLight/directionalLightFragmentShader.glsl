@@ -8,7 +8,7 @@ varying vec4 shadowMapUvVariying;
 
 void main() {
     float visibility = 1.0;
-    if (texture2D(shadowMapUniform, shadowMapUvVariying.xy).z < shadowMapUvVariying.z) {
+    if (texture2D(shadowMapUniform, shadowMapUvVariying.xy).r < shadowMapUvVariying.z) {
         visibility = 0.5;
     }
 

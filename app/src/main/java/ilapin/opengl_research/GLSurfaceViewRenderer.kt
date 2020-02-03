@@ -136,9 +136,9 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                                 viewMatrix,
                                 projectionMatrix,
                                 lightModelMatrix.identity()
-                                    .translate(lightTransform.position)
-                                    .rotate(lightTransform.rotation)
-                                    .scale(lightTransform.scale),
+                                    .translate(transform.position)
+                                    .rotate(transform.rotation)
+                                    .scale(transform.scale),
                                 lightViewMatrix,
                                 lightProjectionMatrix
                             )

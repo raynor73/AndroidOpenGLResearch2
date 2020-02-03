@@ -92,7 +92,7 @@ class DirectionalLightRenderer(
             GLES20.GL_TEXTURE_2D,
             depthFrameBufferInfo.depthTextureInfo.texture
         )
-        GLES20.glUniform1i(shadowMapUniformLocation, 0)
+        GLES20.glUniform1i(shadowMapUniformLocation, 1)
 
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES,
@@ -117,6 +117,6 @@ class DirectionalLightRenderer(
             0.0f, 0.5f, 0.0f, 0.0f,
             0.0f, 0.0f, 0.5f, 0.0f,
             0.5f, 0.5f, 0.5f, 1.0f
-        ).transpose()
+        )
     }
 }
