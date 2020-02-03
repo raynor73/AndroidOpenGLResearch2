@@ -1,4 +1,4 @@
-package ilapin.opengl_research
+package ilapin.opengl_research.domain
 
 import org.joml.Vector2f
 import org.joml.Vector2fc
@@ -19,7 +19,11 @@ class Mesh(
     val indices: List<Short> = _indices
 
     init {
-        vertices.forEach { _vertices += Vertex(Vector3f(it.vertexCoordinates), Vector2f(it.textureCoordinates)) }
+        vertices.forEach { _vertices += Vertex(
+            Vector3f(it.vertexCoordinates),
+            Vector2f(it.textureCoordinates)
+        )
+        }
         _indices += indices
     }
 

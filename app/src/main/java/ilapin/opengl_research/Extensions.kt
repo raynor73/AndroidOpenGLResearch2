@@ -1,5 +1,7 @@
 package ilapin.opengl_research
 
+import ilapin.opengl_research.domain.Mesh
+
 fun Mesh.verticesAsArray(): FloatArray {
     val totalComponentsPerVertex = VERTEX_COORDINATE_COMPONENTS + TEXTURE_COORDINATE_COMPONENTS
     val vertexComponentsArray = FloatArray(vertices.size * totalComponentsPerVertex)
