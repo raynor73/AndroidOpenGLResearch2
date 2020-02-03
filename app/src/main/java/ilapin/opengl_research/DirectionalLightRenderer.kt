@@ -85,6 +85,15 @@ class DirectionalLightRenderer(
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, openGLObjectsRepository.findTexture(material.textureName)!!.texture)
         GLES20.glUniform1i(textureUniformLocation, 0)
 
+        val shadowMapUniformLocation = GLES20.glGetUniformLocation(shaderProgram, "shadowMapUniform")
+        val depthFrameBufferInfo = (openGLObjectsRepository.findFrameBuffer("shadowMap") as FrameBufferInfo.DepthFrameBufferInfo)
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE1)
+        GLES20.glBindTexture(
+            GLES20.GL_TEXTURE_2D,
+            depthFrameBufferInfo.depthTextureInfo.texture
+        )
+        GLES20.glUniform1i(shadowMapUniformLocation, 0)
+
         GLES20.glDrawElements(
             GLES20.GL_TRIANGLES,
             iboInfo.numberOfIndices,
