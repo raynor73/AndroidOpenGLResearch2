@@ -37,6 +37,8 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private val cameras = ArrayList<CameraComponent>()
     private val layerRenderers = HashMultimap.create<String, GameObjectComponent>()
 
+    private var directionalLightShadowMapCamera: GameObject? = null
+
     override fun onDrawFrame(gl: GL10) {
         if (openGLErrorDetector.isOpenGLErrorDetected) {
             return
@@ -86,6 +88,10 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
 
+        val lightModelMatrix = matrixPool.obtain()
+        val lightViewMatrix = matrixPool.obtain()
+        val lightProjectionMatrix = matrixPool.obtain()
+
         cameras.forEach { camera ->
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
             camera.layerNames.forEach { layerName ->
@@ -93,6 +99,49 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                     when (renderer) {
                         is DepthVisualizationRendererComponent -> {
 
+                        }
+
+                        is DirectionalLightRenderer -> {
+                            val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
+                            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
+
+                            val lightTransform = directionalLightShadowMapCamera?.getComponent(
+                                TransformationComponent::class.java
+                            )!!
+
+                            when (camera) {
+                                is PerspectiveCameraComponent -> {
+                                    camera.calculateViewMatrix(viewMatrix)
+                                    camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
+                                }
+
+                                is OrthoCameraComponent -> {
+                                    camera.calculateViewMatrix(viewMatrix)
+                                    camera.calculateProjectionMatrix(projectionMatrix)
+                                }
+                            }
+
+                            val lightCamera = directionalLightShadowMapCamera?.getComponent(
+                                OrthoCameraComponent::class.java
+                            )!!
+                            lightCamera.calculateViewMatrix(lightViewMatrix)
+                            lightCamera.calculateProjectionMatrix(lightProjectionMatrix)
+                            renderer.render(
+                                meshName,
+                                meshName,
+                                modelMatrix.identity()
+                                    .translate(transform.position)
+                                    .rotate(transform.rotation)
+                                    .scale(transform.scale),
+                                viewMatrix,
+                                projectionMatrix,
+                                lightModelMatrix.identity()
+                                    .translate(lightTransform.position)
+                                    .rotate(lightTransform.rotation)
+                                    .scale(lightTransform.scale),
+                                lightViewMatrix,
+                                lightProjectionMatrix
+                            )
                         }
 
                         is ShadowMapVisualizationRenderer -> {
@@ -196,6 +245,9 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         GLES20.glDisable(GLES20.GL_SCISSOR_TEST)*/
 
+        matrixPool.recycle(lightModelMatrix)
+        matrixPool.recycle(lightViewMatrix)
+        matrixPool.recycle(lightProjectionMatrix)
         matrixPool.recycle(modelMatrix)
         matrixPool.recycle(viewMatrix)
         matrixPool.recycle(projectionMatrix)
@@ -237,6 +289,8 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             gameObject.addComponent(cameraComponent)
             rootGameObject.addChild(gameObject)
             cameras += cameraComponent
+
+            directionalLightShadowMapCamera = gameObject
         }
 
         run {
@@ -323,6 +377,28 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             openGLObjectsRepository.findVertexShader("shadow_map_visualization_vertex_shader")!!,
             openGLObjectsRepository.findFragmentShader("shadow_map_visualization_fragment_shader")!!
         )
+
+        openGLObjectsRepository.createVertexShader(
+            "directional_light_vertex_shader",
+            context
+                .assets
+                .open("directionalLight/directionalLightVertexShader.glsl")
+                .readBytes()
+                .toString(Charset.defaultCharset())
+        )
+        openGLObjectsRepository.createFragmentShader(
+            "directional_light_fragment_shader",
+            context
+                .assets
+                .open("directionalLight/directionalLightFragmentShader.glsl")
+                .readBytes()
+                .toString(Charset.defaultCharset())
+        )
+        openGLObjectsRepository.createShaderProgram(
+            "directional_light_shader_program",
+            openGLObjectsRepository.findVertexShader("directional_light_vertex_shader")!!,
+            openGLObjectsRepository.findFragmentShader("directional_light_fragment_shader")!!
+        )
     }
 
     private fun setupGeometry(displayWidth: Int, displayHeight: Int) {
@@ -333,11 +409,12 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         run {
             val gameObject = GameObject("ground_plane")
             gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, -1f, 0f),
+                Vector3f(0f, -0.5f, 0f),
                 Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
                 Vector3f(10f, 10f, 1f)
             ))
-            val renderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
+            //val renderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
+            val renderer = DirectionalLightRenderer(openGLObjectsRepository, openGLErrorDetector)
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent("green"))
