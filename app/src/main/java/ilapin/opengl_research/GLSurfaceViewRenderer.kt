@@ -105,10 +105,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                             val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
                             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
 
-                            val lightTransform = directionalLightShadowMapCamera?.getComponent(
-                                TransformationComponent::class.java
-                            )!!
-
                             when (camera) {
                                 is PerspectiveCameraComponent -> {
                                     camera.calculateViewMatrix(viewMatrix)
@@ -413,7 +409,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                 Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
                 Vector3f(10f, 10f, 1f)
             ))
-            //val renderer = UnlitRendererComponent(openGLObjectsRepository, openGLErrorDetector)
             val renderer = DirectionalLightRenderer(openGLObjectsRepository, openGLErrorDetector)
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
