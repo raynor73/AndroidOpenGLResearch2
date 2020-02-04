@@ -2,6 +2,7 @@ package ilapin.opengl_research.domain
 
 import com.google.common.collect.Multimap
 import ilapin.engine3d.GameObject
+import ilapin.engine3d.GameObjectComponent
 import ilapin.opengl_research.CameraComponent
 import ilapin.opengl_research.RendererComponent
 import ilapin.opengl_research.ShadowMapRendererComponent
@@ -20,6 +21,8 @@ interface Scene2 {
     val shadowMapCameras: List<CameraComponent>
 
     val shadowLayerRenderers: Multimap<String, ShadowMapRendererComponent>
+
+    val lights: List<GameObjectComponent>
 
     fun update()
 }
