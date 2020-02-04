@@ -79,6 +79,8 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val lightProjectionMatrix = matrixPool.obtain()
 
         scene.cameras.forEach { camera ->
+            renderShadowMaps(scene)
+
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
             camera.layerNames.forEach { layerName ->
                 scene.layerRenderers[layerName].forEach { renderer ->
@@ -223,5 +225,43 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         matrixPool.recycle(projectionMatrix)
 
         openGLErrorDetector.dispatchOpenGLErrors("render")
+    }
+
+    private fun renderShadowMaps(scene: Scene2) {
+        val modelMatrix = matrixPool.obtain()
+        val viewMatrix = matrixPool.obtain()
+        val projectionMatrix = matrixPool.obtain()
+
+        scene.shadowMapCameras.forEach { camera ->
+            camera.layerNames.forEach { layerName ->
+                scene.shadowLayerRenderers[layerName].forEach { renderer ->
+                    val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
+                    val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
+                    when (camera) {
+                        is DirectionalLightShadowMapCameraComponent -> {
+                            camera.calculateViewMatrix(viewMatrix)
+                            camera.calculateProjectionMatrix(projectionMatrix)
+                        }
+                    }
+                    renderer.render(
+                        meshName,
+                        meshName,
+                        "shadowMap",
+                        modelMatrix.identity()
+                            .translate(transform.position)
+                            .rotate(transform.rotation)
+                            .scale(transform.scale),
+                        viewMatrix,
+                        projectionMatrix
+                    )
+                }
+            }
+        }
+
+        matrixPool.recycle(modelMatrix)
+        matrixPool.recycle(viewMatrix)
+        matrixPool.recycle(projectionMatrix)
+
+        openGLErrorDetector.dispatchOpenGLErrors("renderShadowMaps")
     }
 }

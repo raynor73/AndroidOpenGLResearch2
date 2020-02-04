@@ -29,16 +29,21 @@ class DirectionalLightScene(
 
     private val _layerRenderers = HashMultimap.create<String, RendererComponent>()
 
+    private val _shadowMapCameras = ArrayList<CameraComponent>()
+
+    private val _shadowLayerRenderers = HashMultimap.create<String, ShadowMapRendererComponent>()
+
     override val rootGameObject = GameObject("root").apply {
         addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
     }
 
     override val cameras: List<CameraComponent> = _cameras
 
-    override val shadowMapCameras: List<CameraComponent>
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-
     override val layerRenderers: Multimap<String, RendererComponent> = _layerRenderers
+
+    override val shadowMapCameras: List<CameraComponent> = _shadowMapCameras
+
+    override val shadowLayerRenderers: Multimap<String, ShadowMapRendererComponent> = _shadowLayerRenderers
 
     var directionalLightShadowMapCamera: GameObject? = null
 
@@ -91,7 +96,7 @@ class DirectionalLightScene(
             gameObject.addComponent(renderer)
 
             val shadowMapRenderer = ShadowMapRendererComponent(openGLObjectsRepository, openGLErrorDetector)
-            layerRenderers[SHADOW_CAST_LAYER_NAME] += shadowMapRenderer
+            shadowLayerRenderers[SHADOW_CAST_LAYER_NAME] += shadowMapRenderer
             gameObject.addComponent(shadowMapRenderer)
 
             gameObject.addComponent(MaterialComponent("blue"))
@@ -234,7 +239,7 @@ class DirectionalLightScene(
             )
             gameObject.addComponent(cameraComponent)
             rootGameObject.addChild(gameObject)
-            _cameras += cameraComponent
+            _shadowMapCameras += cameraComponent
 
             directionalLightShadowMapCamera = gameObject
         }
