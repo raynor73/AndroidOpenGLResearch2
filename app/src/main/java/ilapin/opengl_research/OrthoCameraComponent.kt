@@ -5,8 +5,8 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3fc
 
-class OrthoCameraComponent(
-    private val vectorsPool: ObjectsPool<Vector3f>,
+open class OrthoCameraComponent(
+    protected val vectorsPool: ObjectsPool<Vector3f>,
     var left: Float,
     var right: Float,
     var bottom: Float,

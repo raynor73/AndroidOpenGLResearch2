@@ -4,7 +4,6 @@ import android.content.Context
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import ilapin.engine3d.GameObject
-import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.MaterialComponent
 import ilapin.engine3d.TransformationComponent
 import ilapin.opengl_research.*
@@ -28,7 +27,7 @@ class DirectionalLightScene(
 
     private val _cameras = ArrayList<CameraComponent>()
 
-    private val _layerRenderers = HashMultimap.create<String, GameObjectComponent>()
+    private val _layerRenderers = HashMultimap.create<String, RendererComponent>()
 
     override val rootGameObject = GameObject("root").apply {
         addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
@@ -36,7 +35,10 @@ class DirectionalLightScene(
 
     override val cameras: List<CameraComponent> = _cameras
 
-    override val layerRenderers: Multimap<String, GameObjectComponent> = _layerRenderers
+    override val shadowMapCameras: List<CameraComponent>
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+
+    override val layerRenderers: Multimap<String, RendererComponent> = _layerRenderers
 
     var directionalLightShadowMapCamera: GameObject? = null
 
@@ -224,8 +226,9 @@ class DirectionalLightScene(
                 Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
                 Vector3f(1f, 1f, 1f)
             ))
-            val cameraComponent = OrthoCameraComponent(
+            val cameraComponent = DirectionalLightShadowMapCameraComponent(
                 vectorsPool,
+                10f,
                 -6f, 6f, -6f, 6f,
                 listOf(SHADOW_CAST_LAYER_NAME)
             )

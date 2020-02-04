@@ -104,13 +104,14 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                             }
 
                             val lightCamera = directionalLightShadowMapCamera?.getComponent(
-                                OrthoCameraComponent::class.java
+                                DirectionalLightShadowMapCameraComponent::class.java
                             )!!
                             lightCamera.calculateViewMatrix(lightViewMatrix)
                             lightCamera.calculateProjectionMatrix(lightProjectionMatrix)
                             renderer.render(
                                 meshName,
                                 meshName,
+                                "shadowMap",
                                 modelMatrix.identity()
                                     .translate(transform.position)
                                     .rotate(transform.rotation)
@@ -156,6 +157,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                             val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
                             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
                             when (camera) {
+                                is DirectionalLightShadowMapCameraComponent -> {
+                                    camera.calculateViewMatrix(viewMatrix)
+                                    camera.calculateProjectionMatrix(projectionMatrix)
+                                }
+
                                 is PerspectiveCameraComponent -> {
                                     camera.calculateViewMatrix(viewMatrix)
                                     camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
@@ -208,24 +214,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                 }
             }
         }
-
-        /*val debugViewportWidth = (width / 3f).toInt()
-        val debugViewportHeight = (height / 3f).toInt()
-        GLES20.glScissor(0, 0, debugViewportWidth, debugViewportHeight)
-        GLES20.glViewport(0, 0, debugViewportWidth, debugViewportHeight)
-        GLES20.glEnable(GLES20.GL_SCISSOR_TEST)
-        GLES20.glClearColor(1f, 1f, 1f, 1f)
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-
-        depthVisualizationRenderer.render(
-            "triangle_vertices",
-            "triangle_indices",
-            modelMatrix.setTranslation(0.5f, 0f, triangleZ),
-            calculateViewMatrix(vectorsPool, cameraPosition, cameraRotation, viewMatrix),
-            calculateProjectionMatrix(surfaceAspect, projectionMatrix)
-        )
-
-        GLES20.glDisable(GLES20.GL_SCISSOR_TEST)*/
 
         matrixPool.recycle(lightModelMatrix)
         matrixPool.recycle(lightViewMatrix)
