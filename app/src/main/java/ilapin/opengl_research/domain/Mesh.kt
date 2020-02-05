@@ -19,13 +19,19 @@ class Mesh(
     val indices: List<Short> = _indices
 
     init {
-        vertices.forEach { _vertices += Vertex(
-            Vector3f(it.vertexCoordinates),
-            Vector2f(it.textureCoordinates)
-        )
+        vertices.forEach {
+            _vertices += Vertex(
+                Vector3f(it.vertexCoordinates),
+                Vector3f(it.normal),
+                Vector2f(it.textureCoordinates)
+            )
         }
         _indices += indices
     }
 
-    class Vertex(val vertexCoordinates: Vector3fc, val textureCoordinates: Vector2fc)
+    class Vertex(
+        val vertexCoordinates: Vector3fc,
+        val normal: Vector3fc,
+        val textureCoordinates: Vector2fc
+    )
 }

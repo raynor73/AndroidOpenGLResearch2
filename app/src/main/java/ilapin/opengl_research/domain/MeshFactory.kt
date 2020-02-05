@@ -15,18 +15,22 @@ class MeshFactory {
                 listOf(
                     Mesh.Vertex(
                         Vector3f(-0.5f, -0.5f, 0f),
+                        Vector3f(1f, 1f, 1f),
                         Vector2f(0f, 0f)
                     ),
                     Mesh.Vertex(
                         Vector3f(-0.5f, 0.5f, 0f),
+                        Vector3f(1f, 1f, 1f),
                         Vector2f(0f, 1f)
                     ),
                     Mesh.Vertex(
                         Vector3f(0.5f, 0.5f, 0f),
+                        Vector3f(1f, 1f, 1f),
                         Vector2f(1f, 1f)
                     ),
                     Mesh.Vertex(
                         Vector3f(0.5f, -0.5f, 0f),
+                        Vector3f(1f, 1f, 1f),
                         Vector2f(1f, 0f)
                     )
                 ),
@@ -39,14 +43,17 @@ class MeshFactory {
                 listOf(
                     Mesh.Vertex(
                         Vector3f(0f, 0.5f, 0f),
+                        Vector3f(1f, 1f, 1f),
                         Vector2f(0.5f, 1f)
                     ),
                     Mesh.Vertex(
                         Vector3f(-0.5f, -0.5f, 0f),
+                        Vector3f(1f, 1f, 1f),
                         Vector2f(0f, 0f)
                     ),
                     Mesh.Vertex(
                         Vector3f(0.5f, -0.5f, 0f),
+                        Vector3f(1f, 1f, 1f),
                         Vector2f(1f, 0f)
                     )
                 ),

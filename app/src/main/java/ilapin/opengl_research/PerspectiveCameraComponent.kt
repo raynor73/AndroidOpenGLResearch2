@@ -3,19 +3,18 @@ package ilapin.opengl_research
 import ilapin.engine3d.TransformationComponent
 import org.joml.Matrix4f
 import org.joml.Vector3f
-import org.joml.Vector3fc
 
 /**
  * @author raynor on 27.01.20.
  */
 class PerspectiveCameraComponent(
     private val vectorsPool: ObjectsPool<Vector3f>,
+    var fov: Float,
     layerNames: List<String>
 ) : CameraComponent(layerNames) {
 
-    var fov = DEFAULT_FIELD_OF_VIEW
-    var zNear = DEFAULT_Z_NEAR
-    var zFar = DEFAULT_Z_FAR
+    var zNear = Z_NEAR
+    var zFar = Z_FAR
 
     fun calculateViewMatrix(dest: Matrix4f): Matrix4f {
         val transform = gameObject?.getComponent(TransformationComponent::class.java) ?: return dest
@@ -23,9 +22,9 @@ class PerspectiveCameraComponent(
         val lookAtDirection = vectorsPool.obtain()
         val up = vectorsPool.obtain()
 
-        lookAtDirection.set(DEFAULT_LOOK_AT_DIRECTION)
+        lookAtDirection.set(CAMERA_LOOK_AT_DIRECTION)
         lookAtDirection.rotate(transform.rotation)
-        up.set(DEFAULT_CAMERA_UP_DIRECTION)
+        up.set(CAMERA_UP_DIRECTION)
         up.rotate(transform.rotation)
 
         val position = transform.position
@@ -51,15 +50,5 @@ class PerspectiveCameraComponent(
         dest.identity().setPerspective(fov, aspect, zNear, zFar)
 
         return dest
-    }
-
-    companion object {
-
-        private val DEFAULT_LOOK_AT_DIRECTION: Vector3fc = Vector3f(0f, 0f, -1f)
-        private val DEFAULT_CAMERA_UP_DIRECTION: Vector3fc = Vector3f(0f, 1f, 0f)
-
-        private const val DEFAULT_FIELD_OF_VIEW = 45f
-        private const val DEFAULT_Z_NEAR = 1f
-        private const val DEFAULT_Z_FAR = 10f
     }
 }

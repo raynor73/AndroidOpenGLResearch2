@@ -8,6 +8,7 @@ import ilapin.engine3d.TransformationComponent
 import ilapin.opengl_research.domain.DirectionalLightScene
 import ilapin.opengl_research.domain.Scene2
 import org.joml.Matrix4f
+import org.joml.Vector3fc
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -64,23 +65,25 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         val width = displayWidth ?: return
         val height = displayHeight ?: return
-        val surfaceAspect = width.toFloat() / height
+        val displayAspect = width.toFloat() / height
 
         GLES20.glViewport(0, 0, width, height)
         GLES20.glClearColor(0f, 0f, 0f, 1f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
-        val modelMatrix = matrixPool.obtain()
-        val viewMatrix = matrixPool.obtain()
-        val projectionMatrix = matrixPool.obtain()
-
         val lightModelMatrix = matrixPool.obtain()
         val lightViewMatrix = matrixPool.obtain()
         val lightProjectionMatrix = matrixPool.obtain()
 
-        scene.cameras.forEach { camera ->
-            renderShadowMaps(scene)
+        (scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
+            renderUnlitObjects(scene, renderTarget, displayAspect)
+            renderAmbientLight(scene, renderTarget, displayAspect)
+            renderDirectionalLights(scene, renderTarget, displayAspect)
+        }
 
+
+        scene.cameras.forEach { camera ->
+            //renderShadowMaps(scene)
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
             camera.layerNames.forEach { layerName ->
                 scene.layerRenderers[layerName].forEach { renderer ->
@@ -96,7 +99,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                             when (camera) {
                                 is PerspectiveCameraComponent -> {
                                     camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
+                                    camera.calculateProjectionMatrix(displayAspect, projectionMatrix)
                                 }
 
                                 is OrthoCameraComponent -> {
@@ -135,7 +138,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                             when (camera) {
                                 is PerspectiveCameraComponent -> {
                                     camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
+                                    camera.calculateProjectionMatrix(displayAspect, projectionMatrix)
                                 }
 
                                 is OrthoCameraComponent -> {
@@ -166,7 +169,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
                                 is PerspectiveCameraComponent -> {
                                     camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
+                                    camera.calculateProjectionMatrix(displayAspect, projectionMatrix)
                                 }
 
                                 is OrthoCameraComponent -> {
@@ -193,7 +196,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                             when (camera) {
                                 is PerspectiveCameraComponent -> {
                                     camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(surfaceAspect, projectionMatrix)
+                                    camera.calculateProjectionMatrix(displayAspect, projectionMatrix)
                                 }
 
                                 is OrthoCameraComponent -> {
@@ -220,14 +223,128 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         matrixPool.recycle(lightModelMatrix)
         matrixPool.recycle(lightViewMatrix)
         matrixPool.recycle(lightProjectionMatrix)
-        matrixPool.recycle(modelMatrix)
-        matrixPool.recycle(viewMatrix)
-        matrixPool.recycle(projectionMatrix)
 
         openGLErrorDetector.dispatchOpenGLErrors("render")
     }
 
-    private fun renderShadowMaps(scene: Scene2) {
+    private fun renderDirectionalLights(scene: Scene2, renderTarget: FrameBufferInfo, displayAspect: Float) {
+
+    }
+
+    private fun renderUnlitObjects(scene: Scene2, renderTarget: FrameBufferInfo, viewportAspect: Float) {
+        val modelMatrix = matrixPool.obtain()
+        val viewMatrix = matrixPool.obtain()
+        val projectionMatrix = matrixPool.obtain()
+
+        scene.cameras.forEach { camera ->
+            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
+
+            camera.layerNames.forEach { layerName ->
+                val shaderProgram = openGLObjectsRepository
+                    .findShaderProgram("unlit_shader_program") as ShaderProgramInfo.UnlitShaderProgram
+
+                GLES20.glUseProgram(shaderProgram.shaderProgram)
+
+                scene.layerRenderers[layerName].forEach { renderer ->
+                    val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
+                        ?: error("Not transform found for game object ${renderer.gameObject?.name}")
+                    when (camera) {
+                        is PerspectiveCameraComponent -> {
+                            camera.calculateViewMatrix(viewMatrix)
+                            camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
+                        }
+
+                        is OrthoCameraComponent -> {
+                            camera.calculateViewMatrix(viewMatrix)
+                            camera.calculateProjectionMatrix(projectionMatrix)
+                        }
+                    }
+                    renderer.render(
+                        shaderProgram,
+                        renderTarget,
+                        modelMatrix.identity()
+                            .translate(transform.position)
+                            .rotate(transform.rotation)
+                            .scale(transform.scale),
+                        viewMatrix,
+                        projectionMatrix
+                    )
+                }
+            }
+        }
+
+        matrixPool.recycle(modelMatrix)
+        matrixPool.recycle(viewMatrix)
+        matrixPool.recycle(projectionMatrix)
+
+        openGLErrorDetector.dispatchOpenGLErrors("renderAmbientLight")
+    }
+
+    private fun renderAmbientLight(scene: Scene2, renderTarget: FrameBufferInfo, viewportAspect: Float) {
+        val modelMatrix = matrixPool.obtain()
+        val viewMatrix = matrixPool.obtain()
+        val projectionMatrix = matrixPool.obtain()
+
+        scene.cameras.forEach { camera ->
+            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
+            val ambientLightColor = scene.cameraAmbientLights[camera]
+                ?: error("No ambient light found for camera ${camera.gameObject?.name}")
+            camera.layerNames.forEach { layerName ->
+                val ambientShaderProgram = openGLObjectsRepository
+                    .findShaderProgram("ambient_shader_program") as ShaderProgramInfo.AmbientLightShaderProgram
+
+                GLES20.glUseProgram(ambientShaderProgram.shaderProgram)
+
+                fillAmbientShaderUniforms(ambientShaderProgram, ambientLightColor)
+
+                scene.layerRenderers[layerName].forEach { renderer ->
+                    val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
+                        ?: error("Not transform found for game object ${renderer.gameObject?.name}")
+                    when (camera) {
+                        is PerspectiveCameraComponent -> {
+                            camera.calculateViewMatrix(viewMatrix)
+                            camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
+                        }
+
+                        is OrthoCameraComponent -> {
+                            camera.calculateViewMatrix(viewMatrix)
+                            camera.calculateProjectionMatrix(projectionMatrix)
+                        }
+                    }
+                    renderer.render(
+                        ambientShaderProgram,
+                        renderTarget,
+                        modelMatrix.identity()
+                            .translate(transform.position)
+                            .rotate(transform.rotation)
+                            .scale(transform.scale),
+                        viewMatrix,
+                        projectionMatrix
+                    )
+                }
+            }
+        }
+
+        matrixPool.recycle(modelMatrix)
+        matrixPool.recycle(viewMatrix)
+        matrixPool.recycle(projectionMatrix)
+
+        openGLErrorDetector.dispatchOpenGLErrors("renderAmbientLight")
+    }
+
+    private fun fillAmbientShaderUniforms(
+        shaderInfo: ShaderProgramInfo.AmbientLightShaderProgram,
+        ambientLightColor: Vector3fc
+    ) {
+        GLES20.glUniform3f(
+            shaderInfo.ambientColorUniform,
+            ambientLightColor.x(),
+            ambientLightColor.y(),
+            ambientLightColor.z()
+        )
+    }
+
+    /*private fun renderShadowMaps(scene: Scene2) {
         val modelMatrix = matrixPool.obtain()
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
@@ -263,5 +380,5 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         matrixPool.recycle(projectionMatrix)
 
         openGLErrorDetector.dispatchOpenGLErrors("renderShadowMaps")
-    }
+    }*/
 }

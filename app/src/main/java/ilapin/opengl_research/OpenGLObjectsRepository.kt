@@ -18,7 +18,7 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     private val ibos = HashMap<String, IboInfo>()
     private val vertexShaders = HashMap<String, Int>()
     private val fragmentShaders = HashMap<String, Int>()
-    private val shaderPrograms = HashMap<String, Int>()
+    private val shaderPrograms = HashMap<String, ShaderProgramInfo>()
     private val frameBuffers = HashMap<String, FrameBufferInfo>()
 
     private val tmpIntArray = IntArray(1)
@@ -125,7 +125,7 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
         return shader
     }
 
-    fun createShaderProgram(name: String, vertexShader: Int, fragmentShader: Int): Int {
+    fun createAmbientLightShaderProgram(name: String, vertexShader: Int, fragmentShader: Int): Int {
         if (shaderPrograms.containsKey(name)) {
             throw IllegalArgumentException("Shader program $name already exists")
         }
@@ -135,7 +135,7 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
         GLES20.glAttachShader(shaderProgram, fragmentShader)
         GLES20.glLinkProgram(shaderProgram)
 
-        shaderPrograms[name] = shaderProgram
+        shaderPrograms[name] = ShaderProgramInfo.AmbientLightShaderProgram(openGLErrorDetector, shaderProgram)
 
         openGLErrorDetector.dispatchShaderLinkingError(shaderProgram, "createShaderProgram")
         openGLErrorDetector.dispatchOpenGLErrors("createShaderProgram")
