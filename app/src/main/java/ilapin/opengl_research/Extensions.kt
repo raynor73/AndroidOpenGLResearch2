@@ -1,5 +1,6 @@
 package ilapin.opengl_research
 
+import android.opengl.GLES20
 import ilapin.opengl_research.domain.Mesh
 
 fun Mesh.verticesAsArray(): FloatArray {
@@ -15,12 +16,16 @@ fun Mesh.verticesAsArray(): FloatArray {
     return vertexComponentsArray
 }
 
-/*fun GameObject.getRendererComponent(): RendererComponent? {
-    return getComponent(UnlitRendererComponent::class.java) ?:
-    getComponent(DepthVisualizationRendererComponent::class.java)
-}*/
+fun Int.glUniform1i(value: Int) {
+    if (this > 0) {
+        GLES20.glUniform1i(this, value)
+    }
+}
 
-/*fun GameObject.findAllRendererComponents(dest: LinkedList<RendererComponent>) {
-    getRendererComponent()?.let { dest += it }
-    children.forEach { it.findAllRendererComponents(dest) }
-}*/
+fun Boolean.toGLBoolean(): Int {
+    return if (this) {
+        GLES20.GL_TRUE
+    } else {
+        GLES20.GL_FALSE
+    }
+}

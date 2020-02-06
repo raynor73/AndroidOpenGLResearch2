@@ -137,8 +137,62 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
 
         shaderPrograms[name] = ShaderProgramInfo.AmbientLightShaderProgram(openGLErrorDetector, shaderProgram)
 
-        openGLErrorDetector.dispatchShaderLinkingError(shaderProgram, "createShaderProgram")
-        openGLErrorDetector.dispatchOpenGLErrors("createShaderProgram")
+        openGLErrorDetector.dispatchShaderLinkingError(shaderProgram, "createAmbientLightShaderProgram")
+        openGLErrorDetector.dispatchOpenGLErrors("createAmbientLightShaderProgram")
+
+        return shaderProgram
+    }
+
+    fun createUnlitShaderProgram(name: String, vertexShader: Int, fragmentShader: Int): Int {
+        if (shaderPrograms.containsKey(name)) {
+            throw IllegalArgumentException("Shader program $name already exists")
+        }
+
+        val shaderProgram = GLES20.glCreateProgram()
+        GLES20.glAttachShader(shaderProgram, vertexShader)
+        GLES20.glAttachShader(shaderProgram, fragmentShader)
+        GLES20.glLinkProgram(shaderProgram)
+
+        shaderPrograms[name] = ShaderProgramInfo.UnlitShaderProgram(openGLErrorDetector, shaderProgram)
+
+        openGLErrorDetector.dispatchShaderLinkingError(shaderProgram, "createUnlitShaderProgram")
+        openGLErrorDetector.dispatchOpenGLErrors("createUnlitShaderProgram")
+
+        return shaderProgram
+    }
+
+    fun createShadowMapShaderProgram(name: String, vertexShader: Int, fragmentShader: Int): Int {
+        if (shaderPrograms.containsKey(name)) {
+            throw IllegalArgumentException("Shader program $name already exists")
+        }
+
+        val shaderProgram = GLES20.glCreateProgram()
+        GLES20.glAttachShader(shaderProgram, vertexShader)
+        GLES20.glAttachShader(shaderProgram, fragmentShader)
+        GLES20.glLinkProgram(shaderProgram)
+
+        shaderPrograms[name] = ShaderProgramInfo.ShadowMapShaderProgram(openGLErrorDetector, shaderProgram)
+
+        openGLErrorDetector.dispatchShaderLinkingError(shaderProgram, "createUnlitShaderProgram")
+        openGLErrorDetector.dispatchOpenGLErrors("createUnlitShaderProgram")
+
+        return shaderProgram
+    }
+
+    fun createDirectionalLightShaderProgram(name: String, vertexShader: Int, fragmentShader: Int): Int {
+        if (shaderPrograms.containsKey(name)) {
+            throw IllegalArgumentException("Shader program $name already exists")
+        }
+
+        val shaderProgram = GLES20.glCreateProgram()
+        GLES20.glAttachShader(shaderProgram, vertexShader)
+        GLES20.glAttachShader(shaderProgram, fragmentShader)
+        GLES20.glLinkProgram(shaderProgram)
+
+        shaderPrograms[name] = ShaderProgramInfo.DirectionalLightShaderProgram(openGLErrorDetector, shaderProgram)
+
+        openGLErrorDetector.dispatchShaderLinkingError(shaderProgram, "createDirectionalLightShaderProgram")
+        openGLErrorDetector.dispatchOpenGLErrors("createDirectionalLightShaderProgram")
 
         return shaderProgram
     }

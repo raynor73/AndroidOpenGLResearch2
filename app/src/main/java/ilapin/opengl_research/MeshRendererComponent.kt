@@ -2,6 +2,7 @@ package ilapin.opengl_research
 
 import android.opengl.GLES20
 import android.util.DisplayMetrics
+import ilapin.common.kotlin.safeLet
 import ilapin.engine3d.GameObjectComponent
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
@@ -25,12 +26,14 @@ class MeshRendererComponent(
         shaderProgram: ShaderProgramInfo,
         renderTargetFrameBufferInfo: FrameBufferInfo?,
         isTranslucentRendering: Boolean,
+        isShadowMapRendering: Boolean,
         modelMatrix: Matrix4fc,
         viewMatrix: Matrix4fc,
         projectionMatrix: Matrix4fc,
         lightModelMatrix: Matrix4fc? = null,
         lightViewMatrix: Matrix4fc? = null,
-        lightProjectionMatrix: Matrix4fc? = null
+        lightProjectionMatrix: Matrix4fc? = null,
+        shadowMapTextureInfo: TextureInfo? = null
     ) {
         if (!isEnabled) {
             return
@@ -40,6 +43,10 @@ class MeshRendererComponent(
 
         val mesh = gameObject?.getComponent(MeshComponent::class.java) ?: return
         val material = gameObject?.getComponent(MaterialComponent::class.java) ?: return
+
+        if (isShadowMapRendering && !material.castShadows) {
+            return
+        }
 
         if (material.isUnlit && shaderProgram !is ShaderProgramInfo.UnlitShaderProgram) {
             return
@@ -52,15 +59,17 @@ class MeshRendererComponent(
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mesh.vbo)
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mesh.iboInfo.ibo)
 
-        GLES20.glVertexAttribPointer(
-            shaderProgram.vertexCoordinateAttribute,
-            VERTEX_COORDINATE_COMPONENTS,
-            GLES20.GL_FLOAT,
-            false,
-            VERTEX_COMPONENTS * BYTES_IN_FLOAT,
-            0
-        )
-        GLES20.glEnableVertexAttribArray(shaderProgram.vertexCoordinateAttribute)
+        shaderProgram.vertexCoordinateAttribute.takeIf { it > 0 }?.let { vertexCoordinateAttribute ->
+            GLES20.glVertexAttribPointer(
+                    vertexCoordinateAttribute,
+                    VERTEX_COORDINATE_COMPONENTS,
+                    GLES20.GL_FLOAT,
+                    false,
+                    VERTEX_COMPONENTS * BYTES_IN_FLOAT,
+                    0
+            )
+            GLES20.glEnableVertexAttribArray(vertexCoordinateAttribute)
+        }
 
         shaderProgram.normalAttribute.takeIf { it > 0 }?.let { normalAttribute ->
             GLES20.glVertexAttribPointer(
@@ -86,35 +95,63 @@ class MeshRendererComponent(
             GLES20.glEnableVertexAttribArray(uvAttribute)
         }
 
-        tmpMatrix.set(projectionMatrix)
-        tmpMatrix.mul(viewMatrix)
-        tmpMatrix.mul(modelMatrix)
-        tmpMatrix.get(tmpFloatArray)
-        GLES20.glUniformMatrix4fv(shaderProgram.mvpMatrixUniform, 1, false, tmpFloatArray, 0)
+        shaderProgram.mvpMatrixUniform.takeIf { it > 0 }?.let { mvpMatrixUniform ->
+            tmpMatrix.set(projectionMatrix)
+            tmpMatrix.mul(viewMatrix)
+            tmpMatrix.mul(modelMatrix)
+            tmpMatrix.get(tmpFloatArray)
+            GLES20.glUniformMatrix4fv(mvpMatrixUniform, 1, false, tmpFloatArray, 0)
+        }
+
+        shaderProgram.lightMvpMatrixUniform.takeIf { it > 0 }?.let { lightMvpMatrixUniform ->
+            tmpMatrix.set(lightProjectionMatrix)
+            tmpMatrix.mul(lightViewMatrix)
+            tmpMatrix.mul(lightModelMatrix)
+            tmpMatrix.get(tmpFloatArray)
+            GLES20.glUniformMatrix4fv(lightMvpMatrixUniform, 1, false, tmpFloatArray, 0)
+        }
 
         shaderProgram.modelMatrixUniform.takeIf { it > 0 }?.let { modelMatrixUniform ->
             modelMatrix.get(tmpFloatArray)
             GLES20.glUniformMatrix4fv(modelMatrixUniform, 1, false, tmpFloatArray, 0)
         }
 
-        GLES20.glUniform4f(
-            shaderProgram.diffuseColorUniform,
-            material.diffuseColor.x,
-            material.diffuseColor.y,
-            material.diffuseColor.z,
-            material.diffuseColor.w
-        )
+        shaderProgram.biasMatrixUniform.takeIf { it > 0 }?.let { biasMatrixUniform ->
+            BIAS_MATRIX.get(tmpFloatArray)
+            GLES20.glUniformMatrix4fv(biasMatrixUniform, 1, false, tmpFloatArray, 0)
+        }
+
+        shaderProgram.diffuseColorUniform.takeIf { it > 0 }?.let { diffuseColorUniform ->
+            GLES20.glUniform4f(
+                    diffuseColorUniform,
+                    material.diffuseColor.x,
+                    material.diffuseColor.y,
+                    material.diffuseColor.z,
+                    material.diffuseColor.w
+            )
+        }
 
         val textureName = material.textureName
         if (textureName != null) {
             val textureInfo = openGLObjectsRepository.findTexture(textureName)
                 ?: error("Texture not found for ${gameObject?.name}")
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureInfo.texture)
-            GLES20.glUniform1i(shaderProgram.textureUniform, 0)
-            GLES20.glUniform1i(shaderProgram.shouldUseDiffuseColorUniform, GLES20.GL_FALSE)
+
+            shaderProgram.textureUniform.takeIf { it > 0 }?.let { textureUniform ->
+                GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureInfo.texture)
+                GLES20.glUniform1i(textureUniform, 0)
+            }
+
+            shaderProgram.useDiffuseColorUniform.glUniform1i(GLES20.GL_FALSE)
         } else {
-            GLES20.glUniform1i(shaderProgram.shouldUseDiffuseColorUniform, GLES20.GL_TRUE)
+            shaderProgram.useDiffuseColorUniform.glUniform1i(GLES20.GL_TRUE)
+        }
+
+        shaderProgram.receiveShadows.glUniform1i(material.receiveShadows.toGLBoolean())
+        safeLet(shadowMapTextureInfo, shaderProgram.shadowMapUniform.takeIf { it > 0 }) { textureInfo, shadowMapUniform ->
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE1)
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureInfo.texture)
+            GLES20.glUniform1i(shadowMapUniform, 1)
         }
 
         if (material.isDoubleSided) {
@@ -165,5 +202,15 @@ class MeshRendererComponent(
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
         openGLErrorDetector.dispatchOpenGLErrors("MeshRendererComponent.render")
+    }
+
+    companion object {
+
+        private val BIAS_MATRIX: Matrix4fc = Matrix4f(
+                0.5f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.5f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.5f, 0.0f,
+                0.5f, 0.5f, 0.5f, 1.0f
+        )
     }
 }
