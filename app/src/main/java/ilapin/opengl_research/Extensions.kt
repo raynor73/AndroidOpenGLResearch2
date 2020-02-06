@@ -4,20 +4,22 @@ import android.opengl.GLES20
 import ilapin.opengl_research.domain.Mesh
 
 fun Mesh.verticesAsArray(): FloatArray {
-    val totalComponentsPerVertex = VERTEX_COORDINATE_COMPONENTS + TEXTURE_COORDINATE_COMPONENTS
-    val vertexComponentsArray = FloatArray(vertices.size * totalComponentsPerVertex)
+    val vertexComponentsArray = FloatArray(vertices.size * VERTEX_COMPONENTS)
     for (i in vertices.indices) {
-        vertexComponentsArray[0 + i * totalComponentsPerVertex] = vertices[i].vertexCoordinates.x()
-        vertexComponentsArray[1 + i * totalComponentsPerVertex] = vertices[i].vertexCoordinates.y()
-        vertexComponentsArray[2 + i * totalComponentsPerVertex] = vertices[i].vertexCoordinates.z()
-        vertexComponentsArray[3 + i * totalComponentsPerVertex] = vertices[i].textureCoordinates.x()
-        vertexComponentsArray[4 + i * totalComponentsPerVertex] = vertices[i].textureCoordinates.y()
+        vertexComponentsArray[0 + i * VERTEX_COMPONENTS] = vertices[i].vertexCoordinates.x()
+        vertexComponentsArray[1 + i * VERTEX_COMPONENTS] = vertices[i].vertexCoordinates.y()
+        vertexComponentsArray[2 + i * VERTEX_COMPONENTS] = vertices[i].vertexCoordinates.z()
+        vertexComponentsArray[3 + i * VERTEX_COMPONENTS] = vertices[i].normal.x()
+        vertexComponentsArray[4 + i * VERTEX_COMPONENTS] = vertices[i].normal.y()
+        vertexComponentsArray[5 + i * VERTEX_COMPONENTS] = vertices[i].normal.z()
+        vertexComponentsArray[6 + i * VERTEX_COMPONENTS] = vertices[i].textureCoordinates.x()
+        vertexComponentsArray[7 + i * VERTEX_COMPONENTS] = vertices[i].textureCoordinates.y()
     }
     return vertexComponentsArray
 }
 
 fun Int.glUniform1i(value: Int) {
-    if (this > 0) {
+    if (this >= 0) {
         GLES20.glUniform1i(this, value)
     }
 }

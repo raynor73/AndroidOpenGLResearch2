@@ -14,9 +14,8 @@ class DirectionalLightShadowMapCameraComponent(
     left: Float,
     right: Float,
     bottom: Float,
-    top: Float,
-    layerNames: List<String>
-) : OrthoCameraComponent(vectorsPool, left, right, bottom, top, layerNames) {
+    top: Float
+) : OrthoCameraComponent(vectorsPool, left, right, bottom, top, emptyList()) {
 
     fun calculateViewMatrix(viewerPosition: Vector3fc, dest: Matrix4f): Matrix4f {
         val correctedPosition = vectorsPool.obtain()

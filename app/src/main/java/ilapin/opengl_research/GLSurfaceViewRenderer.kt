@@ -48,8 +48,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         val scene = DirectionalLightScene(
             context,
-            width,
-            height,
             openGLObjectsRepository,
             openGLErrorDetector
         )
@@ -83,9 +81,9 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         // Opaque rendering
         (scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
-            renderUnlitObjects(scene, renderTarget, false, displayAspect)
+            //renderUnlitObjects(scene, renderTarget, false, displayAspect)
             renderAmbientLight(scene, renderTarget, false, displayAspect)
-            scene.lights.forEach { light ->
+            /*scene.lights.forEach { light ->
                 when (light) {
                     is DirectionalLightComponent -> renderDirectionalLight(
                             scene,
@@ -95,11 +93,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                             displayAspect
                     )
                 }
-            }
+            }*/
         }
 
         // Translucent rendering
-        (scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
+        /*(scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
             renderUnlitObjects(scene, renderTarget, true, displayAspect)
             renderAmbientLight(scene, renderTarget, true, displayAspect)
             scene.lights.forEach { light ->
@@ -113,7 +111,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                     )
                 }
             }
-        }
+        }*/
 
         /*scene.cameras.forEach { camera ->
             //renderShadowMaps(scene)
@@ -543,11 +541,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         )*/
 
         openGLObjectsRepository.createVertexShader(
-                "ambient_light_vertex_shader",
+                "ambient_vertex_shader",
                 context.assets.open("ambient/ambientVertexShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
         openGLObjectsRepository.createFragmentShader(
-                "ambient_light_fragment_shader",
+                "ambient_fragment_shader",
                 context.assets.open("ambient/ambientFragmentShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
         openGLObjectsRepository.createAmbientLightShaderProgram(

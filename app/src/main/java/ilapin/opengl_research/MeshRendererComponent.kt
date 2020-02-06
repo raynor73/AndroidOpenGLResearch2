@@ -59,7 +59,7 @@ class MeshRendererComponent(
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mesh.vbo)
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mesh.iboInfo.ibo)
 
-        shaderProgram.vertexCoordinateAttribute.takeIf { it > 0 }?.let { vertexCoordinateAttribute ->
+        shaderProgram.vertexCoordinateAttribute.takeIf { it >= 0 }?.let { vertexCoordinateAttribute ->
             GLES20.glVertexAttribPointer(
                     vertexCoordinateAttribute,
                     VERTEX_COORDINATE_COMPONENTS,
@@ -71,7 +71,7 @@ class MeshRendererComponent(
             GLES20.glEnableVertexAttribArray(vertexCoordinateAttribute)
         }
 
-        shaderProgram.normalAttribute.takeIf { it > 0 }?.let { normalAttribute ->
+        shaderProgram.normalAttribute.takeIf { it >= 0 }?.let { normalAttribute ->
             GLES20.glVertexAttribPointer(
                 normalAttribute,
                 NORMAL_COMPONENTS,
@@ -83,7 +83,7 @@ class MeshRendererComponent(
             GLES20.glEnableVertexAttribArray(normalAttribute)
         }
 
-        shaderProgram.uvAttribute.takeIf { it > 0 }?.let { uvAttribute ->
+        shaderProgram.uvAttribute.takeIf { it >= 0 }?.let { uvAttribute ->
             GLES20.glVertexAttribPointer(
                 uvAttribute,
                 TEXTURE_COORDINATE_COMPONENTS,
@@ -95,7 +95,7 @@ class MeshRendererComponent(
             GLES20.glEnableVertexAttribArray(uvAttribute)
         }
 
-        shaderProgram.mvpMatrixUniform.takeIf { it > 0 }?.let { mvpMatrixUniform ->
+        shaderProgram.mvpMatrixUniform.takeIf { it >= 0 }?.let { mvpMatrixUniform ->
             tmpMatrix.set(projectionMatrix)
             tmpMatrix.mul(viewMatrix)
             tmpMatrix.mul(modelMatrix)
@@ -103,7 +103,7 @@ class MeshRendererComponent(
             GLES20.glUniformMatrix4fv(mvpMatrixUniform, 1, false, tmpFloatArray, 0)
         }
 
-        shaderProgram.lightMvpMatrixUniform.takeIf { it > 0 }?.let { lightMvpMatrixUniform ->
+        shaderProgram.lightMvpMatrixUniform.takeIf { it >= 0 }?.let { lightMvpMatrixUniform ->
             tmpMatrix.set(lightProjectionMatrix)
             tmpMatrix.mul(lightViewMatrix)
             tmpMatrix.mul(lightModelMatrix)
@@ -111,17 +111,17 @@ class MeshRendererComponent(
             GLES20.glUniformMatrix4fv(lightMvpMatrixUniform, 1, false, tmpFloatArray, 0)
         }
 
-        shaderProgram.modelMatrixUniform.takeIf { it > 0 }?.let { modelMatrixUniform ->
+        shaderProgram.modelMatrixUniform.takeIf { it >= 0 }?.let { modelMatrixUniform ->
             modelMatrix.get(tmpFloatArray)
             GLES20.glUniformMatrix4fv(modelMatrixUniform, 1, false, tmpFloatArray, 0)
         }
 
-        shaderProgram.biasMatrixUniform.takeIf { it > 0 }?.let { biasMatrixUniform ->
+        shaderProgram.biasMatrixUniform.takeIf { it >= 0 }?.let { biasMatrixUniform ->
             BIAS_MATRIX.get(tmpFloatArray)
             GLES20.glUniformMatrix4fv(biasMatrixUniform, 1, false, tmpFloatArray, 0)
         }
 
-        shaderProgram.diffuseColorUniform.takeIf { it > 0 }?.let { diffuseColorUniform ->
+        shaderProgram.diffuseColorUniform.takeIf { it >= 0 }?.let { diffuseColorUniform ->
             GLES20.glUniform4f(
                     diffuseColorUniform,
                     material.diffuseColor.x,
@@ -136,7 +136,7 @@ class MeshRendererComponent(
             val textureInfo = openGLObjectsRepository.findTexture(textureName)
                 ?: error("Texture not found for ${gameObject?.name}")
 
-            shaderProgram.textureUniform.takeIf { it > 0 }?.let { textureUniform ->
+            shaderProgram.textureUniform.takeIf { it >= 0 }?.let { textureUniform ->
                 GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
                 GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureInfo.texture)
                 GLES20.glUniform1i(textureUniform, 0)
@@ -148,7 +148,7 @@ class MeshRendererComponent(
         }
 
         shaderProgram.receiveShadows.glUniform1i(material.receiveShadows.toGLBoolean())
-        safeLet(shadowMapTextureInfo, shaderProgram.shadowMapUniform.takeIf { it > 0 }) { textureInfo, shadowMapUniform ->
+        safeLet(shadowMapTextureInfo, shaderProgram.shadowMapUniform.takeIf { it >= 0 }) { textureInfo, shadowMapUniform ->
             GLES20.glActiveTexture(GLES20.GL_TEXTURE1)
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureInfo.texture)
             GLES20.glUniform1i(shadowMapUniform, 1)

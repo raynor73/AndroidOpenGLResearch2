@@ -8,6 +8,7 @@ uniform mat4 lightMvpMatrixUniform;
 uniform mat4 biasMatrixUniform;
 
 varying vec2 uvVarying;
+varying vec3 normalVarying;
 varying vec4 shadowMapUvVariying;
 
 void main() {
