@@ -75,10 +75,18 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val lightViewMatrix = matrixPool.obtain()
         val lightProjectionMatrix = matrixPool.obtain()
 
+        // Opaque rendering
         (scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
-            renderUnlitObjects(scene, renderTarget, displayAspect)
-            renderAmbientLight(scene, renderTarget, displayAspect)
-            renderDirectionalLights(scene, renderTarget, displayAspect)
+            renderUnlitObjects(scene, renderTarget, false, displayAspect)
+            renderAmbientLight(scene, renderTarget, false, displayAspect)
+            renderDirectionalLights(scene, renderTarget, false, displayAspect)
+        }
+
+        // Translucent rendering
+        (scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
+            renderUnlitObjects(scene, renderTarget, true, displayAspect)
+            renderAmbientLight(scene, renderTarget, true, displayAspect)
+            renderDirectionalLights(scene, renderTarget, true, displayAspect)
         }
 
 
@@ -227,11 +235,21 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         openGLErrorDetector.dispatchOpenGLErrors("render")
     }
 
-    private fun renderDirectionalLights(scene: Scene2, renderTarget: FrameBufferInfo, displayAspect: Float) {
+    private fun renderDirectionalLights(
+        scene: Scene2,
+        renderTarget: FrameBufferInfo,
+        isTranslucentRendering: Boolean,
+        displayAspect: Float
+    ) {
 
     }
 
-    private fun renderUnlitObjects(scene: Scene2, renderTarget: FrameBufferInfo, viewportAspect: Float) {
+    private fun renderUnlitObjects(
+        scene: Scene2,
+        renderTarget: FrameBufferInfo,
+        isTranslucentRendering: Boolean,
+        viewportAspect: Float
+    ) {
         val modelMatrix = matrixPool.obtain()
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
@@ -262,6 +280,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                     renderer.render(
                         shaderProgram,
                         renderTarget,
+                        isTranslucentRendering,
                         modelMatrix.identity()
                             .translate(transform.position)
                             .rotate(transform.rotation)
@@ -280,7 +299,12 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         openGLErrorDetector.dispatchOpenGLErrors("renderAmbientLight")
     }
 
-    private fun renderAmbientLight(scene: Scene2, renderTarget: FrameBufferInfo, viewportAspect: Float) {
+    private fun renderAmbientLight(
+        scene: Scene2,
+        renderTarget: FrameBufferInfo,
+        isTranslucentRendering: Boolean,
+        viewportAspect: Float
+    ) {
         val modelMatrix = matrixPool.obtain()
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
@@ -314,6 +338,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                     renderer.render(
                         ambientShaderProgram,
                         renderTarget,
+                        isTranslucentRendering,
                         modelMatrix.identity()
                             .translate(transform.position)
                             .rotate(transform.rotation)

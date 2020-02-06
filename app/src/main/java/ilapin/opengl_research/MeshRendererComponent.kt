@@ -24,6 +24,7 @@ class MeshRendererComponent(
     fun render(
         shaderProgram: ShaderProgramInfo,
         renderTargetFrameBufferInfo: FrameBufferInfo?,
+        isTranslucentRendering: Boolean,
         modelMatrix: Matrix4fc,
         viewMatrix: Matrix4fc,
         projectionMatrix: Matrix4fc,
@@ -41,6 +42,10 @@ class MeshRendererComponent(
         val material = gameObject?.getComponent(MaterialComponent::class.java) ?: return
 
         if (material.isUnlit && shaderProgram !is ShaderProgramInfo.UnlitShaderProgram) {
+            return
+        }
+
+        if (material.isTranslucent && !isTranslucentRendering) {
             return
         }
 
@@ -125,12 +130,32 @@ class MeshRendererComponent(
         }
         GLES20.glLineWidth(lineWidth)
 
-        GLES20.glDrawElements(
-            mode,
-            mesh.iboInfo.numberOfIndices,
-            GLES20.GL_UNSIGNED_SHORT,
-            0
-        )
+        if (material.isTranslucent) {
+            GLES20.glEnable(GLES20.GL_CULL_FACE)
+
+            GLES20.glCullFace(GLES20.GL_FRONT)
+            GLES20.glDrawElements(
+                mode,
+                mesh.iboInfo.numberOfIndices,
+                GLES20.GL_UNSIGNED_SHORT,
+                0
+            )
+
+            GLES20.glCullFace(GLES20.GL_BACK)
+            GLES20.glDrawElements(
+                mode,
+                mesh.iboInfo.numberOfIndices,
+                GLES20.GL_UNSIGNED_SHORT,
+                0
+            )
+        } else {
+            GLES20.glDrawElements(
+                mode,
+                mesh.iboInfo.numberOfIndices,
+                GLES20.GL_UNSIGNED_SHORT,
+                0
+            )
+        }
 
         GLES20.glDisableVertexAttribArray(shaderProgram.vertexCoordinateAttribute)
         GLES20.glDisableVertexAttribArray(shaderProgram.uvAttribute)

@@ -11,5 +11,8 @@ class MaterialComponent(
     val diffuseColor: Vector4f,
     var isDoubleSided: Boolean = false,
     var isWireframe: Boolean = false,
-    var isUnlit: Boolean = false
+    var isUnlit: Boolean = false,
+    var isTranslucent: Boolean = false,
+    var castShadows: Boolean = true,
+    var receiveShadows: Boolean = true
 ) : GameObjectComponent()
