@@ -2,6 +2,25 @@ package ilapin.opengl_research
 
 import android.opengl.GLES20
 import ilapin.opengl_research.domain.Mesh
+import org.joml.Vector2f
+import org.joml.Vector3f
+
+fun ilapin.engine3d.MeshComponent.toMesh(): Mesh {
+    val convertedVertices = ArrayList<Mesh.Vertex>()
+    val convertedIndices = ArrayList<Short>()
+
+    vertices.forEachIndexed { i, vertexCoordinates ->
+        convertedVertices += Mesh.Vertex(
+            Vector3f(vertexCoordinates),
+            Vector3f(normals[i]),
+            Vector2f(uvs[i])
+        )
+    }
+
+    convertedIndices += indices.map { it.toShort() }
+
+    return Mesh(convertedVertices, convertedIndices)
+}
 
 fun Mesh.verticesAsArray(): FloatArray {
     val vertexComponentsArray = FloatArray(vertices.size * VERTEX_COMPONENTS)

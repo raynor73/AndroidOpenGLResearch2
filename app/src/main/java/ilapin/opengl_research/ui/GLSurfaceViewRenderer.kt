@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView
 import ilapin.common.input.TouchEvent
 import ilapin.common.messagequeue.MessageQueue
 import ilapin.engine3d.TransformationComponent
+import ilapin.meshloader.android.ObjMeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.domain.CharacterMovementScene
 import ilapin.opengl_research.domain.Scene2
@@ -78,6 +79,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val scene = CharacterMovementScene(
             openGLObjectsRepository,
             openGLErrorDetector,
+            ObjMeshLoadingRepository(context),
             AndroidDisplayMetricsRepository(context),
             scrollController
         )

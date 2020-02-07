@@ -7,4 +7,20 @@
     android:layout_height="match_parent"
     android:background="#ff00ff"
     tools:ignore="RtlHardcoded"
-    tools:context=".ui.MainActivity" />
+    tools:context=".ui.MainActivity">
+
+    <ilapin.common.android.ui.widgets.joystick_view.JoystickView
+        android:id="@+id/leftJoystickView"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_margin="16dp"
+        android:layout_gravity="bottom|left" />
+
+    <ilapin.common.android.ui.widgets.joystick_view.JoystickView
+        android:id="@+id/rightJoystickView"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_margin="16dp"
+        android:layout_gravity="bottom|right" />
+
+</FrameLayout>

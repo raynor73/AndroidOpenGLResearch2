@@ -2,10 +2,10 @@ package ilapin.opengl_research.domain
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
-import ilapin.common.android.log.L
 import ilapin.engine3d.GameObject
 import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
+import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -19,6 +19,7 @@ import kotlin.math.PI
 class CharacterMovementScene(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector,
+    private val meshLoadingRepository: MeshLoadingRepository,
     displayMetricsRepository: DisplayMetricsRepository,
     private val scrollController: ScrollController
 ) : Scene2 {
@@ -53,6 +54,7 @@ class CharacterMovementScene(
     private var zAngle = -(PI / 4).toFloat()
 
     private lateinit var directionalLightTransform: TransformationComponent
+    private lateinit var playerTransform: TransformationComponent
 
     init {
         setupTextures()
@@ -63,8 +65,6 @@ class CharacterMovementScene(
 
     override fun update() {
         scrollController.scrollEvent?.let { scrollEvent ->
-            L.d(App.LOG_TAG, "Scroll event dx = ${scrollEvent.dx}; dy = ${scrollEvent.dy}")
-
             zAngle -= Math.toRadians((scrollEvent.dx / pixelDensityFactor).toDouble()).toFloat()
             xAngle -=  Math.toRadians((scrollEvent.dy / pixelDensityFactor).toDouble()).toFloat()
 
@@ -122,6 +122,33 @@ class CharacterMovementScene(
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent("blue", Vector4f(1f, 1f, 1f, 1f)))
             gameObject.addComponent(MeshComponent(quadVbo, quadIboInfo))
+            rootGameObject.addChild(gameObject)
+        }
+
+        run {
+            val playerMesh = meshLoadingRepository.loadMesh("meshes/cube.obj").toMesh()
+            val playerMeshVbo = openGLObjectsRepository.createStaticVbo("player", playerMesh.verticesAsArray())
+            val playerMeshIboInfo = IboInfo(
+                openGLObjectsRepository.createStaticIbo("player", playerMesh.indices.toShortArray()),
+                playerMesh.indices.size
+            )
+
+            val gameObject = GameObject("player")
+            playerTransform = TransformationComponent(
+                Vector3f(0f, 0f, -2f),
+                Quaternionf().identity(),
+                Vector3f(1f, 1f, 1f)
+            )
+            gameObject.addComponent(playerTransform)
+            val renderer = MeshRendererComponent(
+                pixelDensityFactor,
+                openGLObjectsRepository,
+                openGLErrorDetector
+            )
+            layerRenderers[DEFAULT_LAYER_NAME] += renderer
+            gameObject.addComponent(renderer)
+            gameObject.addComponent(MaterialComponent(null, Vector4f(0f, 1f, 1f, 1f)))
+            gameObject.addComponent(MeshComponent(playerMeshVbo, playerMeshIboInfo))
             rootGameObject.addChild(gameObject)
         }
     }
