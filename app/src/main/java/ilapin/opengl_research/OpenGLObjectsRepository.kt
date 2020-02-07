@@ -3,6 +3,7 @@ package ilapin.opengl_research
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.opengl.GLES20
 import android.opengl.GLUtils
 import java.nio.ByteBuffer
@@ -211,7 +212,19 @@ class OpenGLObjectsRepository(
         val texture = tmpIntArray[0]
 
         val bitmapStream = context.assets.open(path)
-        val bitmap = BitmapFactory.decodeStream(bitmapStream)
+        val originalBitmap = BitmapFactory.decodeStream(bitmapStream)
+        val flipVerticallyMatrix = Matrix()
+        flipVerticallyMatrix.postScale(1f, -1f, originalBitmap.width / 2f, originalBitmap.height / 2f)
+        val bitmap = Bitmap.createBitmap(
+            originalBitmap,
+            0,
+            0,
+            originalBitmap.width,
+            originalBitmap.height,
+            flipVerticallyMatrix,
+            true
+        )
+        originalBitmap.recycle()
         bitmapStream.close()
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture)
