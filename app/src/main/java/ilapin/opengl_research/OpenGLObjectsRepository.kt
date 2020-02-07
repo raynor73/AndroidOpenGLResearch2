@@ -1,6 +1,8 @@
 package ilapin.opengl_research
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLUtils
 import java.nio.ByteBuffer
@@ -10,7 +12,10 @@ import java.nio.ByteOrder
 /**
  * @author ilapin on 25.01.2020.
  */
-class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetector) {
+class OpenGLObjectsRepository(
+    private val context: Context,
+    private val openGLErrorDetector: OpenGLErrorDetector
+) {
 
     private val textures = HashMap<String, TextureInfo>()
     private val fbos = HashMap<String, Int>()
@@ -195,6 +200,35 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
         openGLErrorDetector.dispatchOpenGLErrors("createDirectionalLightShaderProgram")
 
         return shaderProgram
+    }
+
+    fun loadTexture(name: String, path: String) {
+        if (textures.containsKey(name)) {
+            throw IllegalArgumentException("Texture $name already exists")
+        }
+
+        GLES20.glGenTextures(1, tmpIntArray, 0)
+        val texture = tmpIntArray[0]
+
+        val bitmapStream = context.assets.open(path)
+        val bitmap = BitmapFactory.decodeStream(bitmapStream)
+        bitmapStream.close()
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT)
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+
+        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+
+        textures[name] = TextureInfo(texture, bitmap.width, bitmap.height)
+
+        bitmap.recycle()
+
+        openGLErrorDetector.dispatchOpenGLErrors("loadTexture")
     }
 
     fun createTexture(name: String, width: Int, height: Int, data: IntArray) {

@@ -117,6 +117,7 @@ class CharacterMovementScene(
     private fun setupTextures() {
         openGLObjectsRepository.createTexture("green", 1, 1, intArrayOf(0xff008000.toInt()))
         openGLObjectsRepository.createTexture("blue", 1, 1, intArrayOf(0xff000080.toInt()))
+        openGLObjectsRepository.loadTexture("female", "textures/female.png")
     }
 
     private fun setupGeometry() {
@@ -187,7 +188,7 @@ class CharacterMovementScene(
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             player.addComponent(renderer)
-            player.addComponent(MaterialComponent(null, Vector4f(0f, 1f, 1f, 1f)))
+            player.addComponent(MaterialComponent("female", Vector4f(1f, 1f, 1f, 1f)))
             player.addComponent(MeshComponent(playerMeshVbo, playerMeshIboInfo))
             rootGameObject.addChild(player)
         }
@@ -196,7 +197,7 @@ class CharacterMovementScene(
     private fun setupLights() {
         run {
             val gameObject = GameObject("directionalLight")
-            val lightComponent = DirectionalLightComponent(Vector3f(1f, 1f, 1f))
+            val lightComponent = DirectionalLightComponent(Vector3f(0.7f, 0.7f, 0.7f))
             gameObject.addComponent(lightComponent)
             directionalLightTransform = TransformationComponent(
                 Vector3f(0f, 0f, 0f),

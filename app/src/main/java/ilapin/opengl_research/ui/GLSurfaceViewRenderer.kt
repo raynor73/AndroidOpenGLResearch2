@@ -33,8 +33,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private val messageQueueSubscription: Disposable
 
     private val openGLErrorDetector = OpenGLErrorDetector()
-    private val openGLObjectsRepository =
-        OpenGLObjectsRepository(openGLErrorDetector)
+    private val openGLObjectsRepository = OpenGLObjectsRepository(context, openGLErrorDetector)
 
     private var displayWidth: Int? = null
     private var displayHeight: Int? = null
