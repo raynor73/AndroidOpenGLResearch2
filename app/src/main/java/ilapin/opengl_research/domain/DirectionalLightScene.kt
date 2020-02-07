@@ -110,7 +110,7 @@ class DirectionalLightScene(
             rootGameObject.addChild(gameObject)
         }
 
-        run {
+        /*run {
             val gameObject = GameObject("debug_quad")
             val size = displayWidth / 3f
             gameObject.addComponent(TransformationComponent(
@@ -137,7 +137,7 @@ class DirectionalLightScene(
             ))
             gameObject.addComponent(MeshComponent(quadVbo, quadIboInfo))
             rootGameObject.addChild(gameObject)
-        }
+        }*/
     }
 
     private fun setupLights() {
@@ -146,18 +146,21 @@ class DirectionalLightScene(
             val lightComponent = DirectionalLightComponent(Vector3f(1f, 1f, 1f))
             gameObject.addComponent(lightComponent)
             gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, 2f, 0f), // for debug purposes, actually should not make any difference
-                //Vector3f(0f, 0f, 0f),
+                Vector3f(0f, 0f, 0f),
                 Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
                 Vector3f(1f, 1f, 1f)
             ))
+            val halfShadowSize = GLOBAL_DIRECTIONAL_LIGHT_SHADOW_SIZE / 2
             val cameraComponent = DirectionalLightShadowMapCameraComponent(
                 vectorsPool,
-                10f,
-                -6f, 6f, -6f, 6f
+                GLOBAL_DIRECTIONAL_LIGHT_DISTANCE_FROM_VIEWER,
+                -halfShadowSize,
+                halfShadowSize,
+                -halfShadowSize,
+                halfShadowSize
             )
             cameraComponent.zNear = 1f
-            cameraComponent.zFar = 10f
+            cameraComponent.zFar = 2 * GLOBAL_DIRECTIONAL_LIGHT_DISTANCE_FROM_VIEWER
             gameObject.addComponent(cameraComponent)
             rootGameObject.addChild(gameObject)
 
@@ -184,26 +187,8 @@ class DirectionalLightScene(
 
             _cameraAmbientLights[cameraComponent] = Vector3f(0.1f, 0.1f, 0.1f)
         }
+
         /*run {
-            val gameObject = GameObject("camera")
-            gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, 2f, 0f),
-                Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
-                Vector3f(1f, 1f, 1f)
-            ))
-            val cameraComponent = OrthoCameraComponent(
-                vectorsPool,
-                -6f, 6f, -6f, 6f,
-                listOf(DEFAULT_LAYER_NAME)
-            )
-            gameObject.addComponent(cameraComponent)
-            rootGameObject.addChild(gameObject)
-            _cameras += cameraComponent
-
-            _cameraAmbientLights[cameraComponent] = Vector3f(0.5f, 0.5f, 0.5f)
-        }*/
-
-        run {
             val gameObject = GameObject("uiCamera")
             gameObject.addComponent(TransformationComponent(
                 Vector3f(0f, 0f, 0f),
@@ -221,7 +206,7 @@ class DirectionalLightScene(
             _cameras += cameraComponent
 
             _cameraAmbientLights[cameraComponent] = Vector3f(1f, 1f, 1f)
-        }
+        }*/
     }
 
     companion object {

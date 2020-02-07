@@ -21,7 +21,7 @@ class DirectionalLightShadowMapCameraComponent(
         val correctedPosition = vectorsPool.obtain()
         val transform = gameObject?.getComponent(TransformationComponent::class.java)!!
 
-        correctedPosition.set(0f, 0f, -1f)
+        correctedPosition.set(CAMERA_LOOK_AT_DIRECTION)
         correctedPosition.rotate(transform.rotation)
         correctedPosition.mul(-distanceFromViewer)
         correctedPosition.add(viewerPosition)

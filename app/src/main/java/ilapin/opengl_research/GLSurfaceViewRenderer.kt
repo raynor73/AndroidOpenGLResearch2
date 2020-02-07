@@ -82,28 +82,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         // Opaque rendering
         (scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
             render(scene, renderTarget, false, displayAspect)
-            /*renderUnlitObjects(scene, renderTarget, false, displayAspect)
-            renderAmbientLight(scene, renderTarget, false, displayAspect)*/
-
-            /*GLES20.glDepthMask(false)
-            GLES20.glDepthFunc(GLES20.GL_EQUAL)
-            GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE)
-
-            scene.lights.forEach { light ->
-                when (light) {
-                    is DirectionalLightComponent -> renderDirectionalLight(
-                            scene,
-                            light,
-                            renderTarget,
-                            false,
-                            displayAspect
-                    )
-                }
-            }
-
-            GLES20.glDepthMask(true)
-            GLES20.glDepthFunc(GLES20.GL_LESS)
-            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)*/
         }
 
         // Translucent rendering
@@ -145,7 +123,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                 ?: error("Transform not found for camera ${camera.gameObject?.name}")
         val lightCamera = light.gameObject?.getComponent(DirectionalLightShadowMapCameraComponent::class.java)
                 ?: error("Shadow map camera not found for directional light ${light.gameObject?.name}")
-        lightCamera.calculateViewMatrix(/*viewerTransform.position, */lightViewMatrix)
+        lightCamera.calculateViewMatrix(viewerTransform.position, lightViewMatrix)
         lightCamera.calculateProjectionMatrix(lightProjectionMatrix)
 
         renderShadowMap(scene, layerName, lightViewMatrix, lightProjectionMatrix)
@@ -429,20 +407,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     }
 
     private fun setupShaders() {
-        /*openGLObjectsRepository.createVertexShader(
-                "depth_visualizer_vertex_shader",
-                context.assets.open("depthVisualization/vertexShader.glsl").readBytes().toString(Charset.defaultCharset())
-        )
-        openGLObjectsRepository.createFragmentShader(
-                "depth_visualizer_fragment_shader",
-                context.assets.open("depthVisualization/fragmentShader.glsl").readBytes().toString(Charset.defaultCharset())
-        )
-        openGLObjectsRepository.createShaderProgram(
-                "depth_visualizer_shader_program",
-                openGLObjectsRepository.findVertexShader("depth_visualizer_vertex_shader")!!,
-                openGLObjectsRepository.findFragmentShader("depth_visualizer_fragment_shader")!!
-        )*/
-
         openGLObjectsRepository.createVertexShader(
                 "ambient_vertex_shader",
                 context.assets.open("ambient/ambientVertexShader.glsl").readBytes().toString(Charset.defaultCharset())
@@ -484,24 +448,6 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                 openGLObjectsRepository.findVertexShader("shadow_map_vertex_shader")!!,
                 openGLObjectsRepository.findFragmentShader("shadow_map_fragment_shader")!!
         )
-
-        /*openGLObjectsRepository.createVertexShader(
-                "shadow_map_visualization_vertex_shader",
-                context.assets.open("unlit/unlitVertexShader.glsl").readBytes().toString(Charset.defaultCharset())
-        )
-        openGLObjectsRepository.createFragmentShader(
-                "shadow_map_visualization_fragment_shader",
-                context
-                        .assets
-                        .open("depthVisualization/depthTextureFragmentShader.glsl")
-                        .readBytes()
-                        .toString(Charset.defaultCharset())
-        )
-        openGLObjectsRepository.createShaderProgram(
-                "shadow_map_visualization_shader_program",
-                openGLObjectsRepository.findVertexShader("shadow_map_visualization_vertex_shader")!!,
-                openGLObjectsRepository.findFragmentShader("shadow_map_visualization_fragment_shader")!!
-        )*/
 
         openGLObjectsRepository.createVertexShader(
                 "directional_light_vertex_shader",
