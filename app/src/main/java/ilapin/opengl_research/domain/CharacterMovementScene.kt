@@ -20,15 +20,14 @@ import kotlin.math.PI
 class CharacterMovementScene(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector,
+    private val vectorsPool: ObjectsPool<Vector3f>,
+    private val quaternionsPool: ObjectsPool<Quaternionf>,
     private val timeRepository: TimeRepository,
     private val meshLoadingRepository: MeshLoadingRepository,
     displayMetricsRepository: DisplayMetricsRepository,
     private val scrollController: ScrollController,
     private val playerController: PlayerController
 ) : Scene2 {
-
-    private val vectorsPool = ObjectsPool { Vector3f() }
-    private val tmpQuaternion = Quaternionf()
 
     private val _cameras = ArrayList<CameraComponent>()
 
@@ -62,6 +61,7 @@ class CharacterMovementScene(
 
     private lateinit var player: GameObject
     private lateinit var playerTransform: TransformationComponent
+    private var playerYAngle = 0f
 
     init {
         setupTextures()
@@ -79,24 +79,39 @@ class CharacterMovementScene(
             zAngle -= Math.toRadians((scrollEvent.dx / pixelDensityFactor).toDouble()).toFloat()
             xAngle -=  Math.toRadians((scrollEvent.dy / pixelDensityFactor).toDouble()).toFloat()
 
-            tmpQuaternion.identity()
-            tmpQuaternion.rotateZ(zAngle).rotateX(xAngle)
-            directionalLightTransform.rotation = tmpQuaternion
+            val lightRotation = quaternionsPool.obtain()
+
+            lightRotation.identity()
+            lightRotation.rotateZ(zAngle).rotateX(xAngle)
+            directionalLightTransform.rotation = lightRotation
+
+            quaternionsPool.recycle(lightRotation)
         }
 
         val playerPosition = vectorsPool.obtain()
         val movingDirection = vectorsPool.obtain()
+        val strafingDirection = vectorsPool.obtain()
 
         movingDirection.set(INITIAL_FORWARD_VECTOR)
         movingDirection.rotate(playerTransform.rotation)
+        strafingDirection.set(INITIAL_RIGHT_VECTOR)
+        strafingDirection.rotate(playerTransform.rotation)
 
         playerPosition.set(playerTransform.position)
-        playerPosition.x += movingDirection.x * PLAYER_MOVEMENT_SPEED * playerController.strafingFraction * dt
-        playerPosition.z += movingDirection.z * PLAYER_MOVEMENT_SPEED * playerController.movingFraction * dt
+        playerPosition.add(movingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.movingFraction).mul(dt))
+        playerPosition.add(strafingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.strafingFraction).mul(dt))
         playerTransform.position = playerPosition
+
+        val playerRotation = quaternionsPool.obtain()
+        playerYAngle += playerController.horizontalSteeringFraction * PLAYER_STEERING_SPEED * dt
+        playerRotation.identity().rotateY(playerYAngle)
+        playerTransform.rotation = playerRotation
 
         vectorsPool.recycle(playerPosition)
         vectorsPool.recycle(movingDirection)
+        vectorsPool.recycle(strafingDirection)
+
+        quaternionsPool.recycle(playerRotation)
     }
 
     private fun setupTextures() {

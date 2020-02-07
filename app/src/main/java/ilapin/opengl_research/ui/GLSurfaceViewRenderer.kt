@@ -14,9 +14,7 @@ import ilapin.opengl_research.domain.PlayerController
 import ilapin.opengl_research.domain.Scene2
 import ilapin.opengl_research.domain.ScrollController
 import io.reactivex.disposables.Disposable
-import org.joml.Matrix4f
-import org.joml.Matrix4fc
-import org.joml.Vector3fc
+import org.joml.*
 import java.nio.charset.Charset
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -29,6 +27,8 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private val leftJoystick = JoystickViewJoystick()
     private val rightJoystick = JoystickViewJoystick()
     private val playerController = PlayerController(leftJoystick, rightJoystick)
+    private val vectorsPool = ObjectsPool { Vector3f() }
+    private val quaternionsPool = ObjectsPool { Quaternionf() }
 
     private val messageQueueSubscription: Disposable
 
@@ -90,6 +90,8 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val scene = CharacterMovementScene(
             openGLObjectsRepository,
             openGLErrorDetector,
+            vectorsPool,
+            quaternionsPool,
             LocalTimeRepository(),
             ObjMeshLoadingRepository(context),
             AndroidDisplayMetricsRepository(context),
