@@ -44,10 +44,15 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
         GLES20.glEnable(GLES20.GL_CULL_FACE)
 
+        /*GLES20.glEnable(GLES20.GL_BLEND)
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)*/
+
         setupShaders()
 
         val scene = DirectionalLightScene(
             context,
+            width,
+            height,
             openGLObjectsRepository,
             openGLErrorDetector
         )
@@ -73,17 +78,18 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         GLES20.glViewport(0, 0, width, height)
         GLES20.glClearColor(0f, 0f, 0f, 1f)
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-
-        /*val lightModelMatrix = matrixPool.obtain()
-        val lightViewMatrix = matrixPool.obtain()
-        val lightProjectionMatrix = matrixPool.obtain()*/
 
         // Opaque rendering
         (scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
-            //renderUnlitObjects(scene, renderTarget, false, displayAspect)
-            renderAmbientLight(scene, renderTarget, false, displayAspect)
-            /*scene.lights.forEach { light ->
+            render(scene, renderTarget, false, displayAspect)
+            /*renderUnlitObjects(scene, renderTarget, false, displayAspect)
+            renderAmbientLight(scene, renderTarget, false, displayAspect)*/
+
+            /*GLES20.glDepthMask(false)
+            GLES20.glDepthFunc(GLES20.GL_EQUAL)
+            GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE)
+
+            scene.lights.forEach { light ->
                 when (light) {
                     is DirectionalLightComponent -> renderDirectionalLight(
                             scene,
@@ -93,7 +99,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                             displayAspect
                     )
                 }
-            }*/
+            }
+
+            GLES20.glDepthMask(true)
+            GLES20.glDepthFunc(GLES20.GL_LESS)
+            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)*/
         }
 
         // Translucent rendering
@@ -113,155 +123,15 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             }
         }*/
 
-        /*scene.cameras.forEach { camera ->
-            //renderShadowMaps(scene)
-            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
-            camera.layerNames.forEach { layerName ->
-                scene.layerRenderers[layerName].forEach { renderer ->
-                    when (renderer) {
-                        is DepthVisualizationRendererComponent -> {
-
-                        }
-
-                        is DirectionalLightRenderer -> {
-                            val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
-                            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
-
-                            when (camera) {
-                                is PerspectiveCameraComponent -> {
-                                    camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(displayAspect, projectionMatrix)
-                                }
-
-                                is OrthoCameraComponent -> {
-                                    camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(projectionMatrix)
-                                }
-                            }
-
-                            val lightCamera = directionalLightShadowMapCamera?.getComponent(
-                                DirectionalLightShadowMapCameraComponent::class.java
-                            )!!
-                            lightCamera.calculateViewMatrix(lightViewMatrix)
-                            lightCamera.calculateProjectionMatrix(lightProjectionMatrix)
-                            renderer.render(
-                                meshName,
-                                meshName,
-                                "shadowMap",
-                                modelMatrix.identity()
-                                    .translate(transform.position)
-                                    .rotate(transform.rotation)
-                                    .scale(transform.scale),
-                                viewMatrix,
-                                projectionMatrix,
-                                lightModelMatrix.identity()
-                                    .translate(transform.position)
-                                    .rotate(transform.rotation)
-                                    .scale(transform.scale),
-                                lightViewMatrix,
-                                lightProjectionMatrix
-                            )
-                        }
-
-                        is ShadowMapVisualizationRenderer -> {
-                            val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
-                            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
-                            when (camera) {
-                                is PerspectiveCameraComponent -> {
-                                    camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(displayAspect, projectionMatrix)
-                                }
-
-                                is OrthoCameraComponent -> {
-                                    camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(projectionMatrix)
-                                }
-                            }
-                            renderer.render(
-                                meshName,
-                                meshName,
-                                modelMatrix.identity()
-                                    .translate(transform.position)
-                                    .rotate(transform.rotation)
-                                    .scale(transform.scale),
-                                viewMatrix,
-                                projectionMatrix
-                            )
-                        }
-
-                        is ShadowMapRendererComponent -> {
-                            val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
-                            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
-                            when (camera) {
-                                is DirectionalLightShadowMapCameraComponent -> {
-                                    camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(projectionMatrix)
-                                }
-
-                                is PerspectiveCameraComponent -> {
-                                    camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(displayAspect, projectionMatrix)
-                                }
-
-                                is OrthoCameraComponent -> {
-                                    camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(projectionMatrix)
-                                }
-                            }
-                            renderer.render(
-                                meshName,
-                                meshName,
-                                "shadowMap",
-                                modelMatrix.identity()
-                                    .translate(transform.position)
-                                    .rotate(transform.rotation)
-                                    .scale(transform.scale),
-                                viewMatrix,
-                                projectionMatrix
-                            )
-                        }
-
-                        is UnlitRendererComponent -> {
-                            val meshName = renderer.gameObject?.getComponent(MeshComponent::class.java)!!.name
-                            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)!!
-                            when (camera) {
-                                is PerspectiveCameraComponent -> {
-                                    camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(displayAspect, projectionMatrix)
-                                }
-
-                                is OrthoCameraComponent -> {
-                                    camera.calculateViewMatrix(viewMatrix)
-                                    camera.calculateProjectionMatrix(projectionMatrix)
-                                }
-                            }
-                            renderer.render(
-                                meshName,
-                                meshName,
-                                modelMatrix.identity()
-                                    .translate(transform.position)
-                                    .rotate(transform.rotation)
-                                    .scale(transform.scale),
-                                viewMatrix,
-                                projectionMatrix
-                            )
-                        }
-                    }
-                }
-            }
-        }*/
-
-        /*matrixPool.recycle(lightModelMatrix)
-        matrixPool.recycle(lightViewMatrix)
-        matrixPool.recycle(lightProjectionMatrix)*/
-
         openGLErrorDetector.dispatchOpenGLErrors("render")
     }
 
     private fun renderDirectionalLight(
         scene: Scene2,
-        light: DirectionalLightComponent,
         renderTarget: FrameBufferInfo,
+        light: DirectionalLightComponent,
+        camera: CameraComponent,
+        layerName: String,
         isTranslucentRendering: Boolean,
         viewportAspect: Float
     ) {
@@ -271,59 +141,57 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val lightViewMatrix = matrixPool.obtain()
         val lightProjectionMatrix = matrixPool.obtain()
 
-        scene.cameras.forEach { camera ->
-            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
+        val viewerTransform = camera.gameObject?.getComponent(TransformationComponent::class.java)
+                ?: error("Transform not found for camera ${camera.gameObject?.name}")
+        val lightCamera = light.gameObject?.getComponent(DirectionalLightShadowMapCameraComponent::class.java)
+                ?: error("Shadow map camera not found for directional light ${light.gameObject?.name}")
+        lightCamera.calculateViewMatrix(viewerTransform.position, lightViewMatrix)
+        lightCamera.calculateProjectionMatrix(lightProjectionMatrix)
 
-            camera.layerNames.forEach { layerName ->
-                val viewerTransform = camera.gameObject?.getComponent(TransformationComponent::class.java)
-                        ?: error("Transform not found for camera ${camera.gameObject?.name}")
-                val lightCamera = light.gameObject?.getComponent(DirectionalLightShadowMapCameraComponent::class.java)
-                        ?: error("Shadow map camera not found for directional light ${light.gameObject?.name}")
-                lightCamera.calculateViewMatrix(viewerTransform.position, lightViewMatrix)
-                lightCamera.calculateProjectionMatrix(lightProjectionMatrix)
+        renderShadowMap(scene, layerName, lightViewMatrix, lightProjectionMatrix)
 
-                renderShadowMap(scene, layerName, lightViewMatrix, lightProjectionMatrix)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
+        GLES20.glEnable(GLES20.GL_BLEND)
+        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE)
+        GLES20.glDepthMask(false)
+        GLES20.glDepthFunc(GLES20.GL_EQUAL)
 
-                val shaderProgram = openGLObjectsRepository
-                    .findShaderProgram("directional_light_shader_program") as ShaderProgramInfo.DirectionalLightShaderProgram
+        val shaderProgram = openGLObjectsRepository
+            .findShaderProgram("directional_light_shader_program") as ShaderProgramInfo.DirectionalLightShaderProgram
+        GLES20.glUseProgram(shaderProgram.shaderProgram)
 
-                GLES20.glUseProgram(shaderProgram.shaderProgram)
+        fillDirectionalLightShaderUniforms(shaderProgram, light)
 
-                fillDirectionalLightShaderUniforms(shaderProgram, light)
+        scene.layerRenderers[layerName].forEach { renderer ->
+            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
+                ?: error("Not transform found for game object ${renderer.gameObject?.name}")
+            when (camera) {
+                is PerspectiveCameraComponent -> {
+                    camera.calculateViewMatrix(viewMatrix)
+                    camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
+                }
 
-                scene.layerRenderers[layerName].forEach { renderer ->
-                    val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
-                        ?: error("Not transform found for game object ${renderer.gameObject?.name}")
-                    when (camera) {
-                        is PerspectiveCameraComponent -> {
-                            camera.calculateViewMatrix(viewMatrix)
-                            camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
-                        }
-
-                        is OrthoCameraComponent -> {
-                            camera.calculateViewMatrix(viewMatrix)
-                            camera.calculateProjectionMatrix(projectionMatrix)
-                        }
-                    }
-                    modelMatrix.identity()
-                            .translate(transform.position)
-                            .rotate(transform.rotation)
-                            .scale(transform.scale)
-                    renderer.render(
-                        shaderProgram,
-                        renderTarget,
-                        isTranslucentRendering,
-                        false,
-                        modelMatrix,
-                        viewMatrix,
-                        projectionMatrix,
-                        modelMatrix,
-                        lightViewMatrix,
-                        lightProjectionMatrix,
-                        shadowMapFrameBufferInfo?.depthTextureInfo
-                    )
+                is OrthoCameraComponent -> {
+                    camera.calculateViewMatrix(viewMatrix)
+                    camera.calculateProjectionMatrix(projectionMatrix)
                 }
             }
+            modelMatrix.identity()
+                    .translate(transform.position)
+                    .rotate(transform.rotation)
+                    .scale(transform.scale)
+            renderer.render(
+                shaderProgram,
+                isTranslucentRendering,
+                false,
+                modelMatrix,
+                viewMatrix,
+                projectionMatrix,
+                modelMatrix,
+                lightViewMatrix,
+                lightProjectionMatrix,
+                shadowMapFrameBufferInfo?.depthTextureInfo
+            )
         }
 
         matrixPool.recycle(modelMatrix)
@@ -342,20 +210,24 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             lightProjectionMatrix: Matrix4fc
     ) {
         val modelMatrix = matrixPool.obtain()
-        val viewMatrix = matrixPool.obtain()
-        val projectionMatrix = matrixPool.obtain()
 
         val shaderProgram = openGLObjectsRepository
                 .findShaderProgram("shadow_map_shader_program") as ShaderProgramInfo.ShadowMapShaderProgram
 
         GLES20.glUseProgram(shaderProgram.shaderProgram)
 
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, shadowMapFrameBufferInfo?.frameBuffer ?: 0)
+        GLES20.glDepthMask(true)
+        GLES20.glDisable(GLES20.GL_BLEND)
+        GLES20.glDepthFunc(GLES20.GL_LESS)
+
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+
         scene.layerRenderers[layerName].forEach { renderer ->
             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
                     ?: error("Not transform found for game object ${renderer.gameObject?.name}")
             renderer.render(
                     shaderProgram,
-                    shadowMapFrameBufferInfo,
                     isTranslucentRendering = false,
                     isShadowMapRendering = true,
                     modelMatrix = modelMatrix.identity()
@@ -368,15 +240,58 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         }
 
         matrixPool.recycle(modelMatrix)
-        matrixPool.recycle(viewMatrix)
-        matrixPool.recycle(projectionMatrix)
 
         openGLErrorDetector.dispatchOpenGLErrors("renderShadowMap")
     }
 
-    private fun renderUnlitObjects(
+    private fun render(
         scene: Scene2,
         renderTarget: FrameBufferInfo,
+        isTranslucentRendering: Boolean,
+        viewportAspect: Float
+    ) {
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+
+        scene.cameras.forEach { camera ->
+            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
+
+            camera.layerNames.forEach { layerName ->
+                renderUnlitObjects(scene, camera, layerName, isTranslucentRendering, viewportAspect)
+                renderAmbientLight(scene, camera, layerName, isTranslucentRendering, viewportAspect)
+
+                GLES20.glEnable(GLES20.GL_BLEND)
+                GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE)
+                GLES20.glDepthMask(false)
+                GLES20.glDepthFunc(GLES20.GL_EQUAL)
+
+                scene.lights.forEach { light ->
+                    when (light) {
+                        is DirectionalLightComponent -> renderDirectionalLight(
+                            scene,
+                            renderTarget,
+                            light,
+                            camera,
+                            layerName,
+                            false,
+                            viewportAspect
+                        )
+                    }
+                }
+
+                GLES20.glDepthMask(true)
+                GLES20.glDisable(GLES20.GL_BLEND)
+                GLES20.glDepthFunc(GLES20.GL_LESS)
+            }
+        }
+
+        openGLErrorDetector.dispatchOpenGLErrors("render")
+    }
+
+    private fun renderUnlitObjects(
+        scene: Scene2,
+        camera: CameraComponent,
+        layerName: String,
         isTranslucentRendering: Boolean,
         viewportAspect: Float
     ) {
@@ -384,55 +299,49 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
 
-        scene.cameras.forEach { camera ->
-            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
+        val shaderProgram = openGLObjectsRepository
+            .findShaderProgram("unlit_shader_program") as ShaderProgramInfo.UnlitShaderProgram
 
-            camera.layerNames.forEach { layerName ->
-                val shaderProgram = openGLObjectsRepository
-                    .findShaderProgram("unlit_shader_program") as ShaderProgramInfo.UnlitShaderProgram
+        GLES20.glUseProgram(shaderProgram.shaderProgram)
 
-                GLES20.glUseProgram(shaderProgram.shaderProgram)
+        scene.layerRenderers[layerName].forEach { renderer ->
+            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
+                ?: error("Not transform found for game object ${renderer.gameObject?.name}")
+            when (camera) {
+                is PerspectiveCameraComponent -> {
+                    camera.calculateViewMatrix(viewMatrix)
+                    camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
+                }
 
-                scene.layerRenderers[layerName].forEach { renderer ->
-                    val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
-                        ?: error("Not transform found for game object ${renderer.gameObject?.name}")
-                    when (camera) {
-                        is PerspectiveCameraComponent -> {
-                            camera.calculateViewMatrix(viewMatrix)
-                            camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
-                        }
-
-                        is OrthoCameraComponent -> {
-                            camera.calculateViewMatrix(viewMatrix)
-                            camera.calculateProjectionMatrix(projectionMatrix)
-                        }
-                    }
-                    renderer.render(
-                        shaderProgram,
-                        renderTarget,
-                        isTranslucentRendering,
-                        false,
-                        modelMatrix.identity()
-                            .translate(transform.position)
-                            .rotate(transform.rotation)
-                            .scale(transform.scale),
-                        viewMatrix,
-                        projectionMatrix
-                    )
+                is OrthoCameraComponent -> {
+                    camera.calculateViewMatrix(viewMatrix)
+                    camera.calculateProjectionMatrix(projectionMatrix)
                 }
             }
+            renderer.render(
+                shaderProgram,
+                isTranslucentRendering,
+                false,
+                modelMatrix.identity()
+                    .translate(transform.position)
+                    .rotate(transform.rotation)
+                    .scale(transform.scale),
+                viewMatrix,
+                projectionMatrix
+            )
         }
 
         matrixPool.recycle(modelMatrix)
         matrixPool.recycle(viewMatrix)
         matrixPool.recycle(projectionMatrix)
 
-        openGLErrorDetector.dispatchOpenGLErrors("renderAmbientLight")
+        openGLErrorDetector.dispatchOpenGLErrors("renderUnlitObjects")
     }
 
     private fun renderAmbientLight(
         scene: Scene2,
-        renderTarget: FrameBufferInfo,
+        camera: CameraComponent,
+        layerName: String,
         isTranslucentRendering: Boolean,
         viewportAspect: Float
     ) {
@@ -440,46 +349,40 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
 
-        scene.cameras.forEach { camera ->
-            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
-            val ambientLightColor = scene.cameraAmbientLights[camera]
-                ?: error("No ambient light found for camera ${camera.gameObject?.name}")
-            camera.layerNames.forEach { layerName ->
-                val ambientShaderProgram = openGLObjectsRepository
-                    .findShaderProgram("ambient_shader_program") as ShaderProgramInfo.AmbientLightShaderProgram
+        val ambientLightColor = scene.cameraAmbientLights[camera]
+            ?: error("No ambient light found for camera ${camera.gameObject?.name}")
 
-                GLES20.glUseProgram(ambientShaderProgram.shaderProgram)
+        val ambientShaderProgram = openGLObjectsRepository
+            .findShaderProgram("ambient_shader_program") as ShaderProgramInfo.AmbientLightShaderProgram
+        GLES20.glUseProgram(ambientShaderProgram.shaderProgram)
 
-                fillAmbientShaderUniforms(ambientShaderProgram, ambientLightColor)
+        fillAmbientShaderUniforms(ambientShaderProgram, ambientLightColor)
 
-                scene.layerRenderers[layerName].forEach { renderer ->
-                    val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
-                        ?: error("Not transform found for game object ${renderer.gameObject?.name}")
-                    when (camera) {
-                        is PerspectiveCameraComponent -> {
-                            camera.calculateViewMatrix(viewMatrix)
-                            camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
-                        }
+        scene.layerRenderers[layerName].forEach { renderer ->
+            val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
+                ?: error("Not transform found for game object ${renderer.gameObject?.name}")
+            when (camera) {
+                is PerspectiveCameraComponent -> {
+                    camera.calculateViewMatrix(viewMatrix)
+                    camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
+                }
 
-                        is OrthoCameraComponent -> {
-                            camera.calculateViewMatrix(viewMatrix)
-                            camera.calculateProjectionMatrix(projectionMatrix)
-                        }
-                    }
-                    renderer.render(
-                        ambientShaderProgram,
-                        renderTarget,
-                        isTranslucentRendering,
-                        false,
-                        modelMatrix.identity()
-                            .translate(transform.position)
-                            .rotate(transform.rotation)
-                            .scale(transform.scale),
-                        viewMatrix,
-                        projectionMatrix
-                    )
+                is OrthoCameraComponent -> {
+                    camera.calculateViewMatrix(viewMatrix)
+                    camera.calculateProjectionMatrix(projectionMatrix)
                 }
             }
+            renderer.render(
+                ambientShaderProgram,
+                isTranslucentRendering,
+                false,
+                modelMatrix.identity()
+                    .translate(transform.position)
+                    .rotate(transform.rotation)
+                    .scale(transform.scale),
+                viewMatrix,
+                projectionMatrix
+            )
         }
 
         matrixPool.recycle(modelMatrix)

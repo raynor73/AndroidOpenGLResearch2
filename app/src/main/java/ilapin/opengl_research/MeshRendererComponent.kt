@@ -24,7 +24,6 @@ class MeshRendererComponent(
 
     fun render(
         shaderProgram: ShaderProgramInfo,
-        renderTargetFrameBufferInfo: FrameBufferInfo?,
         isTranslucentRendering: Boolean,
         isShadowMapRendering: Boolean,
         modelMatrix: Matrix4fc,
@@ -39,8 +38,6 @@ class MeshRendererComponent(
             return
         }
 
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTargetFrameBufferInfo?.frameBuffer ?: 0)
-
         val mesh = gameObject?.getComponent(MeshComponent::class.java) ?: return
         val material = gameObject?.getComponent(MaterialComponent::class.java) ?: return
 
@@ -48,7 +45,10 @@ class MeshRendererComponent(
             return
         }
 
-        if (material.isUnlit && shaderProgram !is ShaderProgramInfo.UnlitShaderProgram) {
+        if (
+            (material.isUnlit && shaderProgram !is ShaderProgramInfo.UnlitShaderProgram) or
+            (!material.isUnlit && shaderProgram is ShaderProgramInfo.UnlitShaderProgram)
+        ) {
             return
         }
 
@@ -194,12 +194,18 @@ class MeshRendererComponent(
             )
         }
 
-        GLES20.glDisableVertexAttribArray(shaderProgram.vertexCoordinateAttribute)
-        GLES20.glDisableVertexAttribArray(shaderProgram.uvAttribute)
+        shaderProgram.vertexCoordinateAttribute.takeIf { it >= 0 }?.let { vertexCoordinateAttribute ->
+            GLES20.glDisableVertexAttribArray(vertexCoordinateAttribute)
+        }
+        shaderProgram.normalAttribute.takeIf { it >= 0 }?.let { normalAttribute ->
+            GLES20.glDisableVertexAttribArray(normalAttribute)
+        }
+        shaderProgram.uvAttribute.takeIf { it >= 0 }?.let { uvAttribute ->
+            GLES20.glDisableVertexAttribArray(uvAttribute)
+        }
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
         openGLErrorDetector.dispatchOpenGLErrors("MeshRendererComponent.render")
     }

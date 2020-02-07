@@ -226,6 +226,13 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
     }
 
     fun createDepthOnlyFramebuffer(name: String, width: Int, height: Int) {
+        if (textures.containsKey(name)) {
+            throw IllegalArgumentException("Texture $name already exists")
+        }
+        if (frameBuffers.containsKey(name)) {
+            throw IllegalArgumentException("Frame buffer $name already exists")
+        }
+
         GLES20.glGenFramebuffers(1, tmpIntArray, 0)
         val framebuffer = tmpIntArray[0]
 
@@ -278,7 +285,9 @@ class OpenGLObjectsRepository(private val openGLErrorDetector: OpenGLErrorDetect
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
-        frameBuffers[name] = FrameBufferInfo.DepthFrameBufferInfo(framebuffer, TextureInfo(texture, width, height))
+        val textureInfo = TextureInfo(texture, width, height)
+        textures[name] = textureInfo
+        frameBuffers[name] = FrameBufferInfo.DepthFrameBufferInfo(framebuffer, textureInfo)
 
         openGLErrorDetector.dispatchOpenGLErrors("createDepthOnlyFramebuffer")
         openGLErrorDetector.checkFramebufferStatus("createDepthOnlyFramebuffer")

@@ -18,13 +18,8 @@ class DirectionalLightComponent(color: Vector3fc) : GameObjectComponent() {
         get() {
             val transform = gameObject?.getComponent(TransformationComponent::class.java)
                     ?: error("Transform not found for directional light ${gameObject?.name}")
-            tmpVector.set(INITIAL_DIRECTION)
+            tmpVector.set(CAMERA_LOOK_AT_DIRECTION)
             tmpVector.rotate(transform.rotation)
             return tmpVector
         }
-
-    companion object {
-
-        private val INITIAL_DIRECTION: Vector3fc = Vector3f(0f, -1f, 0f)
-    }
 }
