@@ -1,11 +1,16 @@
-package ilapin.opengl_research
+package ilapin.opengl_research.ui
 
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import ilapin.common.input.TouchEvent
+import ilapin.common.messagequeue.MessageQueue
 import ilapin.engine3d.TransformationComponent
-import ilapin.opengl_research.domain.DirectionalLightScene
+import ilapin.opengl_research.*
+import ilapin.opengl_research.domain.CharacterMovementScene
 import ilapin.opengl_research.domain.Scene2
+import ilapin.opengl_research.domain.ScrollController
+import io.reactivex.disposables.Disposable
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
 import org.joml.Vector3fc
@@ -15,8 +20,15 @@ import javax.microedition.khronos.opengles.GL10
 
 class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Renderer {
 
+    private val messageQueue = MessageQueue()
+    private val touchEventsRepository = AndroidTouchEventsRepository()
+    private val scrollController = ScrollController(touchEventsRepository)
+
+    private val messageQueueSubscription: Disposable
+
     private val openGLErrorDetector = OpenGLErrorDetector()
-    private val openGLObjectsRepository = OpenGLObjectsRepository(openGLErrorDetector)
+    private val openGLObjectsRepository =
+        OpenGLObjectsRepository(openGLErrorDetector)
 
     private var displayWidth: Int? = null
     private var displayHeight: Int? = null
@@ -26,10 +38,24 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
     private val matrixPool = ObjectsPool { Matrix4f() }
 
+    init {
+        messageQueueSubscription = messageQueue.messages().subscribe { message ->
+            when (message) {
+                is TouchEvent -> {
+                    touchEventsRepository.addTouchEvent(message)
+                }
+            }
+        }
+    }
+
     override fun onDrawFrame(gl: GL10) {
         if (openGLErrorDetector.isOpenGLErrorDetected) {
             return
         }
+
+        touchEventsRepository.clear()
+        messageQueue.update()
+        scrollController.update()
 
         render()
     }
@@ -49,12 +75,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         setupShaders()
 
-        val scene = DirectionalLightScene(
-            context,
-            width,
-            height,
+        val scene = CharacterMovementScene(
             openGLObjectsRepository,
-            openGLErrorDetector
+            openGLErrorDetector,
+            AndroidDisplayMetricsRepository(context),
+            scrollController
         )
         this.scene = scene
 
@@ -69,8 +94,14 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         // do nothing
     }
 
+    fun putMessage(message: Any) {
+        messageQueue.putMessage(message)
+    }
+
     private fun render() {
         val scene = this.scene ?: return
+
+        scene.update()
 
         val width = displayWidth ?: return
         val height = displayHeight ?: return

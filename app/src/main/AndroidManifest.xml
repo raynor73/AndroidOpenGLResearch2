@@ -12,7 +12,7 @@
         android:name=".App"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <activity android:name=".MainActivity" android:screenOrientation="landscape">
+        <activity android:name=".ui.MainActivity" android:screenOrientation="landscape">
 
             <intent-filter>
 

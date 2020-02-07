@@ -2,6 +2,7 @@ package ilapin.opengl_research.domain
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import ilapin.common.android.log.L
 import ilapin.engine3d.GameObject
 import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
@@ -13,17 +14,17 @@ import org.joml.Vector4f
 import kotlin.math.PI
 
 /**
- * @author raynor on 03.02.20.
+ * @author raynor on 07.02.20.
  */
-class DirectionalLightScene(
-    displayMetricsRepository: DisplayMetricsRepository,
-    displayWidth: Int,
-    displayHeight: Int,
+class CharacterMovementScene(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
-    private val openGLErrorDetector: OpenGLErrorDetector
+    private val openGLErrorDetector: OpenGLErrorDetector,
+    displayMetricsRepository: DisplayMetricsRepository,
+    private val scrollController: ScrollController
 ) : Scene2 {
 
     private val vectorsPool = ObjectsPool { Vector3f() }
+    private val tmpQuaternion = Quaternionf()
 
     private val _cameras = ArrayList<CameraComponent>()
 
@@ -48,16 +49,29 @@ class DirectionalLightScene(
     override val renderTargets: List<FrameBufferInfo.RenderTargetFrameBufferInfo> = emptyList()
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
+    private var xAngle = -(PI / 2).toFloat()
+    private var zAngle = -(PI / 4).toFloat()
+
+    private lateinit var directionalLightTransform: TransformationComponent
 
     init {
         setupTextures()
-        setupGeometry(displayWidth)
-        setupCameras(displayWidth, displayHeight)
+        setupGeometry()
+        setupCameras()
         setupLights()
     }
 
     override fun update() {
-        // do nothing
+        scrollController.scrollEvent?.let { scrollEvent ->
+            L.d(App.LOG_TAG, "Scroll event dx = ${scrollEvent.dx}; dy = ${scrollEvent.dy}")
+
+            zAngle -= Math.toRadians((scrollEvent.dx / pixelDensityFactor).toDouble()).toFloat()
+            xAngle -=  Math.toRadians((scrollEvent.dy / pixelDensityFactor).toDouble()).toFloat()
+
+            tmpQuaternion.identity()
+            tmpQuaternion.rotateZ(zAngle).rotateX(xAngle)
+            directionalLightTransform.rotation = tmpQuaternion
+        }
     }
 
     private fun setupTextures() {
@@ -65,7 +79,7 @@ class DirectionalLightScene(
         openGLObjectsRepository.createTexture("blue", 1, 1, intArrayOf(0xff000080.toInt()))
     }
 
-    private fun setupGeometry(displayWidth: Int) {
+    private fun setupGeometry() {
         val mesh = MeshFactory.createQuad()
         val quadVbo = openGLObjectsRepository.createStaticVbo("quad", mesh.verticesAsArray())
         val quadIboInfo = IboInfo(
@@ -110,35 +124,6 @@ class DirectionalLightScene(
             gameObject.addComponent(MeshComponent(quadVbo, quadIboInfo))
             rootGameObject.addChild(gameObject)
         }
-
-        /*run {
-            val gameObject = GameObject("debug_quad")
-            val size = displayWidth / 3f
-            gameObject.addComponent(TransformationComponent(
-                Vector3f(size / 2, size / 2, -1f),
-                Quaternionf().identity(),
-                Vector3f(size, size, 1f)
-            ))
-            val renderer = MeshRendererComponent(
-                context.resources.displayMetrics,
-                openGLObjectsRepository,
-                openGLErrorDetector
-            )
-            layerRenderers[UI_LAYER_NAME] += renderer
-            gameObject.addComponent(renderer)
-            gameObject.addComponent(MaterialComponent(
-                "shadow_map",
-                Vector4f(1f, 1f, 1f, 1f),
-                isDoubleSided = false,
-                isWireframe = false,
-                isUnlit = true,
-                isTranslucent = false,
-                castShadows = false,
-                receiveShadows = false
-            ))
-            gameObject.addComponent(MeshComponent(quadVbo, quadIboInfo))
-            rootGameObject.addChild(gameObject)
-        }*/
     }
 
     private fun setupLights() {
@@ -146,11 +131,12 @@ class DirectionalLightScene(
             val gameObject = GameObject("directionalLight")
             val lightComponent = DirectionalLightComponent(Vector3f(1f, 1f, 1f))
             gameObject.addComponent(lightComponent)
-            gameObject.addComponent(TransformationComponent(
+            directionalLightTransform = TransformationComponent(
                 Vector3f(0f, 0f, 0f),
-                Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
+                Quaternionf().identity().rotateZ(zAngle).rotateX(xAngle),
                 Vector3f(1f, 1f, 1f)
-            ))
+            )
+            gameObject.addComponent(directionalLightTransform)
             val halfShadowSize = GLOBAL_DIRECTIONAL_LIGHT_SHADOW_SIZE / 2
             val cameraComponent = DirectionalLightShadowMapCameraComponent(
                 vectorsPool,
@@ -169,7 +155,7 @@ class DirectionalLightScene(
         }
     }
 
-    private fun setupCameras(displayWidth: Int, displayHeight: Int) {
+    private fun setupCameras() {
         run {
             val gameObject = GameObject("camera")
             gameObject.addComponent(TransformationComponent(
@@ -186,33 +172,12 @@ class DirectionalLightScene(
             rootGameObject.addChild(gameObject)
             _cameras += cameraComponent
 
-            _cameraAmbientLights[cameraComponent] = Vector3f(0.1f, 0.1f, 0.1f)
+            _cameraAmbientLights[cameraComponent] = Vector3f(0.5f, 0.5f, 0.5f)
         }
-
-        /*run {
-            val gameObject = GameObject("uiCamera")
-            gameObject.addComponent(TransformationComponent(
-                Vector3f(0f, 0f, 0f),
-                Quaternionf().identity(),
-                Vector3f(1f, 1f, 1f)
-            ))
-            val cameraComponent = OrthoCameraComponent(
-                vectorsPool,
-                0f, displayWidth.toFloat(),
-                0f, displayHeight.toFloat(),
-                listOf(UI_LAYER_NAME)
-            )
-            gameObject.addComponent(cameraComponent)
-            rootGameObject.addChild(gameObject)
-            _cameras += cameraComponent
-
-            _cameraAmbientLights[cameraComponent] = Vector3f(1f, 1f, 1f)
-        }*/
     }
 
     companion object {
 
         private const val DEFAULT_LAYER_NAME = "defaultLayer"
-        private const val UI_LAYER_NAME = "uiLayer"
     }
 }

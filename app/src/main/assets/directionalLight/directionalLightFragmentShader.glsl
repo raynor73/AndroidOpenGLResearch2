@@ -20,18 +20,15 @@ void calcColor(out vec4 resultColor);
 
 void main() {
     if (receiveShadows) {
-        if (texture2D(shadowMapUniform, shadowMapUvVariying.xy).r + 0.001 < shadowMapUvVariying.z) {
+        if (shadowMapUvVariying.x < 0.0 || shadowMapUvVariying.x > 1.0 || shadowMapUvVariying.y < 0.0 || shadowMapUvVariying.y > 1.0) {
+            calcColor(gl_FragColor);
+        } else if (texture2D(shadowMapUniform, shadowMapUvVariying.xy).r + 0.001 < shadowMapUvVariying.z) {
             gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
         } else {
-            vec4 resultColor;
-            // TODO Pass gl_FragColor directly as out parameter?
-            calcColor(resultColor);
-            gl_FragColor = resultColor;
+            calcColor(gl_FragColor);
         }
     } else {
-        vec4 resultColor;
-        calcColor(resultColor);
-        gl_FragColor = resultColor;
+        calcColor(gl_FragColor);
     }
 }
 

@@ -1,23 +1,19 @@
 package ilapin.opengl_research
 
 import android.opengl.GLES20
-import android.util.DisplayMetrics
 import ilapin.common.kotlin.safeLet
 import ilapin.engine3d.GameObjectComponent
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
-import kotlin.math.ceil
 
 /**
  * @author raynor on 05.02.20.
  */
 class MeshRendererComponent(
-    displayMetrics: DisplayMetrics,
+    private val lineWidth: Float,
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector
 ) : GameObjectComponent() {
-
-    private val lineWidth = ceil(displayMetrics.density)
 
     private val tmpFloatArray = FloatArray(16)
     private val tmpMatrix = Matrix4f()
