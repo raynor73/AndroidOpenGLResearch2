@@ -250,7 +250,7 @@ class CharacterMovementScene(
 
         private val INITIAL_FORWARD_VECTOR: Vector3fc = Vector3f(0f, 0f, -1f)
         private val INITIAL_RIGHT_VECTOR: Vector3fc = Vector3f(1f, 0f, 0f)
-        private const val PLAYER_MOVEMENT_SPEED = 2f // unit/sec
+        private const val PLAYER_MOVEMENT_SPEED = 5f // unit/sec
         private const val PLAYER_STEERING_SPEED = (2 * PI).toFloat() // rad/sec
     }
 }
