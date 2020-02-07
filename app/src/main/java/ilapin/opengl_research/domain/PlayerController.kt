@@ -1,5 +1,7 @@
 package ilapin.opengl_research.domain
 
+import kotlin.math.abs
+
 /**
  * @author raynor on 07.02.20.
  */
@@ -13,11 +15,11 @@ class PlayerController(
     private var _verticalSteeringFraction = 0f
 
     fun update() {
-        _movingFraction = -leftJoystick.position.y
-        _strafingFraction = leftJoystick.position.x
+        _movingFraction = -(leftJoystick.position.y.takeIf { abs(it) >= THRESHOLD } ?: 0f)
+        _strafingFraction = leftJoystick.position.x.takeIf { abs(it) >= THRESHOLD } ?: 0f
 
-        _horizontalSteeringFraction = -rightJoystick.position.x
-        _verticalSteeringFraction = -rightJoystick.position.y
+        _horizontalSteeringFraction = -(rightJoystick.position.x.takeIf { abs(it) >= THRESHOLD } ?: 0f)
+        _verticalSteeringFraction = -(rightJoystick.position.y.takeIf { abs(it) >= THRESHOLD } ?: 0f)
     }
 
     val movingFraction: Float
@@ -31,4 +33,9 @@ class PlayerController(
 
     val verticalSteeringFraction: Float
         get() = _verticalSteeringFraction
+
+    companion object {
+
+        private const val THRESHOLD = 0.01f
+    }
 }
