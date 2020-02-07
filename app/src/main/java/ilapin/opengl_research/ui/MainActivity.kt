@@ -8,10 +8,16 @@ import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
 import ilapin.common.input.TouchEvent
+import ilapin.common.kotlin.plusAssign
+import ilapin.opengl_research.JoystickPositionEvent
 import ilapin.opengl_research.R
+import ilapin.opengl_research.domain.Joystick
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    private val subscriptions = CompositeDisposable()
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,12 +46,33 @@ class MainActivity : AppCompatActivity() {
             glView.setRenderer(renderer)
             glView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
             containerLayout.addView(glView, 0)
+
+            subscriptions += leftJoystickView.positionObservable.subscribe { position ->
+                renderer.putMessage(JoystickPositionEvent(
+                    GLSurfaceViewRenderer.LEFT_JOYSTICK_ID,
+                    Joystick.Position(position.x, position.y)
+                ))
+            }
+
+            subscriptions += rightJoystickView.positionObservable.subscribe { position ->
+                renderer.putMessage(JoystickPositionEvent(
+                    GLSurfaceViewRenderer.RIGHT_JOYSTICK_ID,
+                    Joystick.Position(position.x, position.y)
+                ))
+            }
         }
     }
 
     override fun onResume() {
         super.onResume()
+
         hideControls()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        subscriptions.clear()
     }
 
     private fun hideControls() {

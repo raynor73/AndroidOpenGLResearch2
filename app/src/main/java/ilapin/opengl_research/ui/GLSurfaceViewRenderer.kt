@@ -3,12 +3,14 @@ package ilapin.opengl_research.ui
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import ilapin.common.android.time.LocalTimeRepository
 import ilapin.common.input.TouchEvent
 import ilapin.common.messagequeue.MessageQueue
 import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.android.ObjMeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.domain.CharacterMovementScene
+import ilapin.opengl_research.domain.PlayerController
 import ilapin.opengl_research.domain.Scene2
 import ilapin.opengl_research.domain.ScrollController
 import io.reactivex.disposables.Disposable
@@ -24,6 +26,9 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private val messageQueue = MessageQueue()
     private val touchEventsRepository = AndroidTouchEventsRepository()
     private val scrollController = ScrollController(touchEventsRepository)
+    private val leftJoystick = JoystickViewJoystick()
+    private val rightJoystick = JoystickViewJoystick()
+    private val playerController = PlayerController(leftJoystick, rightJoystick)
 
     private val messageQueueSubscription: Disposable
 
@@ -42,8 +47,13 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     init {
         messageQueueSubscription = messageQueue.messages().subscribe { message ->
             when (message) {
-                is TouchEvent -> {
-                    touchEventsRepository.addTouchEvent(message)
+                is TouchEvent -> touchEventsRepository.addTouchEvent(message)
+                is JoystickPositionEvent -> {
+                    if (message.joystickId == LEFT_JOYSTICK_ID) {
+                        leftJoystick.onPositionChanged(message.position)
+                    } else {
+                        rightJoystick.onPositionChanged(message.position)
+                    }
                 }
             }
         }
@@ -57,6 +67,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         touchEventsRepository.clear()
         messageQueue.update()
         scrollController.update()
+        playerController.update()
 
         render()
     }
@@ -79,9 +90,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         val scene = CharacterMovementScene(
             openGLObjectsRepository,
             openGLErrorDetector,
+            LocalTimeRepository(),
             ObjMeshLoadingRepository(context),
             AndroidDisplayMetricsRepository(context),
-            scrollController
+            scrollController,
+            playerController
         )
         this.scene = scene
 
@@ -503,5 +516,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                 openGLObjectsRepository.findVertexShader("directional_light_vertex_shader")!!,
                 openGLObjectsRepository.findFragmentShader("directional_light_fragment_shader")!!
         )
+    }
+
+    companion object {
+
+        const val LEFT_JOYSTICK_ID = 0
+        const val RIGHT_JOYSTICK_ID = 1
     }
 }
