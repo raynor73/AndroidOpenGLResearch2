@@ -145,7 +145,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                 ?: error("Transform not found for camera ${camera.gameObject?.name}")
         val lightCamera = light.gameObject?.getComponent(DirectionalLightShadowMapCameraComponent::class.java)
                 ?: error("Shadow map camera not found for directional light ${light.gameObject?.name}")
-        lightCamera.calculateViewMatrix(viewerTransform.position, lightViewMatrix)
+        lightCamera.calculateViewMatrix(/*viewerTransform.position, */lightViewMatrix)
         lightCamera.calculateProjectionMatrix(lightProjectionMatrix)
 
         renderShadowMap(scene, layerName, lightViewMatrix, lightProjectionMatrix)
@@ -221,7 +221,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
         GLES20.glDisable(GLES20.GL_BLEND)
         GLES20.glDepthFunc(GLES20.GL_LESS)
 
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+        //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
         scene.layerRenderers[layerName].forEach { renderer ->
             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
