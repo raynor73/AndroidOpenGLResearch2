@@ -20,7 +20,7 @@ void calcColor(out vec4 resultColor);
 
 void main() {
     if (receiveShadows) {
-        if (texture2D(shadowMapUniform, shadowMapUvVariying.xy).r < shadowMapUvVariying.z) {
+        if (texture2D(shadowMapUniform, shadowMapUvVariying.xy).r + 0.001 < shadowMapUvVariying.z) {
             gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
         } else {
             vec4 resultColor;
