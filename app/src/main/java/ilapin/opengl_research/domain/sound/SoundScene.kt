@@ -1,8 +1,10 @@
 package ilapin.opengl_research.domain.sound
 
 import android.annotation.SuppressLint
+import ilapin.common.android.log.L
 import ilapin.common.math.inverseLerp
 import ilapin.common.time.TimeRepository
+import ilapin.opengl_research.App.Companion.LOG_TAG
 import ilapin.opengl_research.NANOS_IN_MILLISECOND
 import ilapin.opengl_research.ObjectsPool
 import org.joml.Quaternionf
@@ -23,8 +25,8 @@ class SoundScene(
 
     private val players = HashMap<String, SoundPlayer>()
     @SuppressLint("UseSparseArrays")
-    private val activePlayers = HashMap<Int, ActivePlayer>()
-    private val playersToRemove = ArrayList<Int>()
+    private val activePlayers = HashMap<String, ActivePlayer>()
+    private val playersToRemove = ArrayList<String>()
     private val playersToUpdate = ArrayList<ActivePlayer>()
 
     fun updateSoundListenerPosition(position: Vector3fc) {
@@ -63,24 +65,21 @@ class SoundScene(
         )
     }
 
-    fun startSoundPlayer(name: String, isLooped: Boolean): Int {
+    fun startSoundPlayer(name: String, isLooped: Boolean) {
         val player = players[name] ?: error("Sound player $name not found")
-        val streamId = soundClipsRepository.playSoundClip(player.soundClipName, isLooped)
-        activePlayers[streamId] = ActivePlayer(
+        activePlayers[name] = ActivePlayer(
             timeRepository.getTimestamp(),
-            streamId,
+            soundClipsRepository.playSoundClip(player.soundClipName, isLooped),
             player,
             isLooped
         )
 
         updateActivePlayersVolume()
-
-        return streamId
     }
 
-    fun stopSoundPlayer(streamId: Int) {
-        activePlayers.remove(streamId) ?: error("Active player with stream ID $streamId not found")
-        soundClipsRepository.stopSoundClip(streamId)
+    fun stopSoundPlayer(name: String) {
+        val stoppingPlayer = activePlayers.remove(name) ?: error("Active player $name not found")
+        soundClipsRepository.stopSoundClip(stoppingPlayer.soundClipStreamId)
     }
 
     fun updateSoundPlayerPosition(name: String, position: Vector3fc) {
@@ -150,7 +149,9 @@ class SoundScene(
         vectorsPool.recycle(directionToSound)
         vectorsPool.recycle(rightDirection)
 
-        return VolumeLevels(leftVolume * distanceFactor, rightVolume * distanceFactor)
+        val volumeLevels = VolumeLevels(leftVolume * distanceFactor, rightVolume * distanceFactor)
+        L.d(LOG_TAG, "Volume levels: left = ${volumeLevels.left}; right = ${volumeLevels.right}")
+        return volumeLevels
     }
 
     companion object {

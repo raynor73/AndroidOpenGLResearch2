@@ -26,16 +26,20 @@ class SoundPoolSoundClipsRepository(
     }
 
     override fun loadSoundClip(name: String, path: String) {
-        soundClips[name] = soundPool.load(context.assets.openFd(path), 1)
+        val fileDescriptor = context.assets.openFd(path)
+        soundClips[name] = soundPool.load(fileDescriptor, 1)
+        fileDescriptor.close()
+        // TODO Replace this dirty workaround with proper async solution
+        Thread.sleep(1000)
     }
 
     override fun playSoundClip(name: String, isLooped: Boolean): Int {
         return soundPool.play(
             soundClips[name] ?: error("Sound clip $name not found"),
-            0f,
-            0f,
-            0,
-            if (isLooped) 1 else 0,
+            1f,
+            1f,
+            1,
+            if (isLooped) -1 else 0,
             1f
         )
     }
