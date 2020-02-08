@@ -8,11 +8,13 @@ import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
+import ilapin.opengl_research.domain.sound.SoundScene
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f
 import kotlin.math.PI
+import kotlin.math.abs
 
 /**
  * @author raynor on 07.02.20.
@@ -20,6 +22,7 @@ import kotlin.math.PI
 class CharacterMovementScene(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector,
+    private val soundScene: SoundScene,
     private val vectorsPool: ObjectsPool<Vector3f>,
     private val quaternionsPool: ObjectsPool<Quaternionf>,
     private val timeRepository: TimeRepository,
@@ -68,6 +71,7 @@ class CharacterMovementScene(
         setupGeometry()
         setupCameras()
         setupLights()
+        setupSounds()
     }
 
     override fun update() {
@@ -107,6 +111,15 @@ class CharacterMovementScene(
         playerRotation.identity().rotateY(playerYAngle)
         playerTransform.rotation = playerRotation
 
+        if (
+            abs(playerController.movingFraction) > 0.01 ||
+            abs(playerController.strafingFraction) > 0.01 ||
+            abs(playerController.horizontalSteeringFraction) > 0.01
+        ) {
+            soundScene.updateSoundListenerPosition(playerTransform.position)
+            soundScene.updateSoundListenerRotation(playerTransform.rotation)
+        }
+
         vectorsPool.recycle(playerPosition)
         vectorsPool.recycle(movingDirection)
         vectorsPool.recycle(strafingDirection)
@@ -118,6 +131,7 @@ class CharacterMovementScene(
         openGLObjectsRepository.createTexture("green", 1, 1, intArrayOf(0xff008000.toInt()))
         openGLObjectsRepository.createTexture("blue", 1, 1, intArrayOf(0xff000080.toInt()))
         openGLObjectsRepository.loadTexture("female", "textures/female.png")
+        openGLObjectsRepository.loadTexture("fountain", "textures/fountain.png")
     }
 
     private fun setupGeometry() {
@@ -192,6 +206,33 @@ class CharacterMovementScene(
             player.addComponent(MeshComponent(playerMeshVbo, playerMeshIboInfo))
             rootGameObject.addChild(player)
         }
+
+        run {
+            val gameObject = GameObject("fountain")
+
+            val fountainMesh = meshLoadingRepository.loadMesh("meshes/fountain.obj").toMesh()
+            val fountainMeshVbo = openGLObjectsRepository.createStaticVbo("fountain", fountainMesh.verticesAsArray())
+            val fountainMeshIboInfo = IboInfo(
+                openGLObjectsRepository.createStaticIbo("fountain", fountainMesh.indices.toShortArray()),
+                fountainMesh.indices.size
+            )
+
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, 0.01f, -10f),
+                Quaternionf().identity(),
+                Vector3f(1f, 1f, 1f)
+            ))
+            val renderer = MeshRendererComponent(
+                pixelDensityFactor,
+                openGLObjectsRepository,
+                openGLErrorDetector
+            )
+            layerRenderers[DEFAULT_LAYER_NAME] += renderer
+            gameObject.addComponent(renderer)
+            gameObject.addComponent(MaterialComponent("fountain", Vector4f(1f, 1f, 1f, 1f)))
+            gameObject.addComponent(MeshComponent(fountainMeshVbo, fountainMeshIboInfo))
+            rootGameObject.addChild(gameObject)
+        }
     }
 
     private fun setupLights() {
@@ -244,6 +285,16 @@ class CharacterMovementScene(
         }
     }
 
+    private fun setupSounds() {
+        soundScene.loadSoundClip("water_flow", "sounds/water_flow.wav")
+        soundScene.addSoundPlayer("fountain", "water_flow", 7791, Vector3f(0f, 0.5f, -10f), 1f, 5f)
+        soundScene.updateSoundListenerPosition(playerTransform.position)
+        soundScene.updateSoundListenerRotation(playerTransform.rotation)
+
+        soundScene.startSoundPlayer("fountain", true)
+    }
+
+
     companion object {
 
         private const val DEFAULT_LAYER_NAME = "defaultLayer"
@@ -251,6 +302,6 @@ class CharacterMovementScene(
         private val INITIAL_FORWARD_VECTOR: Vector3fc = Vector3f(0f, 0f, -1f)
         private val INITIAL_RIGHT_VECTOR: Vector3fc = Vector3f(1f, 0f, 0f)
         private const val PLAYER_MOVEMENT_SPEED = 5f // unit/sec
-        private const val PLAYER_STEERING_SPEED = (2 * PI).toFloat() // rad/sec
+        private const val PLAYER_STEERING_SPEED = PI.toFloat() // rad/sec
     }
 }

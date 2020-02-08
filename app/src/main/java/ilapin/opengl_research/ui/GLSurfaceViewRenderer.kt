@@ -9,10 +9,12 @@ import ilapin.common.messagequeue.MessageQueue
 import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.android.ObjMeshLoadingRepository
 import ilapin.opengl_research.*
+import ilapin.opengl_research.data.sound.SoundPoolSoundClipsRepository
 import ilapin.opengl_research.domain.CharacterMovementScene
 import ilapin.opengl_research.domain.PlayerController
 import ilapin.opengl_research.domain.Scene2
 import ilapin.opengl_research.domain.ScrollController
+import ilapin.opengl_research.domain.sound.SoundScene
 import io.reactivex.disposables.Disposable
 import org.joml.*
 import java.nio.charset.Charset
@@ -86,12 +88,14 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         setupShaders()
 
+        val timeRepository = LocalTimeRepository()
         val scene = CharacterMovementScene(
             openGLObjectsRepository,
             openGLErrorDetector,
+            SoundScene(vectorsPool, timeRepository, SoundPoolSoundClipsRepository(context)),
             vectorsPool,
             quaternionsPool,
-            LocalTimeRepository(),
+            timeRepository,
             ObjMeshLoadingRepository(context),
             AndroidDisplayMetricsRepository(context),
             scrollController,
