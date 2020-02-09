@@ -1,9 +1,7 @@
 package ilapin.opengl_research.domain
 
-import ilapin.common.android.log.L
 import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
-import ilapin.opengl_research.App.Companion.LOG_TAG
 import ilapin.opengl_research.toVector
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
@@ -45,7 +43,6 @@ class RigidBodyGameObjectComponent(val rigidBody: DBody) : GameObjectComponent()
         rotationQuaternion.setFromUnnormalized(rotationMatrix)
 
         rigidBody.position.toVector(tmpVector)
-        L.d(LOG_TAG, "position: x = ${tmpVector.x}; y = ${tmpVector.y}; z = ${tmpVector.z}")
         transform.position = tmpVector
         transform.rotation = rotationQuaternion
     }

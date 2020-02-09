@@ -69,14 +69,18 @@ fun DVector3C.toVector(dest: Vector3f) {
 }
 
 fun Quaternionf.toQuaternion(): DQuaternion {
-    return DQuaternion(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
+    return DQuaternion(w.toDouble(), x.toDouble(), y.toDouble(), z.toDouble())
+}
+
+fun Quaternionf.toQuaternion(dest: DQuaternion) {
+    dest.set(w.toDouble(), x.toDouble(), y.toDouble(), z.toDouble())
 }
 
 fun DQuaternionC.toQuaternion(): Quaternionf {
     return Quaternionf(
-        get0().toFloat(),
         get1().toFloat(),
         get2().toFloat(),
-        get3().toFloat()
+        get3().toFloat(),
+        get0().toFloat()
     )
 }
