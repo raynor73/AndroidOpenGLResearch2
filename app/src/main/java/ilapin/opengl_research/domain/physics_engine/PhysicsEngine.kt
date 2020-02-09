@@ -1,17 +1,18 @@
 package ilapin.opengl_research.domain.physics_engine
 
+import ilapin.opengl_research.cwConvertedIndices
+import ilapin.opengl_research.domain.Mesh
 import ilapin.opengl_research.toQuaternion
 import ilapin.opengl_research.toVector
+import ilapin.opengl_research.vertexCoordinatesOnlyAsArray
 import org.joml.Quaternionf
-import org.joml.Vector3f
+import org.joml.Vector3fc
 import org.ode4j.math.DQuaternion
-import org.ode4j.math.DVector3
 import org.ode4j.ode.*
 import org.ode4j.ode.OdeConstants.dContactBounce
 import org.ode4j.ode.OdeConstants.dContactSoftCFM
 import kotlin.math.PI
 import kotlin.math.ceil
-
 
 /**
  * @author raynor on 08.02.20.
@@ -26,7 +27,7 @@ class PhysicsEngine : DGeom.DNearCallback {
 
     private val contactGroup: DJointGroup
 
-    lateinit var capsuleRigidBody: DBody
+    private val characterCapsules = ArrayList<DBody>()
 
     init {
         OdeHelper.initODE2(0)
@@ -35,45 +36,6 @@ class PhysicsEngine : DGeom.DNearCallback {
         contactGroup = OdeHelper.createJointGroup()
 
         world.setGravity(0.0, -9.81, 0.0)
-
-        run {
-            val mass = OdeHelper.createMass()
-
-            val rigidBody = OdeHelper.createBody(world)
-
-            mass.setCapsuleTotal(1.0, 2, 1.0, 1.0)
-            rigidBody.mass = mass
-
-            val collisionShape = OdeHelper.createCapsule(null, 1.0, 2.0)
-            collisionShape.body = rigidBody
-
-            rigidBody.position = Vector3f(0f, 4f, -5f).toVector()
-            rigidBody.quaternion = Quaternionf().identity().rotateX(-(PI / 2).toFloat()).toQuaternion()
-            rigidBody.maxAngularSpeed = .0
-            rigidBody.setLinearVel(0.0, 0.0, 0.0)
-            rigidBody.setAngularVel(0.0, 0.0, 0.0)
-
-            space.add(collisionShape)
-
-            capsuleRigidBody = rigidBody
-        }
-
-        run {
-            val triMeshData = OdeHelper.createTriMeshData()
-            val vertices = floatArrayOf(
-                -10f, 0f, -10f,
-                10f, 0f, -10f,
-                10f, 0f, 10f,
-                -10f, 0f, 10f
-            )
-            val indices = intArrayOf(
-                2, 1, 0,
-                0, 3, 1
-            )
-            triMeshData.build(vertices, indices)
-            triMeshData.preprocess()
-            OdeHelper.createTriMesh(space, triMeshData, null, null, null)
-        }
 
         /*run {
             val rigidBody = OdeHelper.createBody(world)
@@ -108,12 +70,56 @@ class PhysicsEngine : DGeom.DNearCallback {
         }*/
     }
 
+    fun setGravity(gravity: Vector3fc) {
+        world.setGravity(gravity.toVector())
+    }
+
+    fun createCharacterCapsuleRigidBody(
+        massValue: Float,
+        radius: Float,
+        length: Float,
+        position: Vector3fc
+    ): DBody {
+        val mass = OdeHelper.createMass()
+
+        val rigidBody = OdeHelper.createBody(world)
+
+        mass.setCapsuleTotal(massValue.toDouble(), 2, radius.toDouble(), length.toDouble())
+        rigidBody.mass = mass
+
+        val collisionShape = OdeHelper.createCapsule(null, radius.toDouble(), length.toDouble())
+        collisionShape.body = rigidBody
+
+        rigidBody.position = position.toVector()
+        rigidBody.quaternion = Quaternionf().identity().rotateX(-(PI / 2).toFloat()).toQuaternion()
+        rigidBody.maxAngularSpeed = .0
+        rigidBody.setLinearVel(0.0, 0.0, 0.0)
+        rigidBody.setAngularVel(0.0, 0.0, 0.0)
+
+        space.add(collisionShape)
+
+        characterCapsules += rigidBody
+
+        return rigidBody
+    }
+
+    fun createTriMeshCollisionShape(mesh: Mesh): DTriMesh {
+        val triMeshData = OdeHelper.createTriMeshData()
+
+        triMeshData.build(mesh.vertexCoordinatesOnlyAsArray(), mesh.cwConvertedIndices())
+        triMeshData.preprocess()
+
+        return OdeHelper.createTriMesh(space, triMeshData, null, null, null)
+    }
+
     fun update(dt: Float) {
         repeat(ceil(dt / SIMULATION_STEP_TIME).toInt()) {
             OdeHelper.spaceCollide(space, null, this)
             world.step(SIMULATION_STEP_TIME)
-            tmpQuaternion.identity().rotateX(-(PI / 2).toFloat()).toQuaternion(tmpDQuaternion)
-            capsuleRigidBody.quaternion = tmpDQuaternion
+            characterCapsules.forEach {
+                tmpQuaternion.identity().rotateX(-(PI / 2).toFloat()).toQuaternion(tmpDQuaternion)
+                it.quaternion = tmpDQuaternion
+            }
             contactGroup.empty()
         }
     }

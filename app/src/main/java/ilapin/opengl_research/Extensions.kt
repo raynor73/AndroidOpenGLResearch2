@@ -5,6 +5,7 @@ import ilapin.opengl_research.domain.Mesh
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.joml.Vector3fc
 import org.ode4j.math.DQuaternion
 import org.ode4j.math.DQuaternionC
 import org.ode4j.math.DVector3
@@ -25,6 +26,26 @@ fun ilapin.engine3d.MeshComponent.toMesh(): Mesh {
     convertedIndices += indices.map { it.toShort() }
 
     return Mesh(convertedVertices, convertedIndices)
+}
+
+fun Mesh.vertexCoordinatesOnlyAsArray(): FloatArray {
+    val vertexCoordinatesArray = FloatArray(vertices.size * VERTEX_COORDINATE_COMPONENTS)
+    for (i in vertices.indices) {
+        vertexCoordinatesArray[0 + i * VERTEX_COORDINATE_COMPONENTS] = vertices[i].vertexCoordinates.x()
+        vertexCoordinatesArray[1 + i * VERTEX_COORDINATE_COMPONENTS] = vertices[i].vertexCoordinates.y()
+        vertexCoordinatesArray[2 + i * VERTEX_COORDINATE_COMPONENTS] = vertices[i].vertexCoordinates.z()
+    }
+    return vertexCoordinatesArray
+}
+
+fun Mesh.cwConvertedIndices(): IntArray {
+    val convertedIndices = IntArray(indices.size)
+    for (i in 0 until vertices.size / VERTICES_IN_TRIANGLE) {
+        convertedIndices[0 + i * VERTICES_IN_TRIANGLE] = indices[2 + i * VERTICES_IN_TRIANGLE].toInt()
+        convertedIndices[1 + i * VERTICES_IN_TRIANGLE] = indices[1 + i * VERTICES_IN_TRIANGLE].toInt()
+        convertedIndices[2 + i * VERTICES_IN_TRIANGLE] = indices[0 + i * VERTICES_IN_TRIANGLE].toInt()
+    }
+    return convertedIndices
 }
 
 fun Mesh.verticesAsArray(): FloatArray {
@@ -56,8 +77,8 @@ fun Boolean.toGLBoolean(): Int {
     }
 }
 
-fun Vector3f.toVector(): DVector3 {
-    return DVector3(x.toDouble(), y.toDouble(), z.toDouble())
+fun Vector3fc.toVector(): DVector3 {
+    return DVector3(x().toDouble(), y().toDouble(), z().toDouble())
 }
 
 fun DVector3C.toVector(): Vector3f {
