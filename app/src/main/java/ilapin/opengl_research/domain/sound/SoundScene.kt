@@ -1,10 +1,8 @@
 package ilapin.opengl_research.domain.sound
 
 import android.annotation.SuppressLint
-import ilapin.common.android.log.L
 import ilapin.common.math.inverseLerp
 import ilapin.common.time.TimeRepository
-import ilapin.opengl_research.App.Companion.LOG_TAG
 import ilapin.opengl_research.NANOS_IN_MILLISECOND
 import ilapin.opengl_research.ObjectsPool
 import org.joml.Quaternionf
@@ -149,9 +147,7 @@ class SoundScene(
         vectorsPool.recycle(directionToSound)
         vectorsPool.recycle(rightDirection)
 
-        val volumeLevels = VolumeLevels(leftVolume * distanceFactor, rightVolume * distanceFactor)
-        L.d(LOG_TAG, "Volume levels: left = ${volumeLevels.left}; right = ${volumeLevels.right}")
-        return volumeLevels
+        return VolumeLevels(leftVolume * distanceFactor, rightVolume * distanceFactor)
     }
 
     companion object {

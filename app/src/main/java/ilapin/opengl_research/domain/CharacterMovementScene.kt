@@ -8,6 +8,7 @@ import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
+import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.sound.SoundScene
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -40,6 +41,8 @@ class CharacterMovementScene(
 
     private val _cameraAmbientLights = HashMap<CameraComponent, Vector3fc>()
 
+    private val physicsEngine = PhysicsEngine()
+
     override val rootGameObject = GameObject("root").apply {
         addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
     }
@@ -68,6 +71,7 @@ class CharacterMovementScene(
 
     init {
         setupTextures()
+        setupPhysics()
         setupGeometry()
         setupCameras()
         setupLights()
@@ -78,6 +82,9 @@ class CharacterMovementScene(
         val currentTimestamp = timeRepository.getTimestamp()
         val dt = prevTimestamp?.let { prevTimestamp -> (currentTimestamp - prevTimestamp) / NANOS_IN_SECOND } ?: 0f
         prevTimestamp = currentTimestamp
+
+        physicsEngine.update(dt)
+        rootGameObject.update()
 
         scrollController.scrollEvent?.let { scrollEvent ->
             zAngle -= Math.toRadians((scrollEvent.dx / pixelDensityFactor).toDouble()).toFloat()
@@ -125,6 +132,10 @@ class CharacterMovementScene(
         vectorsPool.recycle(strafingDirection)
 
         quaternionsPool.recycle(playerRotation)
+    }
+
+    private fun setupPhysics() {
+        // do nothing
     }
 
     private fun setupTextures() {
@@ -231,6 +242,34 @@ class CharacterMovementScene(
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent("fountain", Vector4f(1f, 1f, 1f, 1f)))
             gameObject.addComponent(MeshComponent(fountainMeshVbo, fountainMeshIboInfo))
+            rootGameObject.addChild(gameObject)
+        }
+
+        run {
+            val gameObject = GameObject("capsule")
+
+            val capsuleMesh = meshLoadingRepository.loadMesh("meshes/capsule.obj").toMesh()
+            val capsuleMeshVbo = openGLObjectsRepository.createStaticVbo("capsule", capsuleMesh.verticesAsArray())
+            val capsuleMeshIboInfo = IboInfo(
+                openGLObjectsRepository.createStaticIbo("capsule", capsuleMesh.indices.toShortArray()),
+                capsuleMesh.indices.size
+            )
+
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(0f, 0f, 0f),
+                Quaternionf().identity(),
+                Vector3f(1f, 1f, 1f)
+            ))
+            val renderer = MeshRendererComponent(
+                pixelDensityFactor,
+                openGLObjectsRepository,
+                openGLErrorDetector
+            )
+            layerRenderers[DEFAULT_LAYER_NAME] += renderer
+            gameObject.addComponent(renderer)
+            gameObject.addComponent(MaterialComponent(null, Vector4f(.5f, .5f, 0f, 1f)))
+            gameObject.addComponent(MeshComponent(capsuleMeshVbo, capsuleMeshIboInfo))
+            gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine.capsuleRigidBody))
             rootGameObject.addChild(gameObject)
         }
     }
