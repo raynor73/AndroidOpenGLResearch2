@@ -9,6 +9,7 @@ import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
+import ilapin.opengl_research.domain.physics_engine.RigidBody
 import ilapin.opengl_research.domain.sound.SoundScene
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -41,7 +42,7 @@ class CharacterMovementScene(
 
     private val _cameraAmbientLights = HashMap<CameraComponent, Vector3fc>()
 
-    private val physicsEngine = PhysicsEngine()
+    private val physicsEngine = PhysicsEngine(PHYSICS_SIMULATION_STEP_TIME)
 
     override val rootGameObject = GameObject("root").apply {
         addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
@@ -67,6 +68,7 @@ class CharacterMovementScene(
 
     private lateinit var player: GameObject
     private lateinit var playerTransform: TransformationComponent
+    private lateinit var playerRigidBody: RigidBody
     private var playerYAngle = 0f
 
     init {
@@ -83,7 +85,6 @@ class CharacterMovementScene(
         val dt = prevTimestamp?.let { prevTimestamp -> (currentTimestamp - prevTimestamp) / NANOS_IN_SECOND } ?: 0f
         prevTimestamp = currentTimestamp
 
-        physicsEngine.update(dt)
         rootGameObject.update()
 
         scrollController.scrollEvent?.let { scrollEvent ->
@@ -99,7 +100,6 @@ class CharacterMovementScene(
             quaternionsPool.recycle(lightRotation)
         }
 
-        val playerPosition = vectorsPool.obtain()
         val movingDirection = vectorsPool.obtain()
         val strafingDirection = vectorsPool.obtain()
 
@@ -108,10 +108,8 @@ class CharacterMovementScene(
         strafingDirection.set(INITIAL_RIGHT_VECTOR)
         strafingDirection.rotate(playerTransform.rotation)
 
-        playerPosition.set(playerTransform.position)
-        playerPosition.add(movingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.movingFraction).mul(dt))
-        playerPosition.add(strafingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.strafingFraction).mul(dt))
-        playerTransform.position = playerPosition
+        playerRigidBody.addVelocity(movingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.movingFraction))
+        playerRigidBody.addVelocity(strafingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.strafingFraction))
 
         val playerRotation = quaternionsPool.obtain()
         playerYAngle += playerController.horizontalSteeringFraction * PLAYER_STEERING_SPEED * dt
@@ -127,11 +125,12 @@ class CharacterMovementScene(
             soundScene.updateSoundListenerRotation(playerTransform.rotation)
         }
 
-        vectorsPool.recycle(playerPosition)
         vectorsPool.recycle(movingDirection)
         vectorsPool.recycle(strafingDirection)
 
         quaternionsPool.recycle(playerRotation)
+
+        physicsEngine.update(dt)
     }
 
     private fun setupPhysics() {
@@ -206,6 +205,9 @@ class CharacterMovementScene(
                 Vector3f(1f, 1f, 1f)
             )
             player.addComponent(playerTransform)
+            playerRigidBody = RigidBody(Vector3f(0f, 0f, 0f), RigidBody.Type.KINEMATIC)
+            physicsEngine.addRigidBody(playerRigidBody)
+            player.addComponent(RigidBodyGameObjectComponent(playerRigidBody))
             val renderer = MeshRendererComponent(
                 pixelDensityFactor,
                 openGLObjectsRepository,
@@ -269,7 +271,7 @@ class CharacterMovementScene(
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent(null, Vector4f(.5f, .5f, 0f, 1f)))
             gameObject.addComponent(MeshComponent(capsuleMeshVbo, capsuleMeshIboInfo))
-            gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine.capsuleRigidBody))
+            //gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine.capsuleRigidBody))
             rootGameObject.addChild(gameObject)
         }
     }
