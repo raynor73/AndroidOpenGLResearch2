@@ -3,6 +3,7 @@ package ilapin.opengl_research.domain.physics_engine
 import ilapin.opengl_research.domain.Mesh
 import ilapin.opengl_research.toQuaternion
 import ilapin.opengl_research.toVector
+import ilapin.opengl_research.vertexCoordinatesOnlyAsArray
 import org.joml.Quaternionf
 import org.joml.Vector3fc
 import org.ode4j.math.DQuaternion
@@ -72,19 +73,8 @@ class PhysicsEngine : DGeom.DNearCallback {
     fun createTriMeshCollisionShape(mesh: Mesh): DTriMesh {
         val triMeshData = OdeHelper.createTriMeshData()
 
-        val vertices = floatArrayOf(
-            -10f, 0f, -10f,
-            10f, 0f, -10f,
-            10f, 0f, 10f,
-            -10f, 0f, 10f
-        )
-        val indices = intArrayOf(
-            2, 1, 0,
-            0, 3, 1
-        )
-        triMeshData.build(vertices, indices)
+        triMeshData.build(mesh.vertexCoordinatesOnlyAsArray(), mesh.indices.map { it.toInt() }.toIntArray())
         triMeshData.preprocess()
-        OdeHelper.createTriMesh(space, triMeshData, null, null, null)
 
         return OdeHelper.createTriMesh(space, triMeshData, null, null, null)
     }

@@ -30,8 +30,21 @@ class Mesh(
     }
 
     class Vertex(
-        val vertexCoordinates: Vector3fc,
-        val normal: Vector3fc,
+        vertexCoordinates: Vector3fc,
+        normal: Vector3fc,
+        textureCoordinates: Vector2fc
+    ) {
+        private val _vertexCoordinates = Vector3f(vertexCoordinates)
+        private val _normal = Vector3f(normal)
+        private val _textureCoordinates = Vector2f(textureCoordinates)
+
+        val vertexCoordinates: Vector3fc
+            get() = _vertexCoordinates
+
+        val normal: Vector3fc
+            get() = _normal
+
         val textureCoordinates: Vector2fc
-    )
+            get() = _textureCoordinates
+    }
 }

@@ -37,7 +37,7 @@ fun Mesh.vertexCoordinatesOnlyAsArray(): FloatArray {
 
 fun Mesh.cwConvertedIndices(): IntArray {
     val convertedIndices = IntArray(indices.size)
-    for (i in 0 until vertices.size / VERTICES_IN_TRIANGLE) {
+    for (i in 0 until indices.size / VERTICES_IN_TRIANGLE) {
         convertedIndices[0 + i * VERTICES_IN_TRIANGLE] = indices[2 + i * VERTICES_IN_TRIANGLE].toInt()
         convertedIndices[1 + i * VERTICES_IN_TRIANGLE] = indices[1 + i * VERTICES_IN_TRIANGLE].toInt()
         convertedIndices[2 + i * VERTICES_IN_TRIANGLE] = indices[0 + i * VERTICES_IN_TRIANGLE].toInt()
