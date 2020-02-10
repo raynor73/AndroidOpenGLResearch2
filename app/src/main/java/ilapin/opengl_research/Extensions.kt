@@ -2,10 +2,7 @@ package ilapin.opengl_research
 
 import android.opengl.GLES20
 import ilapin.opengl_research.domain.Mesh
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector3fc
+import org.joml.*
 import org.ode4j.math.DQuaternion
 import org.ode4j.math.DQuaternionC
 import org.ode4j.math.DVector3
@@ -61,6 +58,42 @@ fun Mesh.verticesAsArray(): FloatArray {
         vertexComponentsArray[7 + i * VERTEX_COMPONENTS] = vertices[i].textureCoordinates.y()
     }
     return vertexComponentsArray
+}
+
+fun Mesh.applyScale(scale: Vector3fc): Mesh {
+    val scaledVertices = ArrayList<Mesh.Vertex>()
+    vertices.forEach { vertex ->
+        val scaledVertexCoordinates = Vector3f()
+        scaledVertexCoordinates.set(vertex.vertexCoordinates)
+        scaledVertexCoordinates.mul(scale)
+        scaledVertices += Mesh.Vertex(
+            scaledVertexCoordinates,
+            vertex.normal,
+            vertex.textureCoordinates
+        )
+    }
+
+    return Mesh(scaledVertices, indices)
+}
+
+fun Mesh.applyTransform(position: Vector3fc, rotation: Quaternionfc, scale: Vector3fc): Mesh {
+    val transformedVertices = ArrayList<Mesh.Vertex>()
+    val transformMatrix = Matrix4f()
+        .identity()
+        .translate(position)
+        .rotate(rotation)
+        .scale(scale)
+    val transformedVertexCoordinates = Vector3f()
+    val transformedNormal = Vector3f()
+    vertices.forEach { vertex ->
+        transformedVertices += Mesh.Vertex(
+            transformMatrix.transformPosition(vertex.vertexCoordinates, transformedVertexCoordinates),
+            transformMatrix.transformDirection(vertex.normal, transformedNormal),
+            vertex.textureCoordinates
+        )
+    }
+
+    return Mesh(transformedVertices, indices)
 }
 
 fun Int.glUniform1i(value: Int) {

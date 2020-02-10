@@ -1,10 +1,8 @@
 package ilapin.opengl_research.domain.physics_engine
 
-import ilapin.opengl_research.cwConvertedIndices
 import ilapin.opengl_research.domain.Mesh
 import ilapin.opengl_research.toQuaternion
 import ilapin.opengl_research.toVector
-import ilapin.opengl_research.vertexCoordinatesOnlyAsArray
 import org.joml.Quaternionf
 import org.joml.Vector3fc
 import org.ode4j.math.DQuaternion
@@ -36,38 +34,6 @@ class PhysicsEngine : DGeom.DNearCallback {
         contactGroup = OdeHelper.createJointGroup()
 
         world.setGravity(0.0, -9.81, 0.0)
-
-        /*run {
-            val rigidBody = OdeHelper.createBody(world)
-
-            rigidBody.setKinematic()
-
-            //val collisionShape = OdeHelper.createPlane(null, .0, 1.0, .0, .0)
-            val triMeshData = OdeHelper.createTriMeshData()
-            val vertices = floatArrayOf(
-                -10f, 0f, -10f,
-                10f, 0f, -10f,
-                10f, 0f, 10f,
-                -10f, 0f, 10f
-            )
-            val indices = intArrayOf(
-                0, 1, 2,
-                2, 3, 0
-            )
-            triMeshData.build(vertices, indices)
-            triMeshData.preprocess()
-            val collisionShape = OdeHelper.createTriMesh(null, triMeshData, null, null, null)
-            collisionShape.body = rigidBody
-
-            rigidBody.position = DVector3()
-            val rotation = DQuaternion()
-            rotation.setIdentity()
-            rigidBody.quaternion = rotation
-            rigidBody.setLinearVel(.0, .0, .0)
-            rigidBody.setAngularVel(.0, .0, .0)
-
-            space.add(collisionShape)
-        }*/
     }
 
     fun setGravity(gravity: Vector3fc) {
@@ -106,8 +72,19 @@ class PhysicsEngine : DGeom.DNearCallback {
     fun createTriMeshCollisionShape(mesh: Mesh): DTriMesh {
         val triMeshData = OdeHelper.createTriMeshData()
 
-        triMeshData.build(mesh.vertexCoordinatesOnlyAsArray(), mesh.cwConvertedIndices())
+        val vertices = floatArrayOf(
+            -10f, 0f, -10f,
+            10f, 0f, -10f,
+            10f, 0f, 10f,
+            -10f, 0f, 10f
+        )
+        val indices = intArrayOf(
+            2, 1, 0,
+            0, 3, 1
+        )
+        triMeshData.build(vertices, indices)
         triMeshData.preprocess()
+        OdeHelper.createTriMesh(space, triMeshData, null, null, null)
 
         return OdeHelper.createTriMesh(space, triMeshData, null, null, null)
     }
