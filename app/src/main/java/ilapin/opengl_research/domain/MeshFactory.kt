@@ -16,22 +16,30 @@ class MeshFactory {
                     Mesh.Vertex(
                         Vector3f(-0.5f, -0.5f, 0f),
                         Vector3f(0f, 0f, 1f),
-                        Vector2f(0f, 0f)
+                        Vector2f(0f, 0f),
+                        listOf(0, 0, 0),
+                        listOf(0f, 0f, 0f)
                     ),
                     Mesh.Vertex(
                         Vector3f(-0.5f, 0.5f, 0f),
                         Vector3f(0f, 0f, 1f),
-                        Vector2f(0f, 1f)
+                        Vector2f(0f, 1f),
+                        listOf(0, 0, 0),
+                        listOf(0f, 0f, 0f)
                     ),
                     Mesh.Vertex(
                         Vector3f(0.5f, 0.5f, 0f),
                         Vector3f(0f, 0f, 1f),
-                        Vector2f(1f, 1f)
+                        Vector2f(1f, 1f),
+                        listOf(0, 0, 0),
+                        listOf(0f, 0f, 0f)
                     ),
                     Mesh.Vertex(
                         Vector3f(0.5f, -0.5f, 0f),
                         Vector3f(0f, 0f, 1f),
-                        Vector2f(1f, 0f)
+                        Vector2f(1f, 0f),
+                        listOf(0, 0, 0),
+                        listOf(0f, 0f, 0f)
                     )
                 ),
                 listOf(0, 3, 2, 2, 1, 0)
@@ -44,17 +52,23 @@ class MeshFactory {
                     Mesh.Vertex(
                         Vector3f(0f, 0.5f, 0f),
                         Vector3f(0f, 0f, 1f),
-                        Vector2f(0.5f, 1f)
+                        Vector2f(0.5f, 1f),
+                        listOf(0, 0, 0),
+                        listOf(0f, 0f, 0f)
                     ),
                     Mesh.Vertex(
                         Vector3f(-0.5f, -0.5f, 0f),
                         Vector3f(0f, 0f, 1f),
-                        Vector2f(0f, 0f)
+                        Vector2f(0f, 0f),
+                        listOf(0, 0, 0),
+                        listOf(0f, 0f, 0f)
                     ),
                     Mesh.Vertex(
                         Vector3f(0.5f, -0.5f, 0f),
                         Vector3f(0f, 0f, 1f),
-                        Vector2f(1f, 0f)
+                        Vector2f(1f, 0f),
+                        listOf(0, 0, 0),
+                        listOf(0f, 0f, 0f)
                     )
                 ),
                 listOf(0, 1, 2)

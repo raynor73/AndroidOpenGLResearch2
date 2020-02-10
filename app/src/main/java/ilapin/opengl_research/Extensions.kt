@@ -16,7 +16,9 @@ fun ilapin.engine3d.MeshComponent.toMesh(): Mesh {
         convertedVertices += Mesh.Vertex(
             Vector3f(vertexCoordinates),
             Vector3f(normals[i]),
-            Vector2f(uvs[i])
+            Vector2f(uvs[i]),
+            listOf(0, 0, 0),
+            listOf(0f, 0f, 0f)
         )
     }
 
@@ -48,14 +50,24 @@ fun Mesh.cwConvertedIndices(): IntArray {
 fun Mesh.verticesAsArray(): FloatArray {
     val vertexComponentsArray = FloatArray(vertices.size * VERTEX_COMPONENTS)
     for (i in vertices.indices) {
-        vertexComponentsArray[0 + i * VERTEX_COMPONENTS] = vertices[i].vertexCoordinates.x()
-        vertexComponentsArray[1 + i * VERTEX_COMPONENTS] = vertices[i].vertexCoordinates.y()
-        vertexComponentsArray[2 + i * VERTEX_COMPONENTS] = vertices[i].vertexCoordinates.z()
-        vertexComponentsArray[3 + i * VERTEX_COMPONENTS] = vertices[i].normal.x()
-        vertexComponentsArray[4 + i * VERTEX_COMPONENTS] = vertices[i].normal.y()
-        vertexComponentsArray[5 + i * VERTEX_COMPONENTS] = vertices[i].normal.z()
-        vertexComponentsArray[6 + i * VERTEX_COMPONENTS] = vertices[i].textureCoordinates.x()
-        vertexComponentsArray[7 + i * VERTEX_COMPONENTS] = vertices[i].textureCoordinates.y()
+        vertexComponentsArray[ 0 + i * VERTEX_COMPONENTS] = vertices[i].vertexCoordinates.x()
+        vertexComponentsArray[ 1 + i * VERTEX_COMPONENTS] = vertices[i].vertexCoordinates.y()
+        vertexComponentsArray[ 2 + i * VERTEX_COMPONENTS] = vertices[i].vertexCoordinates.z()
+
+        vertexComponentsArray[ 3 + i * VERTEX_COMPONENTS] = vertices[i].normal.x()
+        vertexComponentsArray[ 4 + i * VERTEX_COMPONENTS] = vertices[i].normal.y()
+        vertexComponentsArray[ 5 + i * VERTEX_COMPONENTS] = vertices[i].normal.z()
+
+        vertexComponentsArray[ 6 + i * VERTEX_COMPONENTS] = vertices[i].textureCoordinates.x()
+        vertexComponentsArray[ 7 + i * VERTEX_COMPONENTS] = vertices[i].textureCoordinates.y()
+
+        vertexComponentsArray[ 8 + i * VERTEX_COMPONENTS] = vertices[i].jointIndices[0].toFloat()
+        vertexComponentsArray[ 9 + i * VERTEX_COMPONENTS] = vertices[i].jointIndices[1].toFloat()
+        vertexComponentsArray[10 + i * VERTEX_COMPONENTS] = vertices[i].jointIndices[2].toFloat()
+
+        vertexComponentsArray[11 + i * VERTEX_COMPONENTS] = vertices[i].jointWeights[0]
+        vertexComponentsArray[12 + i * VERTEX_COMPONENTS] = vertices[i].jointWeights[1]
+        vertexComponentsArray[13 + i * VERTEX_COMPONENTS] = vertices[i].jointWeights[2]
     }
     return vertexComponentsArray
 }
@@ -69,7 +81,9 @@ fun Mesh.applyScale(scale: Vector3fc): Mesh {
         scaledVertices += Mesh.Vertex(
             scaledVertexCoordinates,
             vertex.normal,
-            vertex.textureCoordinates
+            vertex.textureCoordinates,
+            vertex.jointIndices,
+            vertex.jointWeights
         )
     }
 
@@ -89,7 +103,9 @@ fun Mesh.applyTransform(position: Vector3fc, rotation: Quaternionfc, scale: Vect
         transformedVertices += Mesh.Vertex(
             transformMatrix.transformPosition(vertex.vertexCoordinates, transformedVertexCoordinates),
             transformMatrix.transformDirection(vertex.normal, transformedNormal),
-            vertex.textureCoordinates
+            vertex.textureCoordinates,
+            vertex.jointIndices,
+            vertex.jointWeights
         )
     }
 

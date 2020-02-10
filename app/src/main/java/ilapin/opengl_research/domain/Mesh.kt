@@ -21,9 +21,11 @@ class Mesh(
     init {
         vertices.forEach {
             _vertices += Vertex(
-                Vector3f(it.vertexCoordinates),
-                Vector3f(it.normal),
-                Vector2f(it.textureCoordinates)
+                it.vertexCoordinates,
+                it.normal,
+                it.textureCoordinates,
+                it.jointIndices,
+                it.jointWeights
             )
         }
         _indices += indices
@@ -32,11 +34,15 @@ class Mesh(
     class Vertex(
         vertexCoordinates: Vector3fc,
         normal: Vector3fc,
-        textureCoordinates: Vector2fc
+        textureCoordinates: Vector2fc,
+        jointIndices: List<Int>,
+        jointWeights: List<Float>
     ) {
         private val _vertexCoordinates = Vector3f(vertexCoordinates)
         private val _normal = Vector3f(normal)
         private val _textureCoordinates = Vector2f(textureCoordinates)
+        private val _jointIndices = ArrayList<Int>().apply { addAll(jointIndices) }
+        private val _jointWeights = ArrayList<Float>().apply { addAll(jointWeights) }
 
         val vertexCoordinates: Vector3fc
             get() = _vertexCoordinates
@@ -46,5 +52,11 @@ class Mesh(
 
         val textureCoordinates: Vector2fc
             get() = _textureCoordinates
+
+        val jointIndices: List<Int>
+            get() = _jointIndices
+
+        val jointWeights: List<Float>
+            get() = _jointWeights
     }
 }
