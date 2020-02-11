@@ -15,8 +15,9 @@ class MeshRendererComponent(
     private val openGLErrorDetector: OpenGLErrorDetector
 ) : GameObjectComponent() {
 
-    private val tmpFloatArray = FloatArray(16)
+    private val tmpFloatArray = FloatArray(MATRIX_COMPONENTS)
     private val tmpMatrix = Matrix4f()
+    private val tmpJointTransformsFloatArray = FloatArray(MATRIX_COMPONENTS * MAX_JOINTS)
 
     fun render(
         shaderProgram: ShaderProgramInfo,
@@ -28,7 +29,8 @@ class MeshRendererComponent(
         lightModelMatrix: Matrix4fc? = null,
         lightViewMatrix: Matrix4fc? = null,
         lightProjectionMatrix: Matrix4fc? = null,
-        shadowMapTextureInfo: TextureInfo? = null
+        shadowMapTextureInfo: TextureInfo? = null,
+        jointTransforms: List<Matrix4fc>? = null
     ) {
         if (!isEnabled) {
             return
@@ -91,6 +93,35 @@ class MeshRendererComponent(
             GLES20.glEnableVertexAttribArray(uvAttribute)
         }
 
+        shaderProgram.jointIndicesAttribute.takeIf { it >= 0 }?.let { jointIndicesAttribute ->
+            GLES20.glVertexAttribPointer(
+                jointIndicesAttribute,
+                NUMBER_OF_JOINT_INDICES,
+                GLES20.GL_FLOAT,
+                false,
+                VERTEX_COMPONENTS * BYTES_IN_FLOAT,
+                (VERTEX_COORDINATE_COMPONENTS +
+                        NORMAL_COMPONENTS +
+                        TEXTURE_COORDINATE_COMPONENTS) * BYTES_IN_FLOAT
+            )
+            GLES20.glEnableVertexAttribArray(jointIndicesAttribute)
+        }
+
+        shaderProgram.jointWeightsAttribute.takeIf { it >= 0 }?.let { jointWeightsAttribute ->
+            GLES20.glVertexAttribPointer(
+                jointWeightsAttribute,
+                NUMBER_OF_JOINT_WEIGHTS,
+                GLES20.GL_FLOAT,
+                false,
+                VERTEX_COMPONENTS * BYTES_IN_FLOAT,
+                (VERTEX_COORDINATE_COMPONENTS +
+                        NORMAL_COMPONENTS +
+                        TEXTURE_COORDINATE_COMPONENTS +
+                        NUMBER_OF_JOINT_INDICES) * BYTES_IN_FLOAT
+            )
+            GLES20.glEnableVertexAttribArray(jointWeightsAttribute)
+        }
+
         shaderProgram.mvpMatrixUniform.takeIf { it >= 0 }?.let { mvpMatrixUniform ->
             tmpMatrix.set(projectionMatrix)
             tmpMatrix.mul(viewMatrix)
@@ -149,6 +180,24 @@ class MeshRendererComponent(
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureInfo.texture)
             GLES20.glUniform1i(shadowMapUniform, 1)
         }
+
+        val hasSkeletalAnimation = safeLet(
+            shaderProgram.jointTransformsUniform.takeIf { it >= 0 },
+            jointTransforms
+        ) { jointTransformsUniform, transforms ->
+            transforms.forEachIndexed {i, jointTransform ->
+                jointTransform.get(tmpJointTransformsFloatArray, i * MATRIX_COMPONENTS)
+            }
+            GLES20.glUniformMatrix4fv(
+                jointTransformsUniform,
+                MAX_JOINTS,
+                false,
+                tmpJointTransformsFloatArray,
+                0
+            )
+            true
+        } ?: false
+        shaderProgram.hasSkeletalAnimationUniform.glUniform1i(hasSkeletalAnimation.toGLBoolean())
 
         if (material.isDoubleSided) {
             GLES20.glDisable(GLES20.GL_CULL_FACE)

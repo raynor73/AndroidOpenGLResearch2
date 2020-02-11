@@ -8,6 +8,7 @@ import org.joml.Vector3fc
  */
 const val BYTES_IN_FLOAT = 4
 const val BYTES_IN_SHORT = 2
+const val MATRIX_COMPONENTS = 16
 const val VERTICES_IN_TRIANGLE = 3
 const val VERTEX_COORDINATE_COMPONENTS = 3
 const val NORMAL_COMPONENTS = 3

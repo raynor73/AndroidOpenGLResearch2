@@ -12,6 +12,8 @@ sealed class ShaderProgramInfo(
     val vertexCoordinateAttribute = GLES20.glGetAttribLocation(shaderProgram, "vertexCoordinateAttribute")
     val normalAttribute = GLES20.glGetAttribLocation(shaderProgram, "normalAttribute")
     val uvAttribute = GLES20.glGetAttribLocation(shaderProgram, "uvAttribute")
+    val jointIndicesAttribute = GLES20.glGetAttribLocation(shaderProgram, "jointIndicesAttribute")
+    val jointWeightsAttribute = GLES20.glGetAttribLocation(shaderProgram, "jointWeightsAttribute")
 
     val textureUniform = GLES20.glGetUniformLocation(shaderProgram, "textureUniform")
     val diffuseColorUniform = GLES20.glGetUniformLocation(shaderProgram, "diffuseColorUniform")
@@ -22,6 +24,8 @@ sealed class ShaderProgramInfo(
     val modelMatrixUniform = GLES20.glGetUniformLocation(shaderProgram, "modelMatrixUniform")
     val lightMvpMatrixUniform = GLES20.glGetUniformLocation(shaderProgram, "lightMvpMatrixUniform")
     val biasMatrixUniform = GLES20.glGetUniformLocation(shaderProgram, "biasMatrixUniform")
+    val hasSkeletalAnimationUniform = GLES20.glGetUniformLocation(shaderProgram, "hasSkeletalAnimationUniform")
+    val jointTransformsUniform = GLES20.glGetUniformLocation(shaderProgram, "jointTransformsUniform")
 
     init {
         openGLErrorDetector.dispatchOpenGLErrors("ShaderProgramInfo.init")
