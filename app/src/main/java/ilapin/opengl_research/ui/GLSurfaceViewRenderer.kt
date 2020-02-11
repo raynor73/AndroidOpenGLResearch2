@@ -90,6 +90,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
         val timeRepository = LocalTimeRepository()
         val scene = CharacterMovementScene(
+            context,
             openGLObjectsRepository,
             openGLErrorDetector,
             SoundScene(vectorsPool, timeRepository, SoundPoolSoundClipsRepository(context)),

@@ -1,12 +1,48 @@
 package ilapin.opengl_research
 
 import android.opengl.GLES20
+import ilapin.collada_parser.data_structures.MeshData
 import ilapin.opengl_research.domain.Mesh
 import org.joml.*
 import org.ode4j.math.DQuaternion
 import org.ode4j.math.DQuaternionC
 import org.ode4j.math.DVector3
 import org.ode4j.math.DVector3C
+
+fun MeshData.toMesh(): Mesh {
+    val meshVertices = ArrayList<Mesh.Vertex>()
+
+    repeat(vertexCount) { i ->
+        meshVertices += Mesh.Vertex(
+            Vector3f(
+                vertices[0 + i * VERTEX_COORDINATE_COMPONENTS],
+                vertices[1 + i * VERTEX_COORDINATE_COMPONENTS],
+                vertices[2 + i * VERTEX_COORDINATE_COMPONENTS]
+            ),
+            Vector3f(
+                normals[0 + i * NORMAL_COMPONENTS],
+                normals[1 + i * NORMAL_COMPONENTS],
+                normals[2 + i * NORMAL_COMPONENTS]
+            ),
+            Vector2f(
+                textureCoords[0 + i * TEXTURE_COORDINATE_COMPONENTS],
+                textureCoords[1 + i * TEXTURE_COORDINATE_COMPONENTS]
+            ),
+            listOf(
+                jointIds[0 + i * NUMBER_OF_JOINT_INDICES],
+                jointIds[1 + i * NUMBER_OF_JOINT_INDICES],
+                jointIds[2 + i * NUMBER_OF_JOINT_INDICES]
+            ),
+            listOf(
+                vertexWeights[0 + i * NUMBER_OF_JOINT_INDICES],
+                vertexWeights[1 + i * NUMBER_OF_JOINT_INDICES],
+                vertexWeights[2 + i * NUMBER_OF_JOINT_INDICES]
+            )
+        )
+    }
+
+    return Mesh(meshVertices, indices.map { it.toShort() })
+}
 
 fun ilapin.engine3d.MeshComponent.toMesh(): Mesh {
     val convertedVertices = ArrayList<Mesh.Vertex>()

@@ -1,7 +1,9 @@
 package ilapin.opengl_research.domain
 
+import android.content.Context
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import ilapin.collada_parser.collada_loader.ColladaLoader
 import ilapin.common.time.TimeRepository
 import ilapin.engine3d.GameObject
 import ilapin.engine3d.GameObjectComponent
@@ -21,6 +23,7 @@ import kotlin.math.abs
  * @author raynor on 07.02.20.
  */
 class CharacterMovementScene(
+    private val context: Context,
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector,
     private val soundScene: SoundScene,
@@ -282,6 +285,38 @@ class CharacterMovementScene(
                 2f,
                 Vector3f(0f, 4f, -5f)
             )))
+            rootGameObject.addChild(gameObject)
+        }
+
+        run {
+            val animatedModel = ColladaLoader.loadColladaModel(
+                context.assets.open("meshes/cowboy.dae"),
+                NUMBER_OF_JOINT_WEIGHTS
+            )
+
+            val gameObject = GameObject("cowboy")
+
+            val cowboyMesh = animatedModel.meshData.toMesh()
+            val cowboyMeshVbo = openGLObjectsRepository.createStaticVbo("cowboy", cowboyMesh.verticesAsArray())
+            val cowboyMeshIboInfo = IboInfo(
+                openGLObjectsRepository.createStaticIbo("cowboy", cowboyMesh.indices.toShortArray()),
+                cowboyMesh.indices.size
+            )
+
+            gameObject.addComponent(TransformationComponent(
+                Vector3f(5f, 0f, -5f),
+                Quaternionf().identity(),
+                Vector3f(1f, 1f, 1f)
+            ))
+            val renderer = MeshRendererComponent(
+                pixelDensityFactor,
+                openGLObjectsRepository,
+                openGLErrorDetector
+            )
+            layerRenderers[DEFAULT_LAYER_NAME] += renderer
+            gameObject.addComponent(renderer)
+            gameObject.addComponent(MaterialComponent(null, Vector4f(.5f, 0f, .5f, 1f)))
+            gameObject.addComponent(MeshComponent(cowboyMeshVbo, cowboyMeshIboInfo))
             rootGameObject.addChild(gameObject)
         }
     }
