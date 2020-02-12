@@ -3,6 +3,7 @@ package ilapin.opengl_research
 import android.opengl.GLES20
 import ilapin.common.kotlin.safeLet
 import ilapin.engine3d.GameObjectComponent
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
 
@@ -29,8 +30,7 @@ class MeshRendererComponent(
         lightModelMatrix: Matrix4fc? = null,
         lightViewMatrix: Matrix4fc? = null,
         lightProjectionMatrix: Matrix4fc? = null,
-        shadowMapTextureInfo: TextureInfo? = null,
-        jointTransforms: List<Matrix4fc>? = null
+        shadowMapTextureInfo: TextureInfo? = null
     ) {
         if (!isEnabled) {
             return
@@ -183,9 +183,9 @@ class MeshRendererComponent(
 
         val hasSkeletalAnimation = safeLet(
             shaderProgram.jointTransformsUniform.takeIf { it >= 0 },
-            jointTransforms
-        ) { jointTransformsUniform, transforms ->
-            transforms.forEachIndexed {i, jointTransform ->
+            gameObject?.getComponent(SkeletalAnimationComponent::class.java)?.jointTransforms
+        ) { jointTransformsUniform, jointTransforms ->
+            jointTransforms.forEachIndexed {i, jointTransform ->
                 jointTransform.get(tmpJointTransformsFloatArray, i * MATRIX_COMPONENTS)
             }
             GLES20.glUniformMatrix4fv(
