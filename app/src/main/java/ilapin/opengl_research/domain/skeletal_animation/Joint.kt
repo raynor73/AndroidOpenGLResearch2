@@ -3,47 +3,39 @@ package ilapin.opengl_research.domain.skeletal_animation
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
 
-
 /**
  * @author raynor on 11.02.20.
  */
 class Joint(
-    val name: String
+    val name: String,
+    localBindTransform: Matrix4fc
 ) {
     private val _children = ArrayList<Joint>()
+    //private val _animationTransform = Matrix4f()
+    private val localBindTransform: Matrix4fc = Matrix4f(localBindTransform)
 
-    private lateinit var inverseBindTransform: Matrix4f
+    lateinit var invertedBindTransform: Matrix4fc
 
     val children: List<Joint> = _children
+
+    /*var animationTransform: Matrix4fc
+        get() = _animationTransform
+        set(value) {
+            _animationTransform.set(value)
+        }*/
 
     fun addChild(joint: Joint) {
         _children += joint
     }
 
-    /**
-     * This is called during set-up, after the joints hierarchy has been
-     * created. This calculates the model-space bind transform of this joint
-     * like so:
-     *
-     * `bindTransform = parentBindTransform * localBindTransform`
-     *
-     * where "bindTransform" is the model-space bind transform of this joint,
-     * "parentBindTransform" is the model-space bind transform of the parent
-     * joint, and "localBindTransform" is the bone-space bind transform of this
-     * joint. It then calculates and stores the inverse of this model-space bind
-     * transform, for use when calculating the final animation transform each
-     * frame. It then recursively calls the method for all of the children
-     * joints, so that they too calculate and store their inverse bind-pose
-     * transform.
-     *
-     * @param parentBindTransform
-     * - the model-space bind transform of the parent joint.
-     */
-    fun calcInverseBindTransform(parentBindTransform: Matrix4fc) {
-        val bindTransform = Matrix4f.mul(parentBindTransform, localBindTransform, null)
-        Matrix4f.invert(bindTransform, inverseBindTransform)
-        for (child in children) {
-            child.calcInverseBindTransform(bindTransform)
-        }
+    fun calculateInvertedBindTransform(parentBindTransform: Matrix4fc) {
+        val bindTransform = Matrix4f()
+        val invertedBindTransform = Matrix4f()
+
+        parentBindTransform.mul(localBindTransform, bindTransform)
+        bindTransform.invert(invertedBindTransform)
+        this.invertedBindTransform = invertedBindTransform
+
+        children.forEach { child -> child.calculateInvertedBindTransform(bindTransform) }
     }
 }

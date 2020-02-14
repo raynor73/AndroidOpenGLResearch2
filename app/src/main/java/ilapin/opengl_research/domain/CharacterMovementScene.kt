@@ -11,7 +11,7 @@ import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
-import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
 import ilapin.opengl_research.domain.sound.SoundScene
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -318,7 +318,7 @@ class CharacterMovementScene(
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent(null, Vector4f(.5f, 0f, .5f, 1f)))
             gameObject.addComponent(MeshComponent(cowboyMeshVbo, cowboyMeshIboInfo))
-            gameObject.addComponent(SkeletalAnimationComponent(timeRepository))
+            gameObject.addComponent(SkeletalAnimatorComponent(timeRepository))
             rootGameObject.addChild(gameObject)
         }
     }
