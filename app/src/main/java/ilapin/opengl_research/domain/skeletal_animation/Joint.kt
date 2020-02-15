@@ -12,18 +12,11 @@ class Joint(
     localBindTransform: Matrix4fc
 ) {
     private val _children = ArrayList<Joint>()
-    //private val _animationTransform = Matrix4f()
     private val localBindTransform: Matrix4fc = Matrix4f(localBindTransform)
 
     lateinit var invertedBindTransform: Matrix4fc
 
     val children: List<Joint> = _children
-
-    /*var animationTransform: Matrix4fc
-        get() = _animationTransform
-        set(value) {
-            _animationTransform.set(value)
-        }*/
 
     fun addChild(joint: Joint) {
         _children += joint

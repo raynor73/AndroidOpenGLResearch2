@@ -91,7 +91,9 @@ class SkeletalAnimatorComponent(
         parentTransform: Matrix4fc
     ) {
         _jointTransforms?.let { prevJointTransforms ->
-            prevJointTransforms.forEach { matrixPool.recycle(it as Matrix4f) }
+            prevJointTransforms.forEach { jointTransform ->
+                jointTransform?.let { matrixPool.recycle(it as Matrix4f) }
+            }
             if (pose.keys.size > prevJointTransforms.size) {
                 repeat(pose.keys.size - prevJointTransforms.size) { prevJointTransforms.add(null) }
             }
