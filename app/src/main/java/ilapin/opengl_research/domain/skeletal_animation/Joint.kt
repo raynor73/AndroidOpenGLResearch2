@@ -7,6 +7,7 @@ import org.joml.Matrix4fc
  * @author raynor on 11.02.20.
  */
 class Joint(
+    val index: Int,
     val name: String,
     localBindTransform: Matrix4fc
 ) {

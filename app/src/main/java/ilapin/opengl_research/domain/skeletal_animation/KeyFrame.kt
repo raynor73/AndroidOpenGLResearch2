@@ -5,5 +5,5 @@ package ilapin.opengl_research.domain.skeletal_animation
  */
 class KeyFrame(
     val time: Float,
-    val jointTransforms: Map<String, JointTransform>
+    val jointLocalTransforms: Map<String, JointLocalTransform>
 )

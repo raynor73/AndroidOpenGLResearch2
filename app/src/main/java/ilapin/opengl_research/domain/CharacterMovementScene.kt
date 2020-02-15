@@ -11,12 +11,11 @@ import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
 import ilapin.opengl_research.domain.sound.SoundScene
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector3fc
-import org.joml.Vector4f
+import org.joml.*
+import java.lang.Math
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -294,6 +293,9 @@ class CharacterMovementScene(
                 context.assets.open("meshes/cowboy.dae"),
                 NUMBER_OF_JOINT_WEIGHTS
             )
+            val animationData = ColladaLoader.loadColladaAnimation(
+                context.assets.open("meshes/cowboy.dae")
+            )
 
             val gameObject = GameObject("cowboy")
 
@@ -318,7 +320,18 @@ class CharacterMovementScene(
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent(null, Vector4f(.5f, 0f, .5f, 1f)))
             gameObject.addComponent(MeshComponent(cowboyMeshVbo, cowboyMeshIboInfo))
-            gameObject.addComponent(SkeletalAnimatorComponent(timeRepository))
+            gameObject.addComponent(SkeletalAnimationComponent(
+                animatedModel.jointsData.headJoint.toJoint(),
+                animationData.toSkeletalAnimation()
+            ))
+            val animator = SkeletalAnimatorComponent(
+                vectorsPool,
+                quaternionsPool,
+                ObjectsPool { Matrix4f() },
+                timeRepository
+            )
+            gameObject.addComponent(animator)
+            animator.start()
             rootGameObject.addChild(gameObject)
         }
     }

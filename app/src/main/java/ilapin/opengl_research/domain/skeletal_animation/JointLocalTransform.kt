@@ -5,7 +5,7 @@ import org.joml.*
 /**
  * @author ilapin on 11.02.20.
  */
-class JointTransform(
+class JointLocalTransform(
     position: Vector3fc,
     rotation: Quaternionfc
 ) {

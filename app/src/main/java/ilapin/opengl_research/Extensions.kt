@@ -1,8 +1,12 @@
 package ilapin.opengl_research
 
 import android.opengl.GLES20
-import ilapin.collada_parser.data_structures.MeshData
+import ilapin.collada_parser.data_structures.*
 import ilapin.opengl_research.domain.Mesh
+import ilapin.opengl_research.domain.skeletal_animation.Joint
+import ilapin.opengl_research.domain.skeletal_animation.JointLocalTransform
+import ilapin.opengl_research.domain.skeletal_animation.KeyFrame
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimation
 import org.joml.*
 import org.ode4j.math.DQuaternion
 import org.ode4j.math.DQuaternionC
@@ -42,6 +46,32 @@ fun MeshData.toMesh(): Mesh {
     }
 
     return Mesh(meshVertices, indices.map { it.toShort() })
+}
+
+fun JointData.toJoint(): Joint {
+    val joint = Joint(index, nameId, bindLocalTransform)
+
+    children?.forEach { child -> joint.addChild(child.toJoint()) }
+
+    return joint
+}
+
+fun KeyFrameData.toKeyFrame(): KeyFrame {
+    val convertedJointTransforms = HashMap<String, JointLocalTransform>()
+    val position = Vector3f()
+    val rotation = Quaternionf()
+    jointTransforms.forEach { jointTransformDto ->
+        jointTransformDto.jointLocalTransform.getTranslation(position)
+        jointTransformDto.jointLocalTransform.getNormalizedRotation(rotation)
+        convertedJointTransforms[jointTransformDto.jointNameId] = JointLocalTransform(
+            position, rotation
+        )
+    }
+    return KeyFrame(time, convertedJointTransforms)
+}
+
+fun AnimationData.toSkeletalAnimation(): SkeletalAnimation {
+    return SkeletalAnimation(lengthSeconds, keyFrames.map { it.toKeyFrame() })
 }
 
 fun ilapin.engine3d.MeshComponent.toMesh(): Mesh {
