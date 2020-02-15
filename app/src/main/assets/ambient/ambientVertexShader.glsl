@@ -17,15 +17,11 @@ void main() {
 
     if (hasSkeletalAnimationUniform) {
         vec4 finalVertexCoordinate = vec4(0.0);
-        //vec4 finalNormal = vec4(0.0);
 
         for (int i = 0; i < JOINTS_PER_VERTEX; i++) {
             mat4 jointTransform = jointTransformsUniform[int(jointIndicesAttribute[i])];
             vec4 posedVertexCoordinate = jointTransform * vec4(vertexCoordinateAttribute, 1.0);
             finalVertexCoordinate += posedVertexCoordinate * jointWeightsAttribute[i];
-
-            /*vec4 worldNormal = jointTransform * vec4(in_normal, 0.0);
-            finalNormal += worldNormal * in_weights[i];*/
         }
 
         gl_Position = mvpMatrixUniform * finalVertexCoordinate;

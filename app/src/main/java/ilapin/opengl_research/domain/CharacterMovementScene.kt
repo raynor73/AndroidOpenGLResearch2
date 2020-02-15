@@ -307,7 +307,7 @@ class CharacterMovementScene(
             )
 
             gameObject.addComponent(TransformationComponent(
-                Vector3f(5f, 0f, -5f),
+                Vector3f(5f, 3f, -5f),
                 Quaternionf().identity(),
                 Vector3f(1f, 1f, 1f)
             ))
