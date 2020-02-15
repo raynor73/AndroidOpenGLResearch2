@@ -186,10 +186,7 @@ class MeshRendererComponent(
             gameObject?.getComponent(SkeletalAnimatorComponent::class.java)?.jointTransforms
         ) { jointTransformsUniform, jointTransforms ->
             jointTransforms.forEachIndexed { i, jointTransform ->
-                (jointTransform ?: error("Joint transform with index $i not found for game object ${gameObject?.name}")).get(
-                    tmpJointTransformsFloatArray,
-                    i * MATRIX_COMPONENTS
-                )
+                jointTransform?.get(tmpJointTransformsFloatArray, i * MATRIX_COMPONENTS)
             }
             GLES20.glUniformMatrix4fv(
                 jointTransformsUniform,

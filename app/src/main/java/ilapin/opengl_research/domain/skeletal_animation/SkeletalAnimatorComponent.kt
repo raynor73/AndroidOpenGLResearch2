@@ -27,7 +27,8 @@ class SkeletalAnimatorComponent(
 
     private val pose = HashMap<String, Matrix4fc>()
 
-    val jointTransforms: List<Matrix4fc?>? = _jointTransforms
+    val jointTransforms: List<Matrix4fc?>?
+        get() = _jointTransforms
 
     override fun update() {
         super.update()
