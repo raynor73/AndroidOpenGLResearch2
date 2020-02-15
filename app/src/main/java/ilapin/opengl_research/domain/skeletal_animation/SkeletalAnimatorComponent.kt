@@ -48,7 +48,7 @@ class SkeletalAnimatorComponent(
             stop()
 
             calculatePose(animationComponent.animation, 0f)
-            applyPoseToJoints(animationComponent.rootJoint, IDENTITY)
+            applyPoseToJoints(prepareJointTransformsStorage(), animationComponent.rootJoint, IDENTITY)
             return
         } else if (currentAnimationComponent == null) {
             currentAnimationComponent = animationComponent
@@ -58,7 +58,8 @@ class SkeletalAnimatorComponent(
             ((currentTimestamp - startTimestamp) / NANOS_IN_SECOND) % animationComponent.animation.length
 
         calculatePose(animationComponent.animation, currentAnimationTime)
-        applyPoseToJoints(animationComponent.rootJoint, IDENTITY)
+
+        applyPoseToJoints(prepareJointTransformsStorage(), animationComponent.rootJoint, IDENTITY)
     }
 
     fun start() {
@@ -78,6 +79,22 @@ class SkeletalAnimatorComponent(
         _jointTransforms = null
     }
 
+    private fun prepareJointTransformsStorage(): ArrayList<Matrix4fc?> {
+        _jointTransforms?.let { prevJointTransforms ->
+            prevJointTransforms.forEach { jointTransform ->
+                jointTransform?.let { matrixPool.recycle(it as Matrix4f) }
+            }
+            if (pose.keys.size > prevJointTransforms.size) {
+                repeat(pose.keys.size - prevJointTransforms.size) { prevJointTransforms.add(null) }
+            }
+            prevJointTransforms.indices.forEach { i -> prevJointTransforms[i] = null }
+        }
+        return _jointTransforms ?: ArrayList<Matrix4fc?>().apply {
+            repeat(pose.keys.size) { add(null) }
+            _jointTransforms = this
+        }
+    }
+
     private fun calculatePose(animation: SkeletalAnimation, currentAnimationTime: Float) {
         val frames = findPreviousAndNextKeyFrames(
             animation,
@@ -88,29 +105,16 @@ class SkeletalAnimatorComponent(
     }
 
     private fun applyPoseToJoints(
+        jointTransforms: ArrayList<Matrix4fc?>,
         joint: Joint,
         parentTransform: Matrix4fc
     ) {
-        _jointTransforms?.let { prevJointTransforms ->
-            prevJointTransforms.forEach { jointTransform ->
-                jointTransform?.let { matrixPool.recycle(it as Matrix4f) }
-            }
-            if (pose.keys.size > prevJointTransforms.size) {
-                repeat(pose.keys.size - prevJointTransforms.size) { prevJointTransforms.add(null) }
-            }
-            prevJointTransforms.indices.forEach { i -> prevJointTransforms[i] = null }
-        }
-        val jointTransforms = _jointTransforms ?: ArrayList<Matrix4fc?>().apply {
-            indices.forEach { i -> set(i, null) }
-            _jointTransforms = this
-        }
-
         val currentLocalTransform = pose[joint.name]
         val currentTransform = matrixPool.obtain()
         currentTransform.set(parentTransform)
         currentTransform.mul(currentLocalTransform)
 
-        joint.children.forEach { child -> applyPoseToJoints(child, currentTransform) }
+        joint.children.forEach { child -> applyPoseToJoints(jointTransforms, child, currentTransform) }
 
         currentTransform.mul(joint.invertedBindTransform)
 
