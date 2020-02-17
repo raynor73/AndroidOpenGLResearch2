@@ -1,7 +1,8 @@
-package ilapin.opengl_research
+package ilapin.opengl_research.app
 
 import android.app.Application
 import android.os.StrictMode
+import ilapin.opengl_research.BuildConfig
 import timber.log.Timber
 
 /**
@@ -34,5 +35,10 @@ class App : Application() {
     companion object {
 
         const val LOG_TAG = "OpenGLResearch"
+
+        private lateinit var appComponent_: AppComponent
+
+        val appComponent
+            get() = appComponent_
     }
 }

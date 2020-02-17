@@ -11,10 +11,7 @@ import ilapin.meshloader.android.ObjMeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.data.sound.SoundPoolSoundClipsRepository
-import ilapin.opengl_research.domain.CharacterMovementScene
-import ilapin.opengl_research.domain.PlayerController
-import ilapin.opengl_research.domain.Scene2
-import ilapin.opengl_research.domain.ScrollController
+import ilapin.opengl_research.domain.*
 import ilapin.opengl_research.domain.sound.SoundScene
 import io.reactivex.disposables.Disposable
 import org.joml.*
@@ -22,16 +19,24 @@ import java.nio.charset.Charset
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Renderer {
+class GLSurfaceViewRenderer(
+    private val context: Context,
+    private val messageQueue: MessageQueue,
+    private val verticesPool: ObjectsPool<Vector3f>,
+    private val quaternionsPool: ObjectsPool<Quaternionf>,
+    private val touchEventsRepository: AndroidTouchEventsRepository,
+    private val scrollController: ScrollController,
+    private val playerController: PlayerController
+) : GLSurfaceView.Renderer {
 
-    private val messageQueue = MessageQueue()
-    private val touchEventsRepository = AndroidTouchEventsRepository()
-    private val scrollController = ScrollController(touchEventsRepository)
-    private val leftJoystick = JoystickViewJoystick()
-    private val rightJoystick = JoystickViewJoystick()
-    private val playerController = PlayerController(leftJoystick, rightJoystick)
-    private val vectorsPool = ObjectsPool { Vector3f() }
-    private val quaternionsPool = ObjectsPool { Quaternionf() }
+    //private val messageQueue = MessageQueue()
+    //private val touchEventsRepository = AndroidTouchEventsRepository()
+    //private val scrollController = ScrollController(touchEventsRepository)
+    //private val leftJoystick = JoystickViewJoystick()
+    //private val rightJoystick = JoystickViewJoystick()
+    //private val playerController = PlayerController(leftJoystick, rightJoystick)
+    /*private val vectorsPool = ObjectsPool { Vector3f() }
+    private val quaternionsPool = ObjectsPool { Quaternionf() }*/
 
     private val messageQueueSubscription: Disposable
 
@@ -47,8 +52,11 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
     private val matrixPool = ObjectsPool { Matrix4f() }
 
     init {
-        messageQueueSubscription = messageQueue.messages().subscribe { message ->
-            when (message) {
+        messageQueueSubscription = messageQueue.messages().subscribe {
+            if (it == DeinitMessage) {
+                // TODO Implement de-initialization
+            }
+            /*when (message) {
                 is TouchEvent -> touchEventsRepository.addTouchEvent(message)
                 is JoystickPositionEvent -> {
                     if (message.joystickId == LEFT_JOYSTICK_ID) {
@@ -57,7 +65,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                         rightJoystick.onPositionChanged(message.position)
                     }
                 }
-            }
+            }*/
         }
     }
 
@@ -66,7 +74,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             return
         }
 
-        touchEventsRepository.clear()
+        touchEventsRepository.clearPrevEvents()
         messageQueue.update()
         scrollController.update()
         playerController.update()
@@ -94,9 +102,9 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             context,
             openGLObjectsRepository,
             openGLErrorDetector,
-            SoundScene(vectorsPool, timeRepository, SoundPoolSoundClipsRepository(context)),
+            SoundScene(verticesPool, timeRepository, SoundPoolSoundClipsRepository(context)),
             RhinoScriptingEngine(),
-            vectorsPool,
+            verticesPool,
             quaternionsPool,
             timeRepository,
             ObjMeshLoadingRepository(context),
@@ -119,6 +127,10 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
 
     fun putMessage(message: Any) {
         messageQueue.putMessage(message)
+    }
+
+    fun putMessageAndWaitForExecution(message: Any) {
+        messageQueue.putMessageAndWaitForExecution(message)
     }
 
     private fun render() {
@@ -525,6 +537,8 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
                 openGLObjectsRepository.findFragmentShader("directional_light_fragment_shader")!!
         )
     }
+
+    object DeinitMessage
 
     companion object {
 

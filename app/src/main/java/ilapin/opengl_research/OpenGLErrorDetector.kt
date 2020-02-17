@@ -3,7 +3,7 @@ package ilapin.opengl_research
 import android.opengl.GLES20
 import android.opengl.GLU
 import ilapin.common.android.log.L
-import ilapin.opengl_research.App.Companion.LOG_TAG
+import ilapin.opengl_research.app.App.Companion.LOG_TAG
 import javax.microedition.khronos.opengles.GL10
 
 /**

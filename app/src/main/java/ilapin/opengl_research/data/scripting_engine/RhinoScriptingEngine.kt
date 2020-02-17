@@ -1,12 +1,11 @@
 package ilapin.opengl_research.data.scripting_engine
 
 import ilapin.common.android.log.L
-import ilapin.opengl_research.App.Companion.LOG_TAG
+import ilapin.opengl_research.app.App.Companion.LOG_TAG
 import ilapin.opengl_research.domain.scripting_engine.ScriptingEngine
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.ErrorReporter
 import org.mozilla.javascript.EvaluatorException
-
 
 /**
  * @author ilapin on 17.02.20.
@@ -55,7 +54,7 @@ class RhinoScriptingEngine : ScriptingEngine {
         context.evaluateString(scope, script, "SceneScript", 1, null)
     }
 
-    override fun update() {
+    override fun update(dt: Float) {
         val updateFunction = scope.get("update", scope) as org.mozilla.javascript.Function
         updateFunction.call(context, scope, scope, emptyArray())
         /*println(Context.jsToJava(result, Int::class.javaPrimitiveType))

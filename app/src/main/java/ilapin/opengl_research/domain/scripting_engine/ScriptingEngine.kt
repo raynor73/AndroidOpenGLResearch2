@@ -5,7 +5,7 @@ package ilapin.opengl_research.domain.scripting_engine
  */
 interface ScriptingEngine {
 
-    fun update()
+    fun update(dt: Float)
 
     fun deinit()
 }

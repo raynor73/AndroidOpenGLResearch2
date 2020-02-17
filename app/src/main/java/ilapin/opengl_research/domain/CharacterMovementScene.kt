@@ -90,7 +90,7 @@ class CharacterMovementScene(
 
         physicsEngine.update(dt)
         rootGameObject.update()
-        scriptingEngine.update()
+        scriptingEngine.update(dt)
 
         scrollController.scrollEvent?.let { scrollEvent ->
             zAngle -= Math.toRadians((scrollEvent.dx / pixelDensityFactor).toDouble()).toFloat()

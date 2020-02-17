@@ -248,6 +248,12 @@ class MeshRendererComponent(
         shaderProgram.uvAttribute.takeIf { it >= 0 }?.let { uvAttribute ->
             GLES20.glDisableVertexAttribArray(uvAttribute)
         }
+        shaderProgram.jointIndicesAttribute.takeIf { it >= 0 }?.let { jointIndicesAttribute ->
+            GLES20.glDisableVertexAttribArray(jointIndicesAttribute)
+        }
+        shaderProgram.jointWeightsAttribute.takeIf { it >= 0 }?.let { jointWeightsAttribute ->
+            GLES20.glDisableVertexAttribArray(jointWeightsAttribute)
+        }
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0)

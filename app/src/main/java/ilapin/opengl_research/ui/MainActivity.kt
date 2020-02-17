@@ -1,21 +1,23 @@
 package ilapin.opengl_research.ui
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
 import android.opengl.GLSurfaceView
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import ilapin.common.input.TouchEvent
 import ilapin.common.kotlin.plusAssign
 import ilapin.opengl_research.JoystickPositionEvent
 import ilapin.opengl_research.R
+import ilapin.opengl_research.app.App
 import ilapin.opengl_research.domain.Joystick
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    var renderer: GLSurfaceViewRenderer? = null
 
     private val subscriptions = CompositeDisposable()
 
@@ -24,8 +26,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            val renderer = GLSurfaceViewRenderer(this)
+        App.appComponent.inject(this)
+
+        renderer?.let { renderer ->
             val glView = GLSurfaceView(this)
             glView.setOnTouchListener { _, event ->
                 renderer.putMessage(
@@ -73,6 +76,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
 
         subscriptions.clear()
+        renderer?.putMessageAndWaitForExecution(GLSurfaceViewRenderer.DeinitMessage)
     }
 
     private fun hideControls() {
