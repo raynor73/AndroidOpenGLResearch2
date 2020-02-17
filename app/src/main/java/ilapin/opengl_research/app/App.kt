@@ -30,6 +30,8 @@ class App : Application() {
                     .build()
             )
         }
+
+        appComponent_ = DaggerAppComponent.builder().appModule(AppModule(this)).build()
     }
 
     companion object {

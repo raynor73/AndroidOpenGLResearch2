@@ -14,9 +14,12 @@ import ilapin.opengl_research.app.App
 import ilapin.opengl_research.domain.Joystick
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
+    @Inject
+    @JvmField
     var renderer: GLSurfaceViewRenderer? = null
 
     private val subscriptions = CompositeDisposable()
@@ -26,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        App.appComponent.inject(this)
+        App.appComponent.mainScreenComponent(MainScreenModule(this)).inject(this)
 
         renderer?.let { renderer ->
             val glView = GLSurfaceView(this)
@@ -52,14 +55,14 @@ class MainActivity : AppCompatActivity() {
 
             subscriptions += leftJoystickView.positionObservable.subscribe { position ->
                 renderer.putMessage(JoystickPositionEvent(
-                    GLSurfaceViewRenderer.LEFT_JOYSTICK_ID,
+                    LEFT_JOYSTICK_ID,
                     Joystick.Position(position.x, position.y)
                 ))
             }
 
             subscriptions += rightJoystickView.positionObservable.subscribe { position ->
                 renderer.putMessage(JoystickPositionEvent(
-                    GLSurfaceViewRenderer.RIGHT_JOYSTICK_ID,
+                    RIGHT_JOYSTICK_ID,
                     Joystick.Position(position.x, position.y)
                 ))
             }
@@ -88,5 +91,11 @@ class MainActivity : AppCompatActivity() {
                     View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    }
+
+    companion object {
+
+        const val LEFT_JOYSTICK_ID = 0
+        const val RIGHT_JOYSTICK_ID = 1
     }
 }

@@ -1,8 +1,8 @@
 package ilapin.opengl_research.app
 
 import dagger.Component
-import ilapin.opengl_research.ui.MainActivity
-import ilapin.opengl_research.ui.RendererComponent
+import ilapin.opengl_research.ui.MainScreenComponent
+import ilapin.opengl_research.ui.MainScreenModule
 import javax.inject.Singleton
 
 /**
@@ -12,7 +12,5 @@ import javax.inject.Singleton
 @Component(modules = [AppModule::class])
 interface AppComponent {
 
-    fun rendererComponent(): RendererComponent
-
-    fun inject(activity: MainActivity)
+    fun mainScreenComponent(mainScreenModule: MainScreenModule): MainScreenComponent
 }
