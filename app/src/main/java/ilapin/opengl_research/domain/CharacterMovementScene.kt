@@ -11,6 +11,7 @@ import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
+import ilapin.opengl_research.domain.scripting_engine.ScriptingEngine
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
 import ilapin.opengl_research.domain.sound.SoundScene
@@ -27,6 +28,7 @@ class CharacterMovementScene(
     private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector,
     private val soundScene: SoundScene,
+    private val scriptingEngine: ScriptingEngine,
     private val vectorsPool: ObjectsPool<Vector3f>,
     private val quaternionsPool: ObjectsPool<Quaternionf>,
     private val timeRepository: TimeRepository,
@@ -88,6 +90,7 @@ class CharacterMovementScene(
 
         physicsEngine.update(dt)
         rootGameObject.update()
+        scriptingEngine.update()
 
         scrollController.scrollEvent?.let { scrollEvent ->
             zAngle -= Math.toRadians((scrollEvent.dx / pixelDensityFactor).toDouble()).toFloat()

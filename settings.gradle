@@ -1,2 +1,2 @@
-include ':app', ':collada_parser'
+include ':app', ':collada_parser', ':rhino'
 rootProject.name='OpenGLResearch'

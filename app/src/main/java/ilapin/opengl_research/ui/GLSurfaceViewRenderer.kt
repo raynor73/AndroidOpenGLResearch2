@@ -9,6 +9,7 @@ import ilapin.common.messagequeue.MessageQueue
 import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.android.ObjMeshLoadingRepository
 import ilapin.opengl_research.*
+import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.data.sound.SoundPoolSoundClipsRepository
 import ilapin.opengl_research.domain.CharacterMovementScene
 import ilapin.opengl_research.domain.PlayerController
@@ -94,6 +95,7 @@ class GLSurfaceViewRenderer(private val context: Context) : GLSurfaceView.Render
             openGLObjectsRepository,
             openGLErrorDetector,
             SoundScene(vectorsPool, timeRepository, SoundPoolSoundClipsRepository(context)),
+            RhinoScriptingEngine(),
             vectorsPool,
             quaternionsPool,
             timeRepository,
