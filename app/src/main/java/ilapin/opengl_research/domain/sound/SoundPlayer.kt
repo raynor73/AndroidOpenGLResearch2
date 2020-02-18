@@ -12,7 +12,8 @@ class SoundPlayer(
     val duration: Int,
     val maxVolumeDistance: Float,
     val minVolumeDistance: Float,
-    position: Vector3fc
+    position: Vector3fc,
+    var volume: Float
 ) {
     private val _position = Vector3f(position)
 

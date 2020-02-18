@@ -406,7 +406,7 @@ class CharacterMovementScene(
 
     private fun setupSounds() {
         soundScene.loadSoundClip("water_flow", "sounds/water_flow.wav")
-        soundScene.addSoundPlayer("fountain", "water_flow", 7791, Vector3f(0f, 0.5f, -10f), 1f, 15f)
+        soundScene.addSoundPlayer("fountain", "water_flow", 7791, Vector3f(0f, 0.5f, -10f), 1f, 15f, 0.5f)
         soundScene.updateSoundListenerPosition(playerTransform.position)
         soundScene.updateSoundListenerRotation(playerTransform.rotation)
 

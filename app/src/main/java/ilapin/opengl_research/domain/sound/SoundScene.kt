@@ -66,7 +66,8 @@ class SoundScene(
         duration: Int,
         position: Vector3fc,
         maxVolumeDistance: Float,
-        minVolumeDistance: Float
+        minVolumeDistance: Float,
+        volume: Float
     ) {
         if (isPaused) {
             L.e(LOG_TAG, "SoundScene.addSoundPlayer() called but SoundScene is paused")
@@ -83,7 +84,8 @@ class SoundScene(
             duration,
             maxVolumeDistance,
             minVolumeDistance,
-            position
+            position,
+            volume
         )
     }
 
@@ -116,6 +118,16 @@ class SoundScene(
         }
 
         (players[name] ?: error("Sound player $name not found")).position = position
+        updateActivePlayersVolume()
+    }
+
+    fun updateSoundPlayerVolume(name: String, volume: Float) {
+        if (isPaused) {
+            L.e(LOG_TAG, "SoundScene.updateSoundPlayerVolume() called but SoundScene is paused")
+            return
+        }
+
+        (players[name] ?: error("Sound player $name not found")).volume = volume
         updateActivePlayersVolume()
     }
 
@@ -185,8 +197,8 @@ class SoundScene(
             )
             soundClipsRepository.changeSoundClipVolume(
                 activePlayer.soundClipStreamId,
-                volumeLevels.left,
-                volumeLevels.right
+                volumeLevels.left * activePlayer.soundPlayer.volume,
+                volumeLevels.right * activePlayer.soundPlayer.volume
             )
         }
     }
