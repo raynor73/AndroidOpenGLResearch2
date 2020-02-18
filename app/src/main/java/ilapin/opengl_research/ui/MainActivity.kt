@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import ilapin.common.android.kotlin.gone
+import ilapin.common.android.kotlin.setVisible
 import ilapin.common.input.TouchEvent
 import ilapin.common.kotlin.plusAssign
 import ilapin.opengl_research.JoystickPositionEvent
@@ -30,6 +32,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         App.appComponent.mainScreenComponent(MainScreenModule(this)).inject(this)
+
+        progressBar.gone()
 
         renderer?.let { renderer ->
             val glView = GLSurfaceView(this)
@@ -66,6 +70,8 @@ class MainActivity : AppCompatActivity() {
                     Joystick.Position(position.x, position.y)
                 ))
             }
+
+            subscriptions += renderer.isLoading.subscribe { isLoading -> progressBar.setVisible(isLoading) }
         }
     }
 

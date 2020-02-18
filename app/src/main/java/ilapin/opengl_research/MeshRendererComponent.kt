@@ -3,6 +3,8 @@ package ilapin.opengl_research
 import android.opengl.GLES20
 import ilapin.common.kotlin.safeLet
 import ilapin.engine3d.GameObjectComponent
+import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
+import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
@@ -12,7 +14,8 @@ import org.joml.Matrix4fc
  */
 class MeshRendererComponent(
     private val lineWidth: Float,
-    private val openGLObjectsRepository: OpenGLObjectsRepository,
+    private val texturesManager: OpenGLTexturesManager,
+    private val geometryManager: OpenGLGeometryManager,
     private val openGLErrorDetector: OpenGLErrorDetector
 ) : GameObjectComponent() {
 
@@ -37,6 +40,8 @@ class MeshRendererComponent(
         }
 
         val mesh = gameObject?.getComponent(MeshComponent::class.java) ?: return
+        val vbo = geometryManager.findVbo(mesh.name) ?: error("VBO ${mesh.name} not found")
+        val iboInfo = geometryManager.findIbo(mesh.name) ?: error("IBO ${mesh.name} not found")
         val material = gameObject?.getComponent(MaterialComponent::class.java) ?: return
 
         if (isShadowMapRendering && !material.castShadows) {
@@ -54,8 +59,8 @@ class MeshRendererComponent(
             return
         }
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mesh.vbo)
-        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mesh.iboInfo.ibo)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo)
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, iboInfo.ibo)
 
         shaderProgram.vertexCoordinateAttribute.takeIf { it >= 0 }?.let { vertexCoordinateAttribute ->
             GLES20.glVertexAttribPointer(
@@ -160,7 +165,7 @@ class MeshRendererComponent(
 
         val textureName = material.textureName
         if (textureName != null) {
-            val textureInfo = openGLObjectsRepository.findTexture(textureName)
+            val textureInfo = texturesManager.findTexture(textureName)
                 ?: error("Texture not found for ${gameObject?.name}")
 
             shaderProgram.textureUniform.takeIf { it >= 0 }?.let { textureUniform ->
@@ -218,7 +223,7 @@ class MeshRendererComponent(
             GLES20.glCullFace(GLES20.GL_FRONT)
             GLES20.glDrawElements(
                 mode,
-                mesh.iboInfo.numberOfIndices,
+                iboInfo.numberOfIndices,
                 GLES20.GL_UNSIGNED_SHORT,
                 0
             )
@@ -226,14 +231,14 @@ class MeshRendererComponent(
             GLES20.glCullFace(GLES20.GL_BACK)
             GLES20.glDrawElements(
                 mode,
-                mesh.iboInfo.numberOfIndices,
+                iboInfo.numberOfIndices,
                 GLES20.GL_UNSIGNED_SHORT,
                 0
             )
         } else {
             GLES20.glDrawElements(
                 mode,
-                mesh.iboInfo.numberOfIndices,
+                iboInfo.numberOfIndices,
                 GLES20.GL_UNSIGNED_SHORT,
                 0
             )

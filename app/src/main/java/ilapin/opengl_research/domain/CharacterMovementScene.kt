@@ -10,6 +10,8 @@ import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
+import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
+import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scripting_engine.ScriptingEngine
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
@@ -25,8 +27,9 @@ import kotlin.math.abs
  */
 class CharacterMovementScene(
     private val context: Context,
-    private val openGLObjectsRepository: OpenGLObjectsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector,
+    private val texturesManager: OpenGLTexturesManager,
+    private val geometryManager: OpenGLGeometryManager,
     private val soundScene: SoundScene,
     private val scriptingEngine: ScriptingEngine,
     private val vectorsPool: ObjectsPool<Vector3f>,
@@ -145,19 +148,16 @@ class CharacterMovementScene(
     }
 
     private fun setupTextures() {
-        openGLObjectsRepository.createTexture("green", 1, 1, intArrayOf(0xff008000.toInt()))
-        openGLObjectsRepository.createTexture("blue", 1, 1, intArrayOf(0xff000080.toInt()))
-        openGLObjectsRepository.loadTexture("female", "textures/female.png")
-        openGLObjectsRepository.loadTexture("fountain", "textures/fountain.png")
+        texturesManager.createTexture("green", 1, 1, intArrayOf(0xff008000.toInt()))
+        texturesManager.createTexture("blue", 1, 1, intArrayOf(0xff000080.toInt()))
+        texturesManager.createTexture("female", "textures/female.png")
+        texturesManager.createTexture("fountain", "textures/fountain.png")
     }
 
     private fun setupGeometry() {
         val mesh = MeshFactory.createQuad()
-        val quadVbo = openGLObjectsRepository.createStaticVbo("quad", mesh.verticesAsArray())
-        val quadIboInfo = IboInfo(
-            openGLObjectsRepository.createStaticIbo("quad", mesh.indices.toShortArray()),
-            mesh.indices.size
-        )
+        geometryManager.createStaticVerticesBuffer("quad", mesh.verticesAsArray())
+        geometryManager.createStaticIndicesBuffer("quad", mesh.indices.toShortArray())
 
         run {
             val gameObject = GameObject("ground_plane")
@@ -168,13 +168,14 @@ class CharacterMovementScene(
             ))
             val renderer = MeshRendererComponent(
                 pixelDensityFactor,
-                openGLObjectsRepository,
+                texturesManager,
+                geometryManager,
                 openGLErrorDetector
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent("green", Vector4f(1f, 1f, 1f, 1f)))
-            gameObject.addComponent(MeshComponent(quadVbo, quadIboInfo))
+            gameObject.addComponent(MeshComponent("quad"))
             gameObject.addComponent(CollisionShapeGameObjectComponent(
                 physicsEngine.createTriMeshCollisionShape(mesh.applyTransform(
                     Vector3f(0f, 0f, 0f),
@@ -194,23 +195,21 @@ class CharacterMovementScene(
             ))
             val renderer = MeshRendererComponent(
                 pixelDensityFactor,
-                openGLObjectsRepository,
+                texturesManager,
+                geometryManager,
                 openGLErrorDetector
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent("blue", Vector4f(1f, 1f, 1f, 1f)))
-            gameObject.addComponent(MeshComponent(quadVbo, quadIboInfo))
+            gameObject.addComponent(MeshComponent("quad"))
             rootGameObject.addChild(gameObject)
         }
 
         run {
             val playerMesh = meshLoadingRepository.loadMesh("meshes/female.obj").toMesh()
-            val playerMeshVbo = openGLObjectsRepository.createStaticVbo("player", playerMesh.verticesAsArray())
-            val playerMeshIboInfo = IboInfo(
-                openGLObjectsRepository.createStaticIbo("player", playerMesh.indices.toShortArray()),
-                playerMesh.indices.size
-            )
+            geometryManager.createStaticVerticesBuffer("player", playerMesh.verticesAsArray())
+            geometryManager.createStaticIndicesBuffer("player", playerMesh.indices.toShortArray())
 
             player = GameObject("player")
             playerTransform = TransformationComponent(
@@ -221,13 +220,14 @@ class CharacterMovementScene(
             player.addComponent(playerTransform)
             val renderer = MeshRendererComponent(
                 pixelDensityFactor,
-                openGLObjectsRepository,
+                texturesManager,
+                geometryManager,
                 openGLErrorDetector
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             player.addComponent(renderer)
             player.addComponent(MaterialComponent("female", Vector4f(1f, 1f, 1f, 1f)))
-            player.addComponent(MeshComponent(playerMeshVbo, playerMeshIboInfo))
+            player.addComponent(MeshComponent("player"))
             rootGameObject.addChild(player)
         }
 
@@ -235,11 +235,8 @@ class CharacterMovementScene(
             val gameObject = GameObject("fountain")
 
             val fountainMesh = meshLoadingRepository.loadMesh("meshes/fountain.obj").toMesh()
-            val fountainMeshVbo = openGLObjectsRepository.createStaticVbo("fountain", fountainMesh.verticesAsArray())
-            val fountainMeshIboInfo = IboInfo(
-                openGLObjectsRepository.createStaticIbo("fountain", fountainMesh.indices.toShortArray()),
-                fountainMesh.indices.size
-            )
+            geometryManager.createStaticVerticesBuffer("fountain", fountainMesh.verticesAsArray())
+            geometryManager.createStaticIndicesBuffer("fountain", fountainMesh.indices.toShortArray())
 
             gameObject.addComponent(TransformationComponent(
                 Vector3f(0f, 0.01f, -10f),
@@ -248,13 +245,14 @@ class CharacterMovementScene(
             ))
             val renderer = MeshRendererComponent(
                 pixelDensityFactor,
-                openGLObjectsRepository,
+                texturesManager,
+                geometryManager,
                 openGLErrorDetector
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent("fountain", Vector4f(1f, 1f, 1f, 1f)))
-            gameObject.addComponent(MeshComponent(fountainMeshVbo, fountainMeshIboInfo))
+            gameObject.addComponent(MeshComponent("fountain"))
             rootGameObject.addChild(gameObject)
         }
 
@@ -262,11 +260,8 @@ class CharacterMovementScene(
             val gameObject = GameObject("capsule")
 
             val capsuleMesh = meshLoadingRepository.loadMesh("meshes/capsule.obj").toMesh()
-            val capsuleMeshVbo = openGLObjectsRepository.createStaticVbo("capsule", capsuleMesh.verticesAsArray())
-            val capsuleMeshIboInfo = IboInfo(
-                openGLObjectsRepository.createStaticIbo("capsule", capsuleMesh.indices.toShortArray()),
-                capsuleMesh.indices.size
-            )
+            geometryManager.createStaticVerticesBuffer("capsule", capsuleMesh.verticesAsArray())
+            geometryManager.createStaticIndicesBuffer("capsule", capsuleMesh.indices.toShortArray())
 
             gameObject.addComponent(TransformationComponent(
                 Vector3f(0f, 0f, 0f),
@@ -275,13 +270,14 @@ class CharacterMovementScene(
             ))
             val renderer = MeshRendererComponent(
                 pixelDensityFactor,
-                openGLObjectsRepository,
+                texturesManager,
+                geometryManager,
                 openGLErrorDetector
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent(null, Vector4f(.5f, .5f, 0f, 1f)))
-            gameObject.addComponent(MeshComponent(capsuleMeshVbo, capsuleMeshIboInfo))
+            gameObject.addComponent(MeshComponent("capsule"))
             gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine.createCharacterCapsuleRigidBody(
                 1f,
                 1f,
@@ -303,11 +299,8 @@ class CharacterMovementScene(
             val gameObject = GameObject("cowboy")
 
             val cowboyMesh = animatedModel.meshData.toMesh()
-            val cowboyMeshVbo = openGLObjectsRepository.createStaticVbo("cowboy", cowboyMesh.verticesAsArray())
-            val cowboyMeshIboInfo = IboInfo(
-                openGLObjectsRepository.createStaticIbo("cowboy", cowboyMesh.indices.toShortArray()),
-                cowboyMesh.indices.size
-            )
+            geometryManager.createStaticVerticesBuffer("cowboy", cowboyMesh.verticesAsArray())
+            geometryManager.createStaticIndicesBuffer("cowboy", cowboyMesh.indices.toShortArray())
 
             gameObject.addComponent(TransformationComponent(
                 Vector3f(5f, 3f, -5f),
@@ -316,13 +309,14 @@ class CharacterMovementScene(
             ))
             val renderer = MeshRendererComponent(
                 pixelDensityFactor,
-                openGLObjectsRepository,
+                texturesManager,
+                geometryManager,
                 openGLErrorDetector
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
             gameObject.addComponent(MaterialComponent(null, Vector4f(.5f, 0f, .5f, 1f)))
-            gameObject.addComponent(MeshComponent(cowboyMeshVbo, cowboyMeshIboInfo))
+            gameObject.addComponent(MeshComponent("cowboy"))
             gameObject.addComponent(SkeletalAnimationComponent(
                 animatedModel.jointsData.headJoint.toJoint(),
                 animationData.toSkeletalAnimation()

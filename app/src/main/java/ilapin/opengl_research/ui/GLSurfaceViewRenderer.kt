@@ -8,6 +8,10 @@ import ilapin.common.messagequeue.MessageQueue
 import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.android.ObjMeshLoadingRepository
 import ilapin.opengl_research.*
+import ilapin.opengl_research.data.assets_management.FrameBuffersManager
+import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
+import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
+import ilapin.opengl_research.data.assets_management.ShadersManager
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.data.sound.SoundPoolSoundClipsRepository
 import ilapin.opengl_research.domain.CharacterMovementScene
@@ -15,7 +19,10 @@ import ilapin.opengl_research.domain.PlayerController
 import ilapin.opengl_research.domain.Scene2
 import ilapin.opengl_research.domain.ScrollController
 import ilapin.opengl_research.domain.sound.SoundScene
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.subjects.BehaviorSubject
 import org.joml.*
 import java.nio.charset.Charset
 import javax.microedition.khronos.egl.EGLConfig
@@ -24,7 +31,12 @@ import javax.microedition.khronos.opengles.GL10
 class GLSurfaceViewRenderer(
     private val context: Context,
     private val messageQueue: MessageQueue,
-    private val verticesPool: ObjectsPool<Vector3f>,
+    private val openGLErrorDetector: OpenGLErrorDetector,
+    private val frameBuffersManager: FrameBuffersManager,
+    private val geometryManager: OpenGLGeometryManager,
+    private val texturesManager: OpenGLTexturesManager,
+    private val shadersManager: ShadersManager,
+    private val vectorsPool: ObjectsPool<Vector3f>,
     private val quaternionsPool: ObjectsPool<Quaternionf>,
     private val touchEventsRepository: AndroidTouchEventsRepository,
     private val scrollController: ScrollController,
@@ -33,16 +45,19 @@ class GLSurfaceViewRenderer(
 
     private val messageQueueSubscription: Disposable
 
-    private val openGLErrorDetector = OpenGLErrorDetector()
-    private val openGLObjectsRepository = OpenGLObjectsRepository(context, openGLErrorDetector)
-
     private var displayWidth: Int? = null
     private var displayHeight: Int? = null
 
     private var scene: Scene2? = null
     private var shadowMapFrameBufferInfo: FrameBufferInfo.DepthFrameBufferInfo? = null
 
+    private var isAlreadyInitialized = false
+
     private val matrixPool = ObjectsPool { Matrix4f() }
+
+    private val _isLoadingSubject = BehaviorSubject.createDefault(false)
+
+    val isLoading: Observable<Boolean> = _isLoadingSubject.observeOn(AndroidSchedulers.mainThread())
 
     init {
         messageQueueSubscription = messageQueue.messages().subscribe {
@@ -66,6 +81,12 @@ class GLSurfaceViewRenderer(
     }
 
     override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
+        if (isAlreadyInitialized) {
+            return
+        }
+
+        _isLoadingSubject.onNext(true)
+
         displayWidth = width
         displayHeight = height
 
@@ -75,19 +96,17 @@ class GLSurfaceViewRenderer(
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
         GLES20.glEnable(GLES20.GL_CULL_FACE)
 
-        /*GLES20.glEnable(GLES20.GL_BLEND)
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)*/
-
         setupShaders()
 
         val timeRepository = LocalTimeRepository()
         val scene = CharacterMovementScene(
             context,
-            openGLObjectsRepository,
             openGLErrorDetector,
-            SoundScene(verticesPool, timeRepository, SoundPoolSoundClipsRepository(context)),
+            texturesManager,
+            geometryManager,
+            SoundScene(vectorsPool, timeRepository, SoundPoolSoundClipsRepository(context)),
             RhinoScriptingEngine(),
-            verticesPool,
+            vectorsPool,
             quaternionsPool,
             timeRepository,
             ObjMeshLoadingRepository(context),
@@ -97,15 +116,27 @@ class GLSurfaceViewRenderer(
         )
         this.scene = scene
 
-        openGLObjectsRepository.createDepthOnlyFramebuffer("shadow_map", width, height)
+        frameBuffersManager.createDepthOnlyFramebuffer("shadow_map", width, height)
         shadowMapFrameBufferInfo =
-                openGLObjectsRepository.findFrameBuffer("shadow_map") as FrameBufferInfo.DepthFrameBufferInfo
+                frameBuffersManager.findFrameBuffer("shadow_map") as FrameBufferInfo.DepthFrameBufferInfo
 
         openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged")
+
+        _isLoadingSubject.onNext(false)
+        isAlreadyInitialized = true
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig) {
-        // do nothing
+        if (isAlreadyInitialized) {
+            _isLoadingSubject.onNext(true)
+
+            shadersManager.restoreShaders()
+            texturesManager.restoreTextures()
+            geometryManager.restoreBuffers()
+            frameBuffersManager.restoreFrameBuffers()
+
+            _isLoadingSubject.onNext(false)
+        }
     }
 
     fun putMessage(message: Any) {
@@ -183,7 +214,7 @@ class GLSurfaceViewRenderer(
         GLES20.glDepthMask(false)
         GLES20.glDepthFunc(GLES20.GL_EQUAL)
 
-        val shaderProgram = openGLObjectsRepository
+        val shaderProgram = shadersManager
             .findShaderProgram("directional_light_shader_program") as ShaderProgramInfo.DirectionalLightShaderProgram
         GLES20.glUseProgram(shaderProgram.shaderProgram)
 
@@ -238,7 +269,7 @@ class GLSurfaceViewRenderer(
     ) {
         val modelMatrix = matrixPool.obtain()
 
-        val shaderProgram = openGLObjectsRepository
+        val shaderProgram = shadersManager
                 .findShaderProgram("shadow_map_shader_program") as ShaderProgramInfo.ShadowMapShaderProgram
 
         GLES20.glUseProgram(shaderProgram.shaderProgram)
@@ -326,7 +357,7 @@ class GLSurfaceViewRenderer(
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
 
-        val shaderProgram = openGLObjectsRepository
+        val shaderProgram = shadersManager
             .findShaderProgram("unlit_shader_program") as ShaderProgramInfo.UnlitShaderProgram
 
         GLES20.glUseProgram(shaderProgram.shaderProgram)
@@ -379,7 +410,7 @@ class GLSurfaceViewRenderer(
         val ambientLightColor = scene.cameraAmbientLights[camera]
             ?: error("No ambient light found for camera ${camera.gameObject?.name}")
 
-        val ambientShaderProgram = openGLObjectsRepository
+        val ambientShaderProgram = shadersManager
             .findShaderProgram("ambient_shader_program") as ShaderProgramInfo.AmbientLightShaderProgram
         GLES20.glUseProgram(ambientShaderProgram.shaderProgram)
 
@@ -456,49 +487,51 @@ class GLSurfaceViewRenderer(
     }
 
     private fun setupShaders() {
-        openGLObjectsRepository.createVertexShader(
+        shadersManager.createVertexShader(
                 "ambient_vertex_shader",
                 context.assets.open("ambient/ambientVertexShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
-        openGLObjectsRepository.createFragmentShader(
+        shadersManager.createFragmentShader(
                 "ambient_fragment_shader",
                 context.assets.open("ambient/ambientFragmentShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
-        openGLObjectsRepository.createAmbientLightShaderProgram(
+        shadersManager.createAmbientLightShaderProgram(
                 "ambient_shader_program",
-                openGLObjectsRepository.findVertexShader("ambient_vertex_shader")!!,
-                openGLObjectsRepository.findFragmentShader("ambient_fragment_shader")!!
+                shadersManager.findVertexShader("ambient_vertex_shader") ?: error("Ambient vertex shader not found"),
+                shadersManager.findFragmentShader("ambient_fragment_shader")
+                    ?: error("Ambient fragment shader not found")
         )
 
-        openGLObjectsRepository.createVertexShader(
+        shadersManager.createVertexShader(
                 "unlit_vertex_shader",
                 context.assets.open("unlit/unlitVertexShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
-        openGLObjectsRepository.createFragmentShader(
+        shadersManager.createFragmentShader(
                 "unlit_fragment_shader",
                 context.assets.open("unlit/unlitFragmentShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
-        openGLObjectsRepository.createUnlitShaderProgram(
-                "unlit_shader_program",
-                openGLObjectsRepository.findVertexShader("unlit_vertex_shader")!!,
-                openGLObjectsRepository.findFragmentShader("unlit_fragment_shader")!!
+        shadersManager.createUnlitShaderProgram(
+            "unlit_shader_program",
+            shadersManager.findVertexShader("unlit_vertex_shader") ?: error("Unlit vertex shader not found"),
+            shadersManager.findFragmentShader("unlit_fragment_shader") ?: error("Unlit fragment shader not found")
         )
 
-        openGLObjectsRepository.createVertexShader(
+        shadersManager.createVertexShader(
                 "shadow_map_vertex_shader",
                 context.assets.open("shadowMap/shadowMapVertexShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
-        openGLObjectsRepository.createFragmentShader(
+        shadersManager.createFragmentShader(
                 "shadow_map_fragment_shader",
                 context.assets.open("shadowMap/shadowMapFragmentShader.glsl").readBytes().toString(Charset.defaultCharset())
         )
-        openGLObjectsRepository.createShadowMapShaderProgram(
-                "shadow_map_shader_program",
-                openGLObjectsRepository.findVertexShader("shadow_map_vertex_shader")!!,
-                openGLObjectsRepository.findFragmentShader("shadow_map_fragment_shader")!!
+        shadersManager.createShadowMapShaderProgram(
+            "shadow_map_shader_program",
+            shadersManager.findVertexShader("shadow_map_vertex_shader") ?: error("Shadow map vertex shader not found"),
+            shadersManager.findFragmentShader("shadow_map_fragment_shader")
+                ?: error("Shadow map fragment shader not found")
         )
 
-        openGLObjectsRepository.createVertexShader(
+        shadersManager.createVertexShader(
                 "directional_light_vertex_shader",
                 context
                         .assets
@@ -506,7 +539,7 @@ class GLSurfaceViewRenderer(
                         .readBytes()
                         .toString(Charset.defaultCharset())
         )
-        openGLObjectsRepository.createFragmentShader(
+        shadersManager.createFragmentShader(
                 "directional_light_fragment_shader",
                 context
                         .assets
@@ -514,10 +547,12 @@ class GLSurfaceViewRenderer(
                         .readBytes()
                         .toString(Charset.defaultCharset())
         )
-        openGLObjectsRepository.createDirectionalLightShaderProgram(
-                "directional_light_shader_program",
-                openGLObjectsRepository.findVertexShader("directional_light_vertex_shader")!!,
-                openGLObjectsRepository.findFragmentShader("directional_light_fragment_shader")!!
+        shadersManager.createDirectionalLightShaderProgram(
+            "directional_light_shader_program",
+            shadersManager.findVertexShader("directional_light_vertex_shader")
+                ?: error("Directional light vertex shader not found"),
+            shadersManager.findFragmentShader("directional_light_fragment_shader")
+                ?: error("Directional light fragment shader not found")
         )
     }
 

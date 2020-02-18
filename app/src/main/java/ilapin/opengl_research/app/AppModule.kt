@@ -3,7 +3,6 @@ package ilapin.opengl_research.app
 import android.content.Context
 import dagger.Module
 import dagger.Provides
-import ilapin.common.messagequeue.MessageQueue
 import ilapin.opengl_research.ObjectsPool
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -18,7 +17,7 @@ class AppModule(private val context: Context) {
 
     @Provides
     @Singleton
-    fun provideVerticesPool(): ObjectsPool<Vector3f> {
+    fun provideVectorsPool(): ObjectsPool<Vector3f> {
         return ObjectsPool { Vector3f() }
     }
 
