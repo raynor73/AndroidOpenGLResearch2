@@ -13,6 +13,26 @@ import org.ode4j.math.DQuaternionC
 import org.ode4j.math.DVector3
 import org.ode4j.math.DVector3C
 
+fun FloatArray.toArgb(): Int {
+    return ((get(3) * 255).toInt() shl 24) or
+            ((get(0) * 255).toInt() shl 16) or
+            ((get(1) * 255).toInt() shl 8) or
+            (get(2) * 255).toInt()
+}
+
+fun FloatArray.toRgba(dest: Vector4f) {
+    dest.x = get(0)
+    dest.y = get(1)
+    dest.z = get(2)
+    dest.w = get(3)
+}
+
+fun FloatArray.toRgb(dest: Vector3f) {
+    dest.x = get(0)
+    dest.y = get(1)
+    dest.z = get(2)
+}
+
 fun MeshData.toMesh(): Mesh {
     val meshVertices = ArrayList<Mesh.Vertex>()
 

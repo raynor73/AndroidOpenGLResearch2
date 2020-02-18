@@ -55,7 +55,7 @@ class CharacterMovementScene(
         addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
     }
 
-    override val cameras: List<CameraComponent> = _cameras
+    override val activeCameras: List<CameraComponent> = _cameras
 
     override val layerRenderers: Multimap<String, MeshRendererComponent> = _layerRenderers
 
@@ -177,8 +177,8 @@ class CharacterMovementScene(
 
     private fun setupGeometry() {
         val mesh = MeshFactory.createQuad()
-        geometryManager.createStaticVerticesBuffer("quad", mesh.verticesAsArray())
-        geometryManager.createStaticIndicesBuffer("quad", mesh.indices.toShortArray())
+        geometryManager.createStaticVertexBuffer("quad", mesh.verticesAsArray())
+        geometryManager.createStaticIndexBuffer("quad", mesh.indices.toShortArray())
 
         run {
             val gameObject = GameObject("ground_plane")
@@ -229,8 +229,8 @@ class CharacterMovementScene(
 
         run {
             val playerMesh = meshLoadingRepository.loadMesh("meshes/female.obj").toMesh()
-            geometryManager.createStaticVerticesBuffer("player", playerMesh.verticesAsArray())
-            geometryManager.createStaticIndicesBuffer("player", playerMesh.indices.toShortArray())
+            geometryManager.createStaticVertexBuffer("player", playerMesh.verticesAsArray())
+            geometryManager.createStaticIndexBuffer("player", playerMesh.indices.toShortArray())
 
             player = GameObject("player")
             playerTransform = TransformationComponent(
@@ -256,8 +256,8 @@ class CharacterMovementScene(
             val gameObject = GameObject("fountain")
 
             val fountainMesh = meshLoadingRepository.loadMesh("meshes/fountain.obj").toMesh()
-            geometryManager.createStaticVerticesBuffer("fountain", fountainMesh.verticesAsArray())
-            geometryManager.createStaticIndicesBuffer("fountain", fountainMesh.indices.toShortArray())
+            geometryManager.createStaticVertexBuffer("fountain", fountainMesh.verticesAsArray())
+            geometryManager.createStaticIndexBuffer("fountain", fountainMesh.indices.toShortArray())
 
             gameObject.addComponent(TransformationComponent(
                 Vector3f(0f, 0.01f, -10f),
@@ -281,8 +281,8 @@ class CharacterMovementScene(
             val gameObject = GameObject("capsule")
 
             val capsuleMesh = meshLoadingRepository.loadMesh("meshes/capsule.obj").toMesh()
-            geometryManager.createStaticVerticesBuffer("capsule", capsuleMesh.verticesAsArray())
-            geometryManager.createStaticIndicesBuffer("capsule", capsuleMesh.indices.toShortArray())
+            geometryManager.createStaticVertexBuffer("capsule", capsuleMesh.verticesAsArray())
+            geometryManager.createStaticIndexBuffer("capsule", capsuleMesh.indices.toShortArray())
 
             gameObject.addComponent(TransformationComponent(
                 Vector3f(0f, 0f, 0f),
@@ -320,8 +320,8 @@ class CharacterMovementScene(
             val gameObject = GameObject("cowboy")
 
             val cowboyMesh = animatedModel.meshData.toMesh()
-            geometryManager.createStaticVerticesBuffer("cowboy", cowboyMesh.verticesAsArray())
-            geometryManager.createStaticIndicesBuffer("cowboy", cowboyMesh.indices.toShortArray())
+            geometryManager.createStaticVertexBuffer("cowboy", cowboyMesh.verticesAsArray())
+            geometryManager.createStaticIndexBuffer("cowboy", cowboyMesh.indices.toShortArray())
 
             gameObject.addComponent(TransformationComponent(
                 Vector3f(5f, 3f, -5f),

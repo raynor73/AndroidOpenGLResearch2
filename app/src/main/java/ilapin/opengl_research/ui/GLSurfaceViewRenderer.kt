@@ -3,27 +3,22 @@ package ilapin.opengl_research.ui
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import ilapin.common.android.time.LocalTimeRepository
 import ilapin.common.messagequeue.MessageQueue
 import ilapin.engine3d.TransformationComponent
-import ilapin.meshloader.android.ObjMeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.assets_management.ShadersManager
-import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
-import ilapin.opengl_research.data.sound.SoundPoolSoundClipsRepository
-import ilapin.opengl_research.domain.CharacterMovementScene
-import ilapin.opengl_research.domain.PlayerController
-import ilapin.opengl_research.domain.Scene2
-import ilapin.opengl_research.domain.ScrollController
-import ilapin.opengl_research.domain.sound.SoundScene
+import ilapin.opengl_research.domain.*
+import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.BehaviorSubject
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4fc
+import org.joml.Vector3fc
 import java.nio.charset.Charset
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -36,12 +31,12 @@ class GLSurfaceViewRenderer(
     private val geometryManager: OpenGLGeometryManager,
     private val texturesManager: OpenGLTexturesManager,
     private val shadersManager: ShadersManager,
-    private val vectorsPool: ObjectsPool<Vector3f>,
-    private val quaternionsPool: ObjectsPool<Quaternionf>,
+    private val meshStorage: MeshStorage,
     private val touchEventsRepository: AndroidTouchEventsRepository,
     private val scrollController: ScrollController,
-    private val playerController: PlayerController
-) : GLSurfaceView.Renderer {
+    private val playerController: PlayerController,
+    private val sceneLoader: SceneLoader
+) : GLSurfaceView.Renderer, SceneManager {
 
     private val messageQueueSubscription: Disposable
 
@@ -65,6 +60,7 @@ class GLSurfaceViewRenderer(
                 is LifecycleMessage.DeinitMessage -> scene?.deinit()
                 is LifecycleMessage.GoingToForegroundMessage -> scene?.onGoingToForeground()
                 is LifecycleMessage.GoingToBackgroundMessage -> scene?.onGoingToBackground()
+                is LoadAndStartSceneMessage -> loadAndStartScene(it.path)
             }
         }
     }
@@ -100,7 +96,7 @@ class GLSurfaceViewRenderer(
 
         setupShaders()
 
-        val timeRepository = LocalTimeRepository()
+        /*val timeRepository = LocalTimeRepository()
         val scene = CharacterMovementScene(
             context,
             openGLErrorDetector,
@@ -116,7 +112,7 @@ class GLSurfaceViewRenderer(
             scrollController,
             playerController
         )
-        this.scene = scene
+        this.scene = scene*/
 
         frameBuffersManager.createDepthOnlyFramebuffer("shadow_map", width, height)
         shadowMapFrameBufferInfo =
@@ -141,6 +137,18 @@ class GLSurfaceViewRenderer(
         }
     }
 
+    override fun loadAndStartScene(path: String) {
+        scene?.deinit()
+
+        scene = ScriptedScene(
+            sceneLoader.loadScene(path),
+            texturesManager,
+            geometryManager,
+            frameBuffersManager,
+            meshStorage
+        )
+    }
+
     fun putMessage(message: Any) {
         messageQueue.putMessage(message)
     }
@@ -162,6 +170,7 @@ class GLSurfaceViewRenderer(
         GLES20.glClearColor(0f, 0f, 0f, 1f)
 
         // Opaque rendering
+        // TODO Get rid of equivalent lists building while rendering every frame
         (scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
             render(scene, renderTarget, false, displayAspect)
         }
@@ -313,7 +322,7 @@ class GLSurfaceViewRenderer(
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
-        scene.cameras.forEach { camera ->
+        scene.activeCameras.forEach { camera ->
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
 
             camera.layerNames.forEach { layerName ->
@@ -563,4 +572,6 @@ class GLSurfaceViewRenderer(
         object GoingToBackgroundMessage: LifecycleMessage()
         object GoingToForegroundMessage: LifecycleMessage()
     }
+
+    class LoadAndStartSceneMessage(val path: String)
 }

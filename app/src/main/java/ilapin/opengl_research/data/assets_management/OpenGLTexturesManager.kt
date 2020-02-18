@@ -126,6 +126,21 @@ class OpenGLTexturesManager(
         openGLErrorDetector.dispatchOpenGLErrors("createTexture from data")
     }
 
+    override fun createTexture(name: String, width: Int, height: Int) {
+        TODO("not implemented")
+    }
+
+    override fun removeTexture(name: String) {
+        val textureInfo = textures.remove(name) ?: error("Texture $name not found")
+        tmpIntArray[0] = textureInfo.texture
+        GLES20.glDeleteTextures(1, tmpIntArray, 0)
+        openGLErrorDetector.dispatchOpenGLErrors("removeTexture")
+    }
+
+    override fun removeAllTextures() {
+        ArrayList<String>().apply { addAll(textures.keys) }.forEach { name -> removeTexture(name) }
+    }
+
     private sealed class TextureCreationParams(val name: String) {
         class FromPath(name: String, val path: String) : TextureCreationParams(name)
         class FromData(name: String, val width: Int, val height: Int, val data: IntArray) : TextureCreationParams(name)

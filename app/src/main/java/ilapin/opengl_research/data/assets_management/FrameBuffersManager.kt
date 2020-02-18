@@ -182,8 +182,31 @@ class FrameBuffersManager(
         openGLErrorDetector.dispatchOpenGLErrors("createFramebuffer")
     }
 
+    fun removeFrameBuffer(name: String) {
+        val frameBufferInfo = frameBuffers.remove(name) ?: error("Frame buffer $name not found")
+        tmpIntArray[0] = frameBufferInfo.frameBuffer
+        GLES20.glDeleteFramebuffers(1, tmpIntArray, 0)
+
+        openGLErrorDetector.dispatchOpenGLErrors("removeFrameBuffer")
+
+        texturesManager.removeTexture(name + DEPTH_COMPONENT_POSTFIX)
+
+        if (frameBufferInfo is FrameBufferInfo.RenderTargetFrameBufferInfo) {
+            texturesManager.removeTexture(name)
+        }
+    }
+
+    fun removeAllFrameBuffers() {
+        ArrayList<String>().apply { addAll(frameBuffers.keys) }.forEach { name -> removeFrameBuffer(name) }
+    }
+
     private sealed class FrameBufferCreationParams(val name: String, val width: Int, val height: Int) {
         class RenderingTarget(name: String, width: Int, height: Int) : FrameBufferCreationParams(name, width, height)
         class DepthOnly(name: String, width: Int, height: Int) : FrameBufferCreationParams(name, width, height)
+    }
+
+    companion object {
+
+        private const val DEPTH_COMPONENT_POSTFIX = "_depth"
     }
 }

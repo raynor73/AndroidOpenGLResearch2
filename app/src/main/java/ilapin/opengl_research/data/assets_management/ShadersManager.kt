@@ -166,6 +166,36 @@ class ShadersManager(
         openGLErrorDetector.dispatchOpenGLErrors("createDirectionalLightShaderProgram")
     }
 
+    fun removeShaderProgram(name: String) {
+        val shaderProgramInfo = shaderPrograms.remove(name) ?: error("Shader program $name not found")
+        GLES20.glDeleteProgram(shaderProgramInfo.shaderProgram)
+        openGLErrorDetector.dispatchOpenGLErrors("removeShaderProgram")
+    }
+
+    fun removeAllPrograms() {
+        ArrayList<String>().apply { addAll(shaderPrograms.keys) }.forEach { name -> removeShaderProgram(name) }
+    }
+
+    fun removeVertexShader(name: String) {
+        val vertexShader = vertexShaders.remove(name) ?: error("Vertex shader $name not found")
+        GLES20.glDeleteShader(vertexShader)
+        openGLErrorDetector.dispatchOpenGLErrors("removeVertexShader")
+    }
+
+    fun removeAllVertexShaders() {
+        ArrayList<String>().apply { addAll(vertexShaders.keys) }.forEach { name -> removeVertexShader(name) }
+    }
+
+    fun removeFragmentShader(name: String) {
+        val fragmentShader = fragmentShaders.remove(name) ?: error("Fragment shader $name not found")
+        GLES20.glDeleteShader(fragmentShader)
+        openGLErrorDetector.dispatchOpenGLErrors("removeFragmentShader")
+    }
+
+    fun removeAllFragmentShaders() {
+        ArrayList<String>().apply { addAll(fragmentShaders.keys) }.forEach { name -> removeFragmentShader(name) }
+    }
+
     private sealed class ShaderCreationParams(val name: String, val source: String) {
         class VertexShader(name: String, source: String) : ShaderCreationParams(name, source)
         class FragmentShader(name: String, source: String) : ShaderCreationParams(name, source)

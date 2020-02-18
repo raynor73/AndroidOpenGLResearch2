@@ -8,4 +8,10 @@ interface TexturesManager {
     fun createTexture(name: String, path: String)
 
     fun createTexture(name: String, width: Int, height: Int, data: IntArray)
+
+    fun createTexture(name: String, width: Int, height: Int)
+
+    fun removeTexture(name: String)
+
+    fun removeAllTextures()
 }

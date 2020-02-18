@@ -5,7 +5,13 @@ package ilapin.opengl_research.domain.assets_management
  */
 interface GeometryManager {
 
-    fun createStaticVerticesBuffer(name: String, verticesData: FloatArray)
+    fun createStaticVertexBuffer(name: String, vertexData: FloatArray)
 
-    fun createStaticIndicesBuffer(name: String, indices: ShortArray)
+    fun createStaticIndexBuffer(name: String, indices: ShortArray)
+
+    fun removeStaticVertexBuffer(name: String)
+
+    fun removeStaticIndexBuffer(name: String)
+
+    fun removeAllBuffers()
 }

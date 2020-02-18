@@ -2,22 +2,23 @@ package ilapin.opengl_research.ui
 
 import android.content.Context
 import android.content.res.Configuration
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import ilapin.common.messagequeue.MessageQueue
-import ilapin.opengl_research.AndroidTouchEventsRepository
-import ilapin.opengl_research.JoystickViewJoystick
-import ilapin.opengl_research.ObjectsPool
-import ilapin.opengl_research.OpenGLErrorDetector
+import ilapin.meshloader.MeshLoadingRepository
+import ilapin.meshloader.android.ObjMeshLoadingRepository
+import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.assets_management.ShadersManager
-import ilapin.opengl_research.domain.Joystick
-import ilapin.opengl_research.domain.PlayerController
-import ilapin.opengl_research.domain.ScrollController
-import ilapin.opengl_research.domain.TouchEventsRepository
-import org.joml.Quaternionf
+import ilapin.opengl_research.data.scene_loader.AndroidAssetsSceneLoader
+import ilapin.opengl_research.data.scene_loader.ComponentDto
+import ilapin.opengl_research.domain.*
+import ilapin.opengl_research.domain.scene_loader.SceneLoader
+import ilapin.opengl_research.data.scene_loader.ComponentDeserializer
 import org.joml.Vector3f
 import javax.inject.Named
 
@@ -121,11 +122,66 @@ class MainScreenModule(private val activity: MainActivity) {
 
     @Provides
     @ActivityScope
+    fun provideMeshStorage(): MeshStorage {
+        return MeshStorage()
+    }
+
+    @Provides
+    @ActivityScope
+    fun provideGson(): Gson {
+        return GsonBuilder()
+            .registerTypeAdapter(ComponentDto::class.java, ComponentDeserializer())
+            .setLenient()
+            .create()
+    }
+
+    @Provides
+    @ActivityScope
+    fun provideMeshLoadingRepository(
+        @Named("Activity") context: Context
+    ): MeshLoadingRepository {
+        return ObjMeshLoadingRepository(context)
+    }
+
+    @Provides
+    @ActivityScope
+    fun provideDisplayMetricsRepository(
+        @Named("Activity") context: Context
+    ): DisplayMetricsRepository {
+        return AndroidDisplayMetricsRepository(context)
+    }
+
+    @Provides
+    @ActivityScope
+    fun provideSceneLoader(
+        @Named("Activity") context: Context,
+        gson: Gson,
+        meshLoadingRepository: MeshLoadingRepository,
+        texturesManager: OpenGLTexturesManager,
+        geometryManager: OpenGLGeometryManager,
+        meshStorage: MeshStorage,
+        vectorsPool: ObjectsPool<Vector3f>,
+        displayMetricsRepository: DisplayMetricsRepository,
+        openGLErrorDetector: OpenGLErrorDetector
+    ): SceneLoader {
+        return AndroidAssetsSceneLoader(
+            context,
+            gson,
+            meshLoadingRepository,
+            texturesManager,
+            geometryManager,
+            meshStorage,
+            vectorsPool,
+            displayMetricsRepository,
+            openGLErrorDetector
+        )
+    }
+
+    @Provides
+    @ActivityScope
     fun provideRenderer(
         @Named("Activity") context: Context,
         messageQueue: MessageQueue,
-        vectorsPool: ObjectsPool<Vector3f>,
-        quaternionsPool: ObjectsPool<Quaternionf>,
         androidTouchEventsRepository: AndroidTouchEventsRepository,
         scrollController: ScrollController,
         playerController: PlayerController,
@@ -133,7 +189,9 @@ class MainScreenModule(private val activity: MainActivity) {
         frameBuffersManager: FrameBuffersManager,
         geometryManager: OpenGLGeometryManager,
         texturesManager: OpenGLTexturesManager,
-        shadersManager: ShadersManager
+        shadersManager: ShadersManager,
+        meshStorage: MeshStorage,
+        sceneLoader: SceneLoader
     ): GLSurfaceViewRenderer? {
         return if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             GLSurfaceViewRenderer(
@@ -144,11 +202,11 @@ class MainScreenModule(private val activity: MainActivity) {
                 geometryManager,
                 texturesManager,
                 shadersManager,
-                vectorsPool,
-                quaternionsPool,
+                meshStorage,
                 androidTouchEventsRepository,
                 scrollController,
-                playerController
+                playerController,
+                sceneLoader
             )
         } else {
             null

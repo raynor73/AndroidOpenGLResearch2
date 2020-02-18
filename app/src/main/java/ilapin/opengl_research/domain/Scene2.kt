@@ -15,7 +15,7 @@ interface Scene2 {
 
     val rootGameObject: GameObject
 
-    val cameras: List<CameraComponent>
+    val activeCameras: List<CameraComponent>
 
     val layerRenderers: Multimap<String, MeshRendererComponent>
 

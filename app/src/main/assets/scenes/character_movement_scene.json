@@ -14,18 +14,16 @@
     { "id": "cowboy", "diffuseColor": [0.5, 0, 0.5, 1] }
   ],
   "meshes": [
-    { "id": "quad", "path": "planeUV.obj" },
-    { "id": "player", "path": "meshes/female.obj" },
+    { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
+    { "id": "female", "path": "meshes/female.obj" },
     { "id": "fountain", "path": "meshes/fountain.obj" },
     { "id": "capsule", "path": "meshes/capsule.obj" },
     { "id": "cowboy", "path": "meshes/cowboy.dae" }
   ],
   "scene": {
     "scriptPath": "scenes/character_movement_scene.js",
-    "cameras": ["camera0"],
-    "renderingTargetCameras": [
-      { "textureName": "interactive", "cameraNames": ["camera1"] }
-    ],
+    "activeCameras": ["player_camera"],
+    "renderTargets": [],
     "gameObjects": [
       {
         "name": "root",
@@ -34,64 +32,43 @@
         "scale": [1.0, 1.0, 1.0]
       },
       {
-        "name": "camera0",
+        "name": "ground_plane",
         "parent": "root",
-        "position" : [0.0, 0.0, 2.8],
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [50.0, 1.0, 50.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "green", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "floating_plane",
+        "parent": "root",
+        "position" : [0.0, 2.0, 0.0],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "PerspectiveCamera", "fov": 45.0, "zNear": 0.1, "zFar": 5000.0 }
+          { "type": "Mesh", "meshName": "quad", "materialName": "blue", "layerNames": ["defaultLayer"] }
         ]
       },
       {
-        "name": "camera1",
+        "name": "player",
         "parent": "root",
-        "position" : [2.8, 0.0, 0.0],
-        "rotation" : [0.0, 90.0, 0.0],
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "PerspectiveCamera", "fov": 45.0, "zNear": 0.1, "zFar": 5000.0 },
-          { "type": "Mesh", "meshName": "camera", "materialName": "camera", "cameraNames": ["camera0"] }
+          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] }
         ]
       },
       {
-        "name": "earth",
-        "parent": "root",
-        "position": [0.0, 0.0, 0.0],
-        "rotation": [0.0, 0.0, 0.0],
+        "name": "player_camera",
+        "parent": "player",
+        "position" : [0.0, 1.0, 3.0],
+        "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "Mesh", "meshName": "earth", "materialName": "earth", "cameraNames": ["camera0", "camera1"] }
-        ]
-      },
-      {
-        "name": "ground",
-        "parent": "root",
-        "position": [0.0, -2.0, 0.0],
-        "rotation": [0.0, 0.0, 0.0],
-        "scale": [10.0, 1.0, 10.0],
-        "components": [
-          { "type": "Mesh", "meshName": "plane", "materialName": "ground", "cameraNames": ["camera0", "camera1"] }
-        ]
-      },
-      {
-        "name": "screen",
-        "parent": "root",
-        "position": [3.0, 0.0, 3.0],
-        "rotation": [90.0, 0.0, 0.0],
-        "scale": [1.0, 1.0, 1.0],
-        "components": [
-          { "type": "Mesh", "meshName": "plane", "materialName": "screen", "cameraNames": ["camera0", "camera1"] }
-        ]
-      },
-      {
-        "name": "light0",
-        "parent": "root",
-        "position": [0.0, 0.0, 0.0],
-        "rotation": [45.0, 22.5, 0.0],
-        "scale": [1.0, 1.0, 1.0],
-        "components": [
-          { "type": "DirectionalLight", "color": [1, 1, 1], "cameraNames": ["camera0", "camera1"] }
+          { "type": "PerspectiveCamera", "fov": 45, "layerNames": ["defaultLayer"], "ambientLight": [0.5, 0.5, 0.5] }
         ]
       }
     ]
