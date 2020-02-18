@@ -1,0 +1,99 @@
+{
+  "textures": [
+    { "id": "female", "path": "textures/female.png" },
+    { "id": "fountain", "path": "textures/fountain.png" },
+    { "id": "green", "color": [0, 0.5, 0, 1] },
+    { "id": "blue", "color": [0, 0, 0.5, 1] }
+  ],
+  "materials": [
+    { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "blue", "textureName": "blue", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "female", "textureName": "female", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "fountain", "textureName": "fountain", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "capsule", "diffuseColor": [0.5, 0.5, 0, 1] },
+    { "id": "cowboy", "diffuseColor": [0.5, 0, 0.5, 1] }
+  ],
+  "meshes": [
+    { "id": "quad", "path": "planeUV.obj" },
+    { "id": "player", "path": "meshes/female.obj" },
+    { "id": "fountain", "path": "meshes/fountain.obj" },
+    { "id": "capsule", "path": "meshes/capsule.obj" },
+    { "id": "cowboy", "path": "meshes/cowboy.dae" }
+  ],
+  "scene": {
+    "scriptPath": "scenes/character_movement_scene.js",
+    "cameras": ["camera0"],
+    "renderingTargetCameras": [
+      { "textureName": "interactive", "cameraNames": ["camera1"] }
+    ],
+    "gameObjects": [
+      {
+        "name": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0]
+      },
+      {
+        "name": "camera0",
+        "parent": "root",
+        "position" : [0.0, 0.0, 2.8],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "PerspectiveCamera", "fov": 45.0, "zNear": 0.1, "zFar": 5000.0 }
+        ]
+      },
+      {
+        "name": "camera1",
+        "parent": "root",
+        "position" : [2.8, 0.0, 0.0],
+        "rotation" : [0.0, 90.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "PerspectiveCamera", "fov": 45.0, "zNear": 0.1, "zFar": 5000.0 },
+          { "type": "Mesh", "meshName": "camera", "materialName": "camera", "cameraNames": ["camera0"] }
+        ]
+      },
+      {
+        "name": "earth",
+        "parent": "root",
+        "position": [0.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "earth", "materialName": "earth", "cameraNames": ["camera0", "camera1"] }
+        ]
+      },
+      {
+        "name": "ground",
+        "parent": "root",
+        "position": [0.0, -2.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [10.0, 1.0, 10.0],
+        "components": [
+          { "type": "Mesh", "meshName": "plane", "materialName": "ground", "cameraNames": ["camera0", "camera1"] }
+        ]
+      },
+      {
+        "name": "screen",
+        "parent": "root",
+        "position": [3.0, 0.0, 3.0],
+        "rotation": [90.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "plane", "materialName": "screen", "cameraNames": ["camera0", "camera1"] }
+        ]
+      },
+      {
+        "name": "light0",
+        "parent": "root",
+        "position": [0.0, 0.0, 0.0],
+        "rotation": [45.0, 22.5, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "DirectionalLight", "color": [1, 1, 1], "cameraNames": ["camera0", "camera1"] }
+        ]
+      }
+    ]
+  }
+}
