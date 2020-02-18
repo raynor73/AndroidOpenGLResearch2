@@ -77,6 +77,8 @@ class CharacterMovementScene(
     private lateinit var playerTransform: TransformationComponent
     private var playerYAngle = 0f
 
+    private var isPaused = false
+
     init {
         setupTextures()
         setupPhysics()
@@ -87,6 +89,10 @@ class CharacterMovementScene(
     }
 
     override fun update() {
+        if (isPaused) {
+            return
+        }
+
         val currentTimestamp = timeRepository.getTimestamp()
         val dt = prevTimestamp?.let { prevTimestamp -> (currentTimestamp - prevTimestamp) / NANOS_IN_SECOND } ?: 0f
         prevTimestamp = currentTimestamp
@@ -141,6 +147,21 @@ class CharacterMovementScene(
         vectorsPool.recycle(strafingDirection)
 
         quaternionsPool.recycle(playerRotation)
+    }
+
+    override fun onGoingToForeground() {
+        isPaused = false
+        soundScene.resume()
+
+    }
+
+    override fun onGoingToBackground() {
+        isPaused = true
+        soundScene.pause()
+    }
+
+    override fun deinit() {
+        soundScene.deinit()
     }
 
     private fun setupPhysics() {

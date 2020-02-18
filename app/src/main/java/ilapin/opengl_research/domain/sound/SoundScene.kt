@@ -1,10 +1,12 @@
 package ilapin.opengl_research.domain.sound
 
 import android.annotation.SuppressLint
+import ilapin.common.android.log.L
 import ilapin.common.math.inverseLerp
 import ilapin.common.time.TimeRepository
 import ilapin.opengl_research.NANOS_IN_MILLISECOND
 import ilapin.opengl_research.ObjectsPool
+import ilapin.opengl_research.app.App.Companion.LOG_TAG
 import org.joml.Quaternionf
 import org.joml.Quaternionfc
 import org.joml.Vector3f
@@ -27,17 +29,34 @@ class SoundScene(
     private val playersToRemove = ArrayList<String>()
     private val playersToUpdate = ArrayList<ActivePlayer>()
 
+    private var isPaused = false
+
     fun updateSoundListenerPosition(position: Vector3fc) {
+        if (isPaused) {
+            L.e(LOG_TAG, "SoundScene.updateSoundListenerPosition() called but SoundScene is paused")
+            return
+        }
+
         soundListenerPosition.set(position)
         updateActivePlayersVolume()
     }
 
     fun updateSoundListenerRotation(rotation: Quaternionfc) {
+        if (isPaused) {
+            L.e(LOG_TAG, "SoundScene.updateSoundListenerRotation() called but SoundScene is paused")
+            return
+        }
+
         soundListenerRotation.set(rotation)
         updateActivePlayersVolume()
     }
 
     fun loadSoundClip(name: String, path: String) {
+        if (isPaused) {
+            L.e(LOG_TAG, "SoundScene.loadSoundClip() called but SoundScene is paused")
+            return
+        }
+
         soundClipsRepository.loadSoundClip(name, path)
     }
 
@@ -49,6 +68,11 @@ class SoundScene(
         maxVolumeDistance: Float,
         minVolumeDistance: Float
     ) {
+        if (isPaused) {
+            L.e(LOG_TAG, "SoundScene.addSoundPlayer() called but SoundScene is paused")
+            return
+        }
+
         if (players.containsKey(playerName)) {
             error("Trying to add $playerName sound player multiple times")
         }
@@ -64,6 +88,11 @@ class SoundScene(
     }
 
     fun startSoundPlayer(name: String, isLooped: Boolean) {
+        if (isPaused) {
+            L.e(LOG_TAG, "SoundScene.startSoundPlayer() called but SoundScene is paused")
+            return
+        }
+
         val player = players[name] ?: error("Sound player $name not found")
         activePlayers[name] = ActivePlayer(
             timeRepository.getTimestamp(),
@@ -81,8 +110,49 @@ class SoundScene(
     }
 
     fun updateSoundPlayerPosition(name: String, position: Vector3fc) {
+        if (isPaused) {
+            L.e(LOG_TAG, "SoundScene.updateSoundPlayerPosition() called but SoundScene is paused")
+            return
+        }
+
         (players[name] ?: error("Sound player $name not found")).position = position
         updateActivePlayersVolume()
+    }
+
+    fun pause() {
+        if (isPaused) {
+            L.e(LOG_TAG, "SoundScene.pause() called but SoundScene is already paused")
+            return
+        }
+
+        activePlayers.values.forEach { player ->
+            soundClipsRepository.pauseSoundClip(player.soundClipStreamId)
+        }
+
+        isPaused = true
+    }
+
+    fun resume() {
+        if (!isPaused) {
+            L.e(LOG_TAG, "SoundScene.pause() called but SoundScene is not paused")
+            return
+        }
+
+        updateActivePlayersVolume()
+
+        activePlayers.values.forEach { player ->
+            soundClipsRepository.resumeSoundClip(player.soundClipStreamId)
+        }
+
+        isPaused = false
+    }
+
+    fun deinit() {
+        activePlayers.values.forEach { player ->
+            soundClipsRepository.stopSoundClip(player.soundClipStreamId)
+        }
+
+        activePlayers.clear()
     }
 
     private fun updateActivePlayersVolume() {
@@ -101,7 +171,9 @@ class SoundScene(
             }
         }
 
-        playersToRemove.forEach { activePlayers.remove(it) }
+        playersToRemove.forEach { playerName ->
+            activePlayers.remove(playerName)?.soundClipStreamId?.let { soundClipsRepository.stopSoundClip(it) }
+        }
 
         playersToUpdate.forEach { activePlayer ->
             val volumeLevels = calculateVolumeLevels(

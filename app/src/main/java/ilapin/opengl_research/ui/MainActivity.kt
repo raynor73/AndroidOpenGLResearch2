@@ -75,17 +75,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        renderer?.putMessage(GLSurfaceViewRenderer.LifecycleMessage.GoingToBackgroundMessage)
+    }
+
     override fun onResume() {
         super.onResume()
 
         hideControls()
+        renderer?.putMessage(GLSurfaceViewRenderer.LifecycleMessage.GoingToForegroundMessage)
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
         subscriptions.clear()
-        renderer?.putMessageAndWaitForExecution(GLSurfaceViewRenderer.DeinitMessage)
+        renderer?.putMessageAndWaitForExecution(GLSurfaceViewRenderer.LifecycleMessage.DeinitMessage)
     }
 
     private fun hideControls() {

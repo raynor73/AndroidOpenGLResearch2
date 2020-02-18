@@ -61,8 +61,10 @@ class GLSurfaceViewRenderer(
 
     init {
         messageQueueSubscription = messageQueue.messages().subscribe {
-            if (it == DeinitMessage) {
-                // TODO Implement de-initialization
+            when (it) {
+                is LifecycleMessage.DeinitMessage -> scene?.deinit()
+                is LifecycleMessage.GoingToForegroundMessage -> scene?.onGoingToForeground()
+                is LifecycleMessage.GoingToBackgroundMessage -> scene?.onGoingToBackground()
             }
         }
     }
@@ -556,5 +558,9 @@ class GLSurfaceViewRenderer(
         )
     }
 
-    object DeinitMessage
+    sealed class LifecycleMessage {
+        object DeinitMessage : LifecycleMessage()
+        object GoingToBackgroundMessage: LifecycleMessage()
+        object GoingToForegroundMessage: LifecycleMessage()
+    }
 }

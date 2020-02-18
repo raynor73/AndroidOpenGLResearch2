@@ -26,4 +26,10 @@ interface Scene2 {
     val renderTargets: List<FrameBufferInfo.RenderTargetFrameBufferInfo>
 
     fun update()
+
+    fun onGoingToForeground()
+
+    fun onGoingToBackground()
+
+    fun deinit()
 }

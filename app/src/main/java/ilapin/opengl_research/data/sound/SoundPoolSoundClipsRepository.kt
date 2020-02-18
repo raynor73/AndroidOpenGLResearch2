@@ -44,6 +44,22 @@ class SoundPoolSoundClipsRepository(
         )
     }
 
+    override fun pauseSoundClip(streamId: Int) {
+        soundPool.pause(streamId)
+    }
+
+    override fun pauseAll() {
+        soundPool.autoPause()
+    }
+
+    override fun resumeSoundClip(streamId: Int) {
+        soundPool.resume(streamId)
+    }
+
+    override fun resumeAll() {
+        soundPool.autoResume()
+    }
+
     override fun stopSoundClip(streamId: Int) {
         soundPool.stop(streamId)
     }
