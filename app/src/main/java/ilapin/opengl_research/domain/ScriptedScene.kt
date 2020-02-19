@@ -6,15 +6,14 @@ import ilapin.common.time.TimeRepository
 import ilapin.engine3d.GameObject
 import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
-import ilapin.opengl_research.CameraComponent
-import ilapin.opengl_research.FrameBufferInfo
-import ilapin.opengl_research.MeshRendererComponent
-import ilapin.opengl_research.NANOS_IN_SECOND
+import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
+import org.joml.Quaternionf
+import org.joml.Vector3f
 import org.joml.Vector3fc
 
 /**
@@ -28,7 +27,10 @@ class ScriptedScene(
     private val frameBuffersManager: FrameBuffersManager,
     private val meshStorage: MeshStorage,
     private val timeRepository: TimeRepository,
-    touchEventsRepository: TouchEventsRepository
+    touchEventsRepository: TouchEventsRepository,
+    displayMetricsRepository: DisplayMetricsRepository,
+    vectorsPool: ObjectsPool<Vector3f>,
+    quaternionsPool: ObjectsPool<Quaternionf>
 ) : Scene2 {
 
     private val _activeCameras = ArrayList<CameraComponent>().apply { addAll(sceneData.activeCameras) }
@@ -60,6 +62,9 @@ class ScriptedScene(
     init {
         scriptingEngine.touchEventsRepository = touchEventsRepository
         scriptingEngine.scene = this
+        scriptingEngine.displayMetricsRepository = displayMetricsRepository
+        scriptingEngine.vectorsPool = vectorsPool
+        scriptingEngine.quaternionsPool = quaternionsPool
         scriptingEngine.evaluateScript(sceneData.scriptSource)
     }
 

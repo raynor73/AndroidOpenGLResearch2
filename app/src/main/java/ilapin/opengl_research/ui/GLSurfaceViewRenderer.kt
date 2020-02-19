@@ -13,18 +13,13 @@ import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.assets_management.ShadersManager
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
-import ilapin.opengl_research.domain.MeshStorage
-import ilapin.opengl_research.domain.Scene2
-import ilapin.opengl_research.domain.SceneManager
-import ilapin.opengl_research.domain.ScriptedScene
+import ilapin.opengl_research.domain.*
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.BehaviorSubject
-import org.joml.Matrix4f
-import org.joml.Matrix4fc
-import org.joml.Vector3fc
+import org.joml.*
 import java.nio.charset.Charset
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -41,7 +36,10 @@ class GLSurfaceViewRenderer(
     private val touchEventsRepository: AndroidTouchEventsRepository,
     private val sceneLoader: SceneLoader,
     private val scriptingEngine: RhinoScriptingEngine,
-    private val timeRepository: TimeRepository
+    private val timeRepository: TimeRepository,
+    private val displayMetricsRepository: DisplayMetricsRepository,
+    private val vectorsPool: ObjectsPool<Vector3f>,
+    private val quaternionsPool: ObjectsPool<Quaternionf>
 ) : GLSurfaceView.Renderer, SceneManager {
 
     private val messageQueueSubscription: Disposable
@@ -131,7 +129,10 @@ class GLSurfaceViewRenderer(
             frameBuffersManager,
             meshStorage,
             timeRepository,
-            touchEventsRepository
+            touchEventsRepository,
+            displayMetricsRepository,
+            vectorsPool,
+            quaternionsPool
         )
 
         safeLet(displayWidth, displayHeight) { width, height ->

@@ -75,7 +75,7 @@
         "name": "directional_light",
         "parent": "root",
         "position" : [0.0, 0.0, 0.0],
-        "rotation" : [-90.0, 45.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
           { "type": "DirectionalLight", "color": [0.7, 0.7, 0.7] }

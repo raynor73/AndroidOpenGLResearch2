@@ -28,6 +28,7 @@ import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.TouchEventsRepository
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import javax.inject.Named
 
@@ -187,7 +188,10 @@ class MainScreenModule(private val activity: MainActivity) {
         meshStorage: MeshStorage,
         sceneLoader: SceneLoader,
         scriptingEngine: RhinoScriptingEngine,
-        timeRepository: TimeRepository
+        timeRepository: TimeRepository,
+        displayMetricsRepository: DisplayMetricsRepository,
+        vectorsPool: ObjectsPool<Vector3f>,
+        quaternionsPool: ObjectsPool<Quaternionf>
     ): GLSurfaceViewRenderer? {
         return if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             GLSurfaceViewRenderer(
@@ -202,7 +206,10 @@ class MainScreenModule(private val activity: MainActivity) {
                 androidTouchEventsRepository,
                 sceneLoader,
                 scriptingEngine,
-                timeRepository
+                timeRepository,
+                displayMetricsRepository,
+                vectorsPool,
+                quaternionsPool
             )
         } else {
             null

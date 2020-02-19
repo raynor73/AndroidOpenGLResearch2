@@ -1,10 +1,14 @@
 package ilapin.opengl_research.data.scripting_engine
 
 import ilapin.common.android.log.L
+import ilapin.opengl_research.ObjectsPool
 import ilapin.opengl_research.app.App.Companion.LOG_TAG
+import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.Scene2
 import ilapin.opengl_research.domain.TouchEventsRepository
 import ilapin.opengl_research.domain.scripting_engine.ScriptingEngine
+import org.joml.Quaternionf
+import org.joml.Vector3f
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.ErrorReporter
 import org.mozilla.javascript.EvaluatorException
@@ -59,6 +63,9 @@ class RhinoScriptingEngine : ScriptingEngine {
 
     var touchEventsRepository: TouchEventsRepository? = null
     var scene: Scene2? = null
+    var displayMetricsRepository: DisplayMetricsRepository? = null
+    var vectorsPool: ObjectsPool<Vector3f>? = null
+    var quaternionsPool: ObjectsPool<Quaternionf>? = null
 
     override fun evaluateScript(script: String) {
         context.evaluateString(scope, script, "SceneScript", 1, null)
@@ -73,6 +80,24 @@ class RhinoScriptingEngine : ScriptingEngine {
             scope,
             "scene",
             Context.javaToJS(scene, scope)
+        )
+
+        ScriptableObject.putProperty(
+            scope,
+            "displayMetricsRepository",
+            Context.javaToJS(displayMetricsRepository, scope)
+        )
+
+        ScriptableObject.putProperty(
+            scope,
+            "vectorsPool",
+            Context.javaToJS(vectorsPool, scope)
+        )
+
+        ScriptableObject.putProperty(
+            scope,
+            "quaternionsPool",
+            Context.javaToJS(quaternionsPool, scope)
         )
 
         val startFunction = scope

@@ -1,13 +1,20 @@
 // var touchEventsRepository = ...
 // var scene = ...
+// var displayMetricsRepository = ...
+// var quaternionsPool = ...
+// var vectorsPool = ...
 
 var directionalLight;
 var scrollController;
 
-var tmpVector = new org.joml.Vector3f();
-var tmpQuaternion = new org.joml.Quaternionf();
+var pixelDensityFactor;
+
+var xAngle = -Math.PI / 2;
+var zAngle = -Math.PI / 4;
 
 function start() {
+    pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor();
+
     directionalLight = findGameObject(scene.rootGameObject, "directional_light");
     scrollController = new ScrollController();
 }
@@ -15,16 +22,21 @@ function start() {
 function update(dt) {
     scrollController.update();
 
-    var a = new org.joml.Vector3f();
-
-    var transform = scene.getTransformationComponent(directionalLight)
-
-    tmpQuaternion.set(transform.rotation)
-    tmpQuaternion.rotateX(0.001)
-    transform.rotation = tmpQuaternion
-
-    if (scrollController.scrollEvent != null) {
+    var scrollEvent = scrollController.scrollEvent;
+    if (scrollEvent != null) {
         //println("dx: " + scrollController.scrollEvent.dx + "; dy: " + scrollController.scrollEvent.dy)
+        var transform = scene.getTransformationComponent(directionalLight);
+
+        zAngle -= toRadians(scrollEvent.dx / pixelDensityFactor)
+        xAngle -= toRadians(scrollEvent.dy / pixelDensityFactor)
+
+        var lightRotation = quaternionsPool.obtain()
+
+        lightRotation.identity()
+        lightRotation.rotateZ(zAngle).rotateX(xAngle)
+        transform.rotation = lightRotation
+
+        quaternionsPool.recycle(lightRotation)
     }
 }
 
@@ -45,6 +57,10 @@ function findGameObject(currentGameObject, name) {
 
 function println(message) {
     java.lang.System.out.println("" + message);
+}
+
+function toRadians(degrees) {
+    return degrees * (Math.PI / 180);
 }
 
 function ScrollController() {
