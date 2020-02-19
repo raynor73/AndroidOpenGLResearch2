@@ -19,6 +19,7 @@
       "textureName": "joystick_background",
       "diffuseColor": [1, 1, 1, 1],
       "isUnlit": true,
+      "isTranslucent": true,
       "castShadows": false,
       "receiveShadows": false
     },
@@ -27,6 +28,7 @@
       "textureName": "joystick_handle",
       "diffuseColor": [1, 1, 1, 1],
       "isUnlit": true,
+      "isTranslucent": true,
       "castShadows": false,
       "receiveShadows": false
     }

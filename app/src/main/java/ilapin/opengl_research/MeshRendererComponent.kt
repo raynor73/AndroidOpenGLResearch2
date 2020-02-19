@@ -55,7 +55,10 @@ class MeshRendererComponent(
             return
         }
 
-        if (material.isTranslucent && !isTranslucentRendering) {
+        if (
+            (material.isTranslucent && !isTranslucentRendering) or
+            (!material.isTranslucent && isTranslucentRendering)
+        ) {
             return
         }
 

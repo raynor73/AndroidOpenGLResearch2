@@ -164,14 +164,20 @@ class GLSurfaceViewRenderer(
         GLES20.glViewport(0, 0, width, height)
         GLES20.glClearColor(0f, 0f, 0f, 1f)
 
+        // Clearing all render targets
+        scene.renderTargets.forEach { renderTarget ->
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        }
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+
         // Opaque rendering
-        /*(scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
-            render(scene, renderTarget, false, displayAspect)
-        }*/
         scene.renderTargets.forEach { renderTarget -> render(scene, renderTarget, false, displayAspect) }
         render(scene, FrameBufferInfo.DisplayFrameBufferInfo, false, displayAspect)
 
         // Translucent rendering
+        render(scene, FrameBufferInfo.DisplayFrameBufferInfo, true, displayAspect)
         /*(scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
             renderUnlitObjects(scene, renderTarget, true, displayAspect)
             renderAmbientLight(scene, renderTarget, true, displayAspect)
@@ -316,12 +322,14 @@ class GLSurfaceViewRenderer(
         viewportAspect: Float
     ) {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
         scene.activeCameras.forEach { camera ->
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
 
             camera.layerNames.forEach { layerName ->
+                GLES20.glEnable(GLES20.GL_BLEND)
+                GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+
                 renderUnlitObjects(scene, camera, layerName, isTranslucentRendering, viewportAspect)
                 renderAmbientLight(scene, camera, layerName, isTranslucentRendering, viewportAspect)
 
