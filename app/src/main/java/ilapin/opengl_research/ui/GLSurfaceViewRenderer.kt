@@ -177,22 +177,8 @@ class GLSurfaceViewRenderer(
         render(scene, FrameBufferInfo.DisplayFrameBufferInfo, false, displayAspect)
 
         // Translucent rendering
+        scene.renderTargets.forEach { renderTarget -> render(scene, renderTarget, true, displayAspect) }
         render(scene, FrameBufferInfo.DisplayFrameBufferInfo, true, displayAspect)
-        /*(scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
-            renderUnlitObjects(scene, renderTarget, true, displayAspect)
-            renderAmbientLight(scene, renderTarget, true, displayAspect)
-            scene.lights.forEach { light ->
-                when (light) {
-                    is DirectionalLightComponent -> renderDirectionalLight(
-                            scene,
-                            light,
-                            renderTarget,
-                            true,
-                            displayAspect
-                    )
-                }
-            }
-        }*/
 
         openGLErrorDetector.dispatchOpenGLErrors("render")
     }
