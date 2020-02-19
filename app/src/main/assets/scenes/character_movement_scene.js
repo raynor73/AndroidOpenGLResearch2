@@ -4,6 +4,7 @@
 // var quaternionsPool = ...
 // var vectorsPool = ...
 
+var uiCamera;
 var directionalLight;
 var scrollController;
 
@@ -20,7 +21,14 @@ function start() {
     displayHeight = displayMetricsRepository.displayHeight;
 
     directionalLight = findGameObject(scene.rootGameObject, "directional_light");
+    uiCamera = findGameObject(scene.rootGameObject, "ui_camera")
     scrollController = new ScrollController();
+
+    var orthoCamera = scene.getOrthoCameraComponent(uiCamera)
+    orthoCamera.left = 0
+    orthoCamera.right = displayWidth
+    orthoCamera.bottom = 0
+    orthoCamera.top = displayHeight
 }
 
 function update(dt) {

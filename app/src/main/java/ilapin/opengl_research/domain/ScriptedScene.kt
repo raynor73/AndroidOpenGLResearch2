@@ -91,7 +91,13 @@ class ScriptedScene(
         texturesManager.removeAllTextures()
     }
 
+    @Suppress("unused")
     fun getTransformationComponent(gameObject: GameObject): TransformationComponent? {
         return gameObject.getComponent(TransformationComponent::class.java)
+    }
+
+    @Suppress("unused")
+    fun getOrthoCameraComponent(gameObject: GameObject): OrthoCameraComponent? {
+        return gameObject.getComponent(OrthoCameraComponent::class.java)
     }
 }
