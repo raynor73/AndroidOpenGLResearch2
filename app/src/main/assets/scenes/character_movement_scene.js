@@ -21,14 +21,14 @@ function start() {
     displayHeight = displayMetricsRepository.displayHeight;
 
     directionalLight = findGameObject(scene.rootGameObject, "directional_light");
-    uiCamera = findGameObject(scene.rootGameObject, "ui_camera")
+    uiCamera = findGameObject(scene.rootGameObject, "ui_camera");
     scrollController = new ScrollController();
 
-    var orthoCamera = scene.getOrthoCameraComponent(uiCamera)
-    orthoCamera.left = 0
-    orthoCamera.right = displayWidth
-    orthoCamera.bottom = 0
-    orthoCamera.top = displayHeight
+    var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
+    orthoCamera.left = 0;
+    orthoCamera.right = displayWidth;
+    orthoCamera.bottom = 0;
+    orthoCamera.top = displayHeight;
 }
 
 function update(dt) {
@@ -38,16 +38,16 @@ function update(dt) {
     if (scrollEvent != null) {
         var transform = scene.getTransformationComponent(directionalLight);
 
-        zAngle -= toRadians(scrollEvent.dx / pixelDensityFactor)
-        xAngle -= toRadians(scrollEvent.dy / pixelDensityFactor)
+        zAngle -= toRadians(scrollEvent.dx / pixelDensityFactor);
+        xAngle -= toRadians(scrollEvent.dy / pixelDensityFactor);
 
-        var lightRotation = quaternionsPool.obtain()
+        var lightRotation = quaternionsPool.obtain();
 
-        lightRotation.identity()
-        lightRotation.rotateZ(zAngle).rotateX(xAngle)
-        transform.rotation = lightRotation
+        lightRotation.identity();
+        lightRotation.rotateZ(zAngle).rotateX(xAngle);
+        transform.rotation = lightRotation;
 
-        quaternionsPool.recycle(lightRotation)
+        quaternionsPool.recycle(lightRotation);
     }
 }
 
@@ -84,25 +84,25 @@ function toRadians(degrees) {
 
 function ScrollController() {
 
-    this.prevTouchEvent = null
+    this.prevTouchEvent = null;
 
-    this.scrollEvent = null
+    this.scrollEvent = null;
 
     this.update = function() {
-        this.scrollEvent = null
+        this.scrollEvent = null;
 
-        var touchEvent = null
+        var touchEvent = null;
         if (touchEventsRepository.touchEvents.size() > 0) {
-            touchEvent = touchEventsRepository.touchEvents.get(0)
+            touchEvent = touchEventsRepository.touchEvents.get(0);
         }
 
         if (touchEvent != null && this.prevTouchEvent != null) {
             this.scrollEvent = new ScrollEvent(
                 touchEvent.x - this.prevTouchEvent.x,
                 touchEvent.y - this.prevTouchEvent.y
-            )
+            );
         }
-        this.prevTouchEvent = touchEvent
+        this.prevTouchEvent = touchEvent;
     };
 }
 
@@ -111,4 +111,13 @@ function ScrollEvent(dx, dy) {
     this.dy = dy;
 }
 
-//function
+function UiRectangle(left, top, right, bottom) {
+    this.left = left;
+    this.top = top;
+    this.right = right;
+    this.bottom = bottom;
+
+    this.onTouchEvent = function(touchEvent) {
+        return false;
+    }
+}
