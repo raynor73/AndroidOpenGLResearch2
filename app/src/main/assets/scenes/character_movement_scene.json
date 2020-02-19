@@ -3,7 +3,9 @@
     { "id": "female", "path": "textures/female.png" },
     { "id": "fountain", "path": "textures/fountain.png" },
     { "id": "green", "color": [0, 0.5, 0, 1] },
-    { "id": "blue", "color": [0, 0, 0.5, 1] }
+    { "id": "blue", "color": [0, 0, 0.5, 1] },
+    { "id": "joystick_background", "path": "textures/joystick_background.png" },
+    { "id": "joystick_handle", "path": "textures/joystick_handle.png" }
   ],
   "materials": [
     { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
@@ -11,7 +13,23 @@
     { "id": "female", "textureName": "female", "diffuseColor": [1, 1, 1, 1] },
     { "id": "fountain", "textureName": "fountain", "diffuseColor": [1, 1, 1, 1] },
     { "id": "capsule", "diffuseColor": [0.5, 0.5, 0, 1] },
-    { "id": "cowboy", "diffuseColor": [0.5, 0, 0.5, 1] }
+    { "id": "cowboy", "diffuseColor": [0.5, 0, 0.5, 1] },
+    {
+      "id": "joystick_background",
+      "textureName": "joystick_background",
+      "diffuseColor": [1, 1, 1, 1],
+      "isUnlit": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
+    {
+      "id": "joystick_handle",
+      "textureName": "joystick_handle",
+      "diffuseColor": [1, 1, 1, 1],
+      "isUnlit": true,
+      "castShadows": false,
+      "receiveShadows": false
+    }
   ],
   "meshes": [
     { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
@@ -22,7 +40,7 @@
   ],
   "scene": {
     "scriptPath": "scenes/character_movement_scene.js",
-    "activeCameras": ["player_camera"],
+    "activeCameras": ["player_camera", "ui_camera"],
     "renderTargets": [],
     "gameObjects": [
       {
@@ -79,6 +97,51 @@
         "scale": [1.0, 1.0, 1.0],
         "components": [
           { "type": "DirectionalLight", "color": [0.7, 0.7, 0.7] }
+        ]
+      },
+      {
+        "name": "ui_camera",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          {
+            "type": "OrthoCamera",
+            "left": 0,
+            "right": 1024,
+            "bottom": 0,
+            "top": 768,
+            "layerNames": ["uiLayer"],
+            "ambientLight": [0.5, 0.5, 0.5]
+          }
+        ]
+      },
+      {
+        "name": "left_joystick",
+        "parent": "root",
+        "position" : [0.0, 0.0, -10.0],
+        "rotation" : [90.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0]
+      },
+      {
+        "name": "left_joystick_background",
+        "parent": "left_joystick",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [256.0, 1.0, 256.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "joystick_background", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "left_joystick_handle",
+        "parent": "left_joystick",
+        "position" : [0.0, 0.1, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [90.0, 1.0, 90.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "joystick_handle", "layerNames": ["uiLayer"] }
         ]
       }
     ]

@@ -17,6 +17,7 @@ class ComponentDeserializer : JsonDeserializer<ComponentDto> {
                 "DirectionalLight" -> context.deserialize(jsonObject, ComponentDto.DirectionalLightDto::class.java)
                 "Mesh" -> context.deserialize(jsonObject, ComponentDto.MeshDto::class.java)
                 "PerspectiveCamera" -> context.deserialize(jsonObject, ComponentDto.PerspectiveCameraDto::class.java)
+                "OrthoCamera" -> context.deserialize(jsonObject, ComponentDto.OrthoCameraDto::class.java)
                 else -> null
             }
         }

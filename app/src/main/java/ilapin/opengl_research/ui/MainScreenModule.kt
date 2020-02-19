@@ -23,7 +23,6 @@ import ilapin.opengl_research.data.scene_loader.AndroidAssetsSceneLoader
 import ilapin.opengl_research.data.scene_loader.ComponentDeserializer
 import ilapin.opengl_research.data.scene_loader.ComponentDto
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
-import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.TouchEventsRepository
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
@@ -128,7 +127,7 @@ class MainScreenModule(private val activity: MainActivity) {
     @ActivityScope
     fun provideDisplayMetricsRepository(
         @Named("Activity") context: Context
-    ): DisplayMetricsRepository {
+    ): AndroidDisplayMetricsRepository {
         return AndroidDisplayMetricsRepository(context)
     }
 
@@ -158,7 +157,7 @@ class MainScreenModule(private val activity: MainActivity) {
         geometryManager: OpenGLGeometryManager,
         meshStorage: MeshStorage,
         vectorsPool: ObjectsPool<Vector3f>,
-        displayMetricsRepository: DisplayMetricsRepository,
+        displayMetricsRepository: AndroidDisplayMetricsRepository,
         openGLErrorDetector: OpenGLErrorDetector
     ): SceneLoader {
         return AndroidAssetsSceneLoader(
@@ -189,7 +188,7 @@ class MainScreenModule(private val activity: MainActivity) {
         sceneLoader: SceneLoader,
         scriptingEngine: RhinoScriptingEngine,
         timeRepository: TimeRepository,
-        displayMetricsRepository: DisplayMetricsRepository,
+        displayMetricsRepository: AndroidDisplayMetricsRepository,
         vectorsPool: ObjectsPool<Vector3f>,
         quaternionsPool: ObjectsPool<Quaternionf>
     ): GLSurfaceViewRenderer? {

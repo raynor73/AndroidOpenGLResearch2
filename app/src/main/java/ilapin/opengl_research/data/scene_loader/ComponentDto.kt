@@ -11,4 +11,12 @@ sealed class ComponentDto {
         val layerNames: List<String>?,
         val ambientLight: FloatArray?
     ) : ComponentDto()
+    class OrthoCameraDto(
+        val left: Float?,
+        val right: Float?,
+        val top: Float?,
+        val bottom: Float?,
+        val layerNames: List<String>?,
+        val ambientLight: FloatArray?
+    ) : ComponentDto()
 }

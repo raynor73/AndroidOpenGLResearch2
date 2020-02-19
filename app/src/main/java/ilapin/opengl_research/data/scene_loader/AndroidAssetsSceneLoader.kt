@@ -22,13 +22,7 @@ import org.joml.Vector4f
 import java.io.BufferedReader
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.collections.emptyList
-import kotlin.collections.filter
-import kotlin.collections.forEach
-import kotlin.collections.plusAssign
 import kotlin.collections.set
-import kotlin.collections.toList
-import kotlin.collections.toShortArray
 
 /**
  * @author raynor on 21.01.20.
@@ -170,6 +164,27 @@ class AndroidAssetsSceneLoader(
                         val cameraComponent = PerspectiveCameraComponent(
                             vectorsPool,
                             it.fov,
+                            it.layerNames
+                        )
+                        gameObject.addComponent(cameraComponent)
+                        camerasMap[gameObjectName] = cameraComponent
+
+                        cameraAmbientLights[cameraComponent] = Vector3f().apply { it.ambientLight.toRgb(this) }
+                    }
+
+                    is ComponentDto.OrthoCameraDto -> {
+                        it.layerNames ?: error("No layer names")
+                        it.left ?: error("No left camera boundary")
+                        it.right ?: error("No right camera boundary")
+                        it.bottom ?: error("No bottom camera boundary")
+                        it.top ?: error("No top camera boundary")
+                        it.ambientLight ?: error("No camera ambient light")
+                        val cameraComponent = OrthoCameraComponent(
+                            vectorsPool,
+                            it.left,
+                            it.right,
+                            it.bottom,
+                            it.top,
                             it.layerNames
                         )
                         gameObject.addComponent(cameraComponent)

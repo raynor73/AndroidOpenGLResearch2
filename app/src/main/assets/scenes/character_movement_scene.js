@@ -8,12 +8,16 @@ var directionalLight;
 var scrollController;
 
 var pixelDensityFactor;
+var displayWidth;
+var displayHeight;
 
 var xAngle = -Math.PI / 2;
 var zAngle = -Math.PI / 4;
 
 function start() {
     pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor();
+    displayWidth = displayMetricsRepository.displayWidth;
+    displayHeight = displayMetricsRepository.displayHeight;
 
     directionalLight = findGameObject(scene.rootGameObject, "directional_light");
     scrollController = new ScrollController();
@@ -24,7 +28,6 @@ function update(dt) {
 
     var scrollEvent = scrollController.scrollEvent;
     if (scrollEvent != null) {
-        //println("dx: " + scrollController.scrollEvent.dx + "; dy: " + scrollController.scrollEvent.dy)
         var transform = scene.getTransformationComponent(directionalLight);
 
         zAngle -= toRadians(scrollEvent.dx / pixelDensityFactor)

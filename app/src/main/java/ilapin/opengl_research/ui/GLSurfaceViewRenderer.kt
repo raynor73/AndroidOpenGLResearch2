@@ -37,7 +37,7 @@ class GLSurfaceViewRenderer(
     private val sceneLoader: SceneLoader,
     private val scriptingEngine: RhinoScriptingEngine,
     private val timeRepository: TimeRepository,
-    private val displayMetricsRepository: DisplayMetricsRepository,
+    private val displayMetricsRepository: AndroidDisplayMetricsRepository,
     private val vectorsPool: ObjectsPool<Vector3f>,
     private val quaternionsPool: ObjectsPool<Quaternionf>
 ) : GLSurfaceView.Renderer, SceneManager {
@@ -89,6 +89,8 @@ class GLSurfaceViewRenderer(
 
         displayWidth = width
         displayHeight = height
+
+        displayMetricsRepository.onDisplaySizeChanged(width, height)
 
         GLES20.glFrontFace(GLES20.GL_CCW)
         GLES20.glCullFace(GLES20.GL_BACK)

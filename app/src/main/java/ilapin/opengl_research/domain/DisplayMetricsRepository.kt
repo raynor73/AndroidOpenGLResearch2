@@ -5,5 +5,8 @@ package ilapin.opengl_research.domain
  */
 interface DisplayMetricsRepository {
 
+    val displayWidth: Int
+    val displayHeight: Int
+
     fun getPixelDensityFactor(): Float
 }
