@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
             glView.setOnTouchListener { _, event ->
                 renderer.putMessage(
                     TouchEvent(
+                        event.getPointerId(event.actionIndex),
                         when (event.action) {
                             MotionEvent.ACTION_DOWN -> TouchEvent.Action.DOWN
                             MotionEvent.ACTION_MOVE -> TouchEvent.Action.MOVE

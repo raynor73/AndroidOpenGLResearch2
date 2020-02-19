@@ -89,8 +89,8 @@ class AndroidAssetsSceneLoader(
                     isWireframe = materialDto.isWireframe ?: false,
                     isUnlit = materialDto.isUnlit ?: false,
                     isTranslucent = materialDto.isTranslucent ?: false,
-                    castShadows = materialDto.castShadows ?: false,
-                    receiveShadows = materialDto.receiveShadows ?: false
+                    castShadows = materialDto.castShadows ?: true,
+                    receiveShadows = materialDto.receiveShadows ?: true
                 )
             }
         }
@@ -142,6 +142,7 @@ class AndroidAssetsSceneLoader(
                         cameraComponent.zFar = 2 * GLOBAL_DIRECTIONAL_LIGHT_DISTANCE_FROM_VIEWER
 
                         gameObject.addComponent(cameraComponent)
+                        gameObject.addComponent(lightComponent)
 
                         lights += lightComponent
                     }
@@ -204,36 +205,10 @@ class AndroidAssetsSceneLoader(
             cameraAmbientLights,
             emptyList()
         )
-
-        /*return sceneInfoDto.layers?.takeIf { it.isNotEmpty() }?.get(0)?.let { layerDto ->
-            val renderingTargetsCameras = HashMap<String, List<CameraComponent>>()
-
-
-            layerDto.renderingTargetCameras?.forEach { renderingTargetDto ->
-                val textureName = renderingTargetDto.textureName ?: throw IllegalArgumentException("No texture name for rendering target")
-                renderingTargetsCameras[textureName] = renderingTargetDto.cameraNames?.mapNotNull {
-                    val cameraGameObject = gameObjectsMap[it] ?: throw IllegalArgumentException("Unknown camera $it")
-                    cameraGameObject.getCameraComponent()
-                }?.takeIf { it.isNotEmpty() } ?: throw IllegalArgumentException("Rendering target cameras not found")
-            }
-
-            SceneData(
-                rootGameObject ?: throw IllegalArgumentException("No root game object"),
-                gameObjectsMap,
-                perspectiveCamerasConfigs,
-                layerDto.initialCameras?.mapNotNull {
-                    val cameraGameObject = gameObjectsMap[it] ?: throw IllegalArgumentException("Unknown camera $it")
-                    cameraGameObject.getCameraComponent()
-                }?.takeIf { it.isNotEmpty() } ?: throw IllegalArgumentException("Initial cameras not found"),
-                renderingTargetsCameras
-            )
-        } ?: throw IllegalArgumentException("Layer not found")*/
     }
 
     companion object {
 
         private const val ROOT_GAME_OBJECT_NAME = "root"
-        /*private const val DIRECTIONAL_LIGHT_SHADOW_MAP_SIZE = 1024
-        private const val DIRECTIONAL_LIGHT_SHADOW_MAP_POSTFIX = "shadow_map"*/
     }
 }
