@@ -74,6 +74,11 @@ class RhinoScriptingEngine : ScriptingEngine {
             "scene",
             Context.javaToJS(scene, scope)
         )
+
+        val startFunction = scope
+            .get("start", scope)
+            .takeIf { it is org.mozilla.javascript.Function } as org.mozilla.javascript.Function?
+        startFunction?.call(context, scope, scope, emptyArray())
     }
 
     override fun update(dt: Float) {
@@ -81,11 +86,6 @@ class RhinoScriptingEngine : ScriptingEngine {
             .get("update", scope)
             .takeIf { it is org.mozilla.javascript.Function } as org.mozilla.javascript.Function?
         updateFunction?.call(context, scope, scope, arrayOf(dt))
-        /*println(Context.jsToJava(result, Int::class.javaPrimitiveType))
-        val result: Any = updateFunction.call(
-            context, scope, scope, arrayOf<Any>(2, 3)
-        )
-        println(Context.jsToJava(result, Int::class.javaPrimitiveType))*/
     }
 
     override fun deinit() {

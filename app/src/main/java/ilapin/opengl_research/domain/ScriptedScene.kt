@@ -3,7 +3,9 @@ package ilapin.opengl_research.domain
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import ilapin.common.time.TimeRepository
+import ilapin.engine3d.GameObject
 import ilapin.engine3d.GameObjectComponent
+import ilapin.engine3d.TransformationComponent
 import ilapin.opengl_research.CameraComponent
 import ilapin.opengl_research.FrameBufferInfo
 import ilapin.opengl_research.MeshRendererComponent
@@ -82,5 +84,9 @@ class ScriptedScene(
         frameBuffersManager.removeAllFrameBuffers()
         geometryManager.removeAllBuffers()
         texturesManager.removeAllTextures()
+    }
+
+    fun getTransformationComponent(gameObject: GameObject): TransformationComponent? {
+        return gameObject.getComponent(TransformationComponent::class.java)
     }
 }
