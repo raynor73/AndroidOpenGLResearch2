@@ -6,19 +6,28 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
+import ilapin.common.android.time.LocalTimeRepository
 import ilapin.common.messagequeue.MessageQueue
+import ilapin.common.time.TimeRepository
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.meshloader.android.ObjMeshLoadingRepository
-import ilapin.opengl_research.*
+import ilapin.opengl_research.AndroidDisplayMetricsRepository
+import ilapin.opengl_research.AndroidTouchEventsRepository
+import ilapin.opengl_research.ObjectsPool
+import ilapin.opengl_research.OpenGLErrorDetector
 import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.assets_management.ShadersManager
 import ilapin.opengl_research.data.scene_loader.AndroidAssetsSceneLoader
-import ilapin.opengl_research.data.scene_loader.ComponentDto
-import ilapin.opengl_research.domain.*
-import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import ilapin.opengl_research.data.scene_loader.ComponentDeserializer
+import ilapin.opengl_research.data.scene_loader.ComponentDto
+import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
+import ilapin.opengl_research.domain.DisplayMetricsRepository
+import ilapin.opengl_research.domain.MeshStorage
+import ilapin.opengl_research.domain.TouchEventsRepository
+import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
+import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import org.joml.Vector3f
 import javax.inject.Named
 
@@ -53,35 +62,6 @@ class MainScreenModule(private val activity: MainActivity) {
         androidTouchEventsRepository: AndroidTouchEventsRepository
     ): TouchEventsRepository {
         return androidTouchEventsRepository
-    }
-
-    @Provides
-    @ActivityScope
-    fun provideScrollController(touchEventsRepository: TouchEventsRepository): ScrollController {
-        return ScrollController(touchEventsRepository)
-    }
-
-    @Provides
-    @ActivityScope
-    @Named("LeftJoystick")
-    fun provideLeftJoystick(messageQueue: MessageQueue): Joystick {
-        return JoystickViewJoystick(messageQueue, MainActivity.LEFT_JOYSTICK_ID)
-    }
-
-    @Provides
-    @ActivityScope
-    @Named("RightJoystick")
-    fun provideRightJoystick(messageQueue: MessageQueue): Joystick {
-        return JoystickViewJoystick(messageQueue, MainActivity.RIGHT_JOYSTICK_ID)
-    }
-
-    @Provides
-    @ActivityScope
-    fun providePlayerController(
-        @Named("LeftJoystick") leftJoystick: Joystick,
-        @Named("RightJoystick") rightJoystick: Joystick
-    ): PlayerController {
-        return PlayerController(leftJoystick, rightJoystick)
     }
 
     @Provides
@@ -152,6 +132,22 @@ class MainScreenModule(private val activity: MainActivity) {
     }
 
     @Provides
+    fun physicsEngine(): PhysicsEngine {
+        return PhysicsEngine()
+    }
+
+    @Provides
+    fun scriptingEngine(): RhinoScriptingEngine {
+        return RhinoScriptingEngine()
+    }
+
+    @Provides
+    @ActivityScope
+    fun provideTimeRepository(): TimeRepository {
+        return LocalTimeRepository()
+    }
+
+    @Provides
     @ActivityScope
     fun provideSceneLoader(
         @Named("Activity") context: Context,
@@ -183,15 +179,15 @@ class MainScreenModule(private val activity: MainActivity) {
         @Named("Activity") context: Context,
         messageQueue: MessageQueue,
         androidTouchEventsRepository: AndroidTouchEventsRepository,
-        scrollController: ScrollController,
-        playerController: PlayerController,
         openGLErrorDetector: OpenGLErrorDetector,
         frameBuffersManager: FrameBuffersManager,
         geometryManager: OpenGLGeometryManager,
         texturesManager: OpenGLTexturesManager,
         shadersManager: ShadersManager,
         meshStorage: MeshStorage,
-        sceneLoader: SceneLoader
+        sceneLoader: SceneLoader,
+        scriptingEngine: RhinoScriptingEngine,
+        timeRepository: TimeRepository
     ): GLSurfaceViewRenderer? {
         return if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             GLSurfaceViewRenderer(
@@ -204,9 +200,9 @@ class MainScreenModule(private val activity: MainActivity) {
                 shadersManager,
                 meshStorage,
                 androidTouchEventsRepository,
-                scrollController,
-                playerController,
-                sceneLoader
+                sceneLoader,
+                scriptingEngine,
+                timeRepository
             )
         } else {
             null

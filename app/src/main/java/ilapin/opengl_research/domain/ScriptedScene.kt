@@ -2,13 +2,16 @@ package ilapin.opengl_research.domain
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import ilapin.common.time.TimeRepository
 import ilapin.engine3d.GameObjectComponent
 import ilapin.opengl_research.CameraComponent
 import ilapin.opengl_research.FrameBufferInfo
 import ilapin.opengl_research.MeshRendererComponent
+import ilapin.opengl_research.NANOS_IN_SECOND
 import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
+import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import org.joml.Vector3fc
 
@@ -17,10 +20,13 @@ import org.joml.Vector3fc
  */
 class ScriptedScene(
     sceneData: SceneData,
+    private val scriptingEngine: RhinoScriptingEngine,
     private val texturesManager: OpenGLTexturesManager,
     private val geometryManager: OpenGLGeometryManager,
     private val frameBuffersManager: FrameBuffersManager,
-    private val meshStorage: MeshStorage
+    private val meshStorage: MeshStorage,
+    private val timeRepository: TimeRepository,
+    touchEventsRepository: TouchEventsRepository
 ) : Scene2 {
 
     private val _activeCameras = ArrayList<CameraComponent>().apply { addAll(sceneData.activeCameras) }
@@ -35,6 +41,8 @@ class ScriptedScene(
         putAll(sceneData.cameraAmbientLights)
     }
 
+    private var prevTimestamp: Long? = null
+
     override val rootGameObject = sceneData.rootGameObject
 
     override val activeCameras: List<CameraComponent> = _activeCameras
@@ -47,8 +55,18 @@ class ScriptedScene(
 
     override val renderTargets: List<FrameBufferInfo.RenderTargetFrameBufferInfo> = emptyList()
 
+    init {
+        scriptingEngine.touchEventsRepository = touchEventsRepository
+        scriptingEngine.scene = this
+        scriptingEngine.evaluateScript(sceneData.scriptSource)
+    }
+
     override fun update() {
-        // do nothing
+        val currentTimestamp = timeRepository.getTimestamp()
+        val dt = prevTimestamp?.let { prevTimestamp -> (currentTimestamp - prevTimestamp) / NANOS_IN_SECOND } ?: 0f
+        prevTimestamp = currentTimestamp
+
+        scriptingEngine.update(dt)
     }
 
     override fun onGoingToForeground() {

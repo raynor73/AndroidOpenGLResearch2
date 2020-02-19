@@ -5,13 +5,18 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import ilapin.common.kotlin.safeLet
 import ilapin.common.messagequeue.MessageQueue
+import ilapin.common.time.TimeRepository
 import ilapin.engine3d.TransformationComponent
 import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.assets_management.ShadersManager
-import ilapin.opengl_research.domain.*
+import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
+import ilapin.opengl_research.domain.MeshStorage
+import ilapin.opengl_research.domain.Scene2
+import ilapin.opengl_research.domain.SceneManager
+import ilapin.opengl_research.domain.ScriptedScene
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -34,9 +39,9 @@ class GLSurfaceViewRenderer(
     private val shadersManager: ShadersManager,
     private val meshStorage: MeshStorage,
     private val touchEventsRepository: AndroidTouchEventsRepository,
-    private val scrollController: ScrollController,
-    private val playerController: PlayerController,
-    private val sceneLoader: SceneLoader
+    private val sceneLoader: SceneLoader,
+    private val scriptingEngine: RhinoScriptingEngine,
+    private val timeRepository: TimeRepository
 ) : GLSurfaceView.Renderer, SceneManager {
 
     private val messageQueueSubscription: Disposable
@@ -73,8 +78,6 @@ class GLSurfaceViewRenderer(
 
         touchEventsRepository.clearPrevEvents()
         messageQueue.update()
-        scrollController.update()
-        playerController.update()
 
         render()
     }
@@ -122,10 +125,13 @@ class GLSurfaceViewRenderer(
 
         scene = ScriptedScene(
             sceneLoader.loadScene(path),
+            scriptingEngine,
             texturesManager,
             geometryManager,
             frameBuffersManager,
-            meshStorage
+            meshStorage,
+            timeRepository,
+            touchEventsRepository
         )
 
         safeLet(displayWidth, displayHeight) { width, height ->
