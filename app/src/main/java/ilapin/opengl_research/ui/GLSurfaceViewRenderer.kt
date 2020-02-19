@@ -156,10 +156,11 @@ class GLSurfaceViewRenderer(
         GLES20.glClearColor(0f, 0f, 0f, 1f)
 
         // Opaque rendering
-        // TODO Get rid of equivalent lists building while rendering every frame
-        (scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
+        /*(scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
             render(scene, renderTarget, false, displayAspect)
-        }
+        }*/
+        scene.renderTargets.forEach { renderTarget -> render(scene, renderTarget, false, displayAspect) }
+        render(scene, FrameBufferInfo.DisplayFrameBufferInfo, false, displayAspect)
 
         // Translucent rendering
         /*(scene.renderTargets + FrameBufferInfo.DisplayFrameBufferInfo).forEach { renderTarget ->
