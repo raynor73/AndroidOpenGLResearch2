@@ -3,6 +3,7 @@ package ilapin.opengl_research.ui
 import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import ilapin.common.kotlin.safeLet
 import ilapin.common.messagequeue.MessageQueue
 import ilapin.engine3d.TransformationComponent
 import ilapin.opengl_research.*
@@ -96,28 +97,6 @@ class GLSurfaceViewRenderer(
 
         setupShaders()
 
-        /*val timeRepository = LocalTimeRepository()
-        val scene = CharacterMovementScene(
-            context,
-            openGLErrorDetector,
-            texturesManager,
-            geometryManager,
-            SoundScene(vectorsPool, timeRepository, SoundPoolSoundClipsRepository(context)),
-            RhinoScriptingEngine(),
-            vectorsPool,
-            quaternionsPool,
-            timeRepository,
-            ObjMeshLoadingRepository(context),
-            AndroidDisplayMetricsRepository(context),
-            scrollController,
-            playerController
-        )
-        this.scene = scene*/
-
-        frameBuffersManager.createDepthOnlyFramebuffer("shadow_map", width, height)
-        shadowMapFrameBufferInfo =
-                frameBuffersManager.findFrameBuffer("shadow_map") as FrameBufferInfo.DepthFrameBufferInfo
-
         openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged")
 
         _isLoadingSubject.onNext(false)
@@ -139,6 +118,7 @@ class GLSurfaceViewRenderer(
 
     override fun loadAndStartScene(path: String) {
         scene?.deinit()
+        shadowMapFrameBufferInfo = null
 
         scene = ScriptedScene(
             sceneLoader.loadScene(path),
@@ -147,6 +127,12 @@ class GLSurfaceViewRenderer(
             frameBuffersManager,
             meshStorage
         )
+
+        safeLet(displayWidth, displayHeight) { width, height ->
+            frameBuffersManager.createDepthOnlyFramebuffer(SHADOW_MAP_TEXTURE_NAME, width, height)
+            shadowMapFrameBufferInfo =
+                frameBuffersManager.findFrameBuffer(SHADOW_MAP_TEXTURE_NAME) as FrameBufferInfo.DepthFrameBufferInfo
+        }
     }
 
     fun putMessage(message: Any) {

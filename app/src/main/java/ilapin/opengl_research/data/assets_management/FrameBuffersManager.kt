@@ -110,6 +110,7 @@ class FrameBuffersManager(
         // Generate a texture to hold the colour buffer
         GLES20.glGenTextures(1, tmpIntArray, 0)
         val colorTexture = tmpIntArray[0]
+        texturesManager.putTexture(name, TextureInfo(colorTexture, width, height))
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, colorTexture)
         // Width and height do not have to be a power of two
         GLES20.glTexImage2D(
@@ -134,6 +135,7 @@ class FrameBuffersManager(
         // Create a texture to hold the depth buffer
         GLES20.glGenTextures(1, tmpIntArray, 0)
         val depthTexture = tmpIntArray[0]
+        texturesManager.putTexture(name + DEPTH_COMPONENT_POSTFIX, TextureInfo(depthTexture, width, height))
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, depthTexture)
 
         GLES20.glTexImage2D(
@@ -189,10 +191,10 @@ class FrameBuffersManager(
 
         openGLErrorDetector.dispatchOpenGLErrors("removeFrameBuffer")
 
-        texturesManager.removeTexture(name + DEPTH_COMPONENT_POSTFIX)
+        texturesManager.removeTexture(name)
 
         if (frameBufferInfo is FrameBufferInfo.RenderTargetFrameBufferInfo) {
-            texturesManager.removeTexture(name)
+            texturesManager.removeTexture(name + DEPTH_COMPONENT_POSTFIX)
         }
     }
 
