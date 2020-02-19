@@ -51,6 +51,14 @@ function update(dt) {
     }
 }
 
+function onGoingToForeground() {
+    // do nothing
+}
+
+function onGoingToBackground() {
+    // do nothing
+}
+
 function findGameObject(currentGameObject, name) {
     if (currentGameObject.name == name) {
         return currentGameObject;
@@ -102,3 +110,5 @@ function ScrollEvent(dx, dy) {
     this.dx = dx;
     this.dy = dy;
 }
+
+//function

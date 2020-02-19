@@ -61,6 +61,10 @@ class RhinoScriptingEngine : ScriptingEngine {
 
     private val scope: ScriptableObject by lazy { context.initStandardObjects() }
 
+    private var updateJsFunction: org.mozilla.javascript.Function? = null
+    private var onGoingToForegroundJsFunction: org.mozilla.javascript.Function? = null
+    private var onGoingToBackgroundJsFunction: org.mozilla.javascript.Function? = null
+
     var touchEventsRepository: TouchEventsRepository? = null
     var scene: Scene2? = null
     var displayMetricsRepository: DisplayMetricsRepository? = null
@@ -104,13 +108,22 @@ class RhinoScriptingEngine : ScriptingEngine {
             .get("start", scope)
             .takeIf { it is org.mozilla.javascript.Function } as org.mozilla.javascript.Function?
         startFunction?.call(context, scope, scope, emptyArray())
+
+        updateJsFunction = scope
+            .get("update", scope)
+            .takeIf { it is org.mozilla.javascript.Function } as org.mozilla.javascript.Function?
     }
 
     override fun update(dt: Float) {
-        val updateFunction = scope
-            .get("update", scope)
-            .takeIf { it is org.mozilla.javascript.Function } as org.mozilla.javascript.Function?
-        updateFunction?.call(context, scope, scope, arrayOf(dt))
+        updateJsFunction?.call(context, scope, scope, arrayOf(dt))
+    }
+
+    fun onGoingToForeground() {
+        onGoingToForegroundJsFunction?.call(context, scope, scope, emptyArray())
+    }
+
+    fun onGoingToBackground() {
+        onGoingToBackgroundJsFunction?.call(context, scope, scope, emptyArray())
     }
 
     override fun deinit() {

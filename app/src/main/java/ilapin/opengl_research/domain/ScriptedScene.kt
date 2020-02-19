@@ -76,12 +76,13 @@ class ScriptedScene(
         scriptingEngine.update(dt)
     }
 
+    // TODO Make another facility for onGoingToForeground/onGoingToBackground
     override fun onGoingToForeground() {
-        // do nothing
+        scriptingEngine.onGoingToForeground()
     }
 
     override fun onGoingToBackground() {
-        // do nothing
+        scriptingEngine.onGoingToBackground()
     }
 
     override fun deinit() {
