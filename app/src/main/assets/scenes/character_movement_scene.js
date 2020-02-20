@@ -32,7 +32,8 @@ function start() {
     scrollController = new ScrollController();
     leftJoystickController = new JoystickController(
         leftJoystickGestureConsumer,
-        scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_handle"))
+        scene.getTransformationComponent(leftJoystick)
+        //scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_handle"))
     );
 
     var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
@@ -176,16 +177,18 @@ function JoystickController(gestureConsumer, handleTransform, width, height) {
 
         var position = vectorsPool.obtain();
 
-        position.set(this.handleTransform.position);
+        //position.set(this.handleTransform.position);
+        /*position.x = 128; position.y = 128; position.z = -10;
         println("x: " + position.x + "; y: " + position.y + "; z: " + position.z);
+        this.handleTransform.position = position;*/
 
         if (
             touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.UP ||
             touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.CANCEL
         ) {
             position.set(this.handleTransform.position);
-            //position.x = 0;
-            //position.z = 0;
+            position.x = 0;
+            position.y = 0;
             this.handleTransform.position = position;
         } else {
             var eventX = this.gestureConsumer.toLocalX(touchEvent.x);
@@ -195,8 +198,8 @@ function JoystickController(gestureConsumer, handleTransform, width, height) {
 
             position.set(this.handleTransform.position);
 
-            //position.x = 0;//eventX - width / 2;
-            //position.z = 0;//eventY;
+            position.x = eventX;
+            position.y = eventY;
 
             this.handleTransform.position = position;
         }
