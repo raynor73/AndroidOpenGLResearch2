@@ -10,6 +10,7 @@ var leftJoystick;
 var leftJoystickGestureConsumer;
 
 var scrollController;
+var leftJoystickController;
 
 var pixelDensityFactor;
 var displayWidth;
@@ -29,6 +30,10 @@ function start() {
     leftJoystickGestureConsumer = scene.getGestureConsumerComponent(leftJoystick)
 
     scrollController = new ScrollController();
+    leftJoystickController = new JoystickController(
+        leftJoystickGestureConsumer,
+        scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_handle"))
+    );
 
     var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
     orthoCamera.left = 0;
@@ -41,6 +46,7 @@ function start() {
 
 function update(dt) {
     scrollController.update();
+    leftJoystickController.update();
 
     var scrollEvent = scrollController.scrollEvent;
     if (scrollEvent != null) {
@@ -57,8 +63,6 @@ function update(dt) {
 
         quaternionsPool.recycle(lightRotation);
     }
-
-
 }
 
 function onGoingToForeground() {
@@ -150,5 +154,53 @@ function ScrollEvent(dx, dy) {
     this.dy = dy;
 }
 
-function JoystickController() {
+function JoystickController(gestureConsumer, handleTransform, width, height) {
+
+    //this.StateEnum = { IDLE: {}, DRAGGING: {} };
+
+    this.gestureConsumer = gestureConsumer;
+    this.handleTransform = handleTransform;
+    this.width = width;
+    this.height = height;
+
+    //this.state = StateEnum.IDLE;
+
+    this.update = function() {
+        var touchEvents = this.gestureConsumer.touchEvents;
+
+        if (touchEvents.size() == 0) {
+            return;
+        }
+
+        var touchEvent = touchEvents.get(0);
+
+        var position = vectorsPool.obtain();
+
+        position.set(this.handleTransform.position);
+        println("x: " + position.x + "; y: " + position.y + "; z: " + position.z);
+
+        if (
+            touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.UP ||
+            touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.CANCEL
+        ) {
+            position.set(this.handleTransform.position);
+            //position.x = 0;
+            //position.z = 0;
+            this.handleTransform.position = position;
+        } else {
+            var eventX = this.gestureConsumer.toLocalX(touchEvent.x);
+            var eventY = this.gestureConsumer.toLocalY(touchEvent.y);
+
+            println("eventX: " + eventX + "; eventY: " + eventY);
+
+            position.set(this.handleTransform.position);
+
+            //position.x = 0;//eventX - width / 2;
+            //position.z = 0;//eventY;
+
+            this.handleTransform.position = position;
+        }
+
+        vectorsPool.recycle(position);
+    };
 }

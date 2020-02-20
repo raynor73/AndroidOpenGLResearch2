@@ -26,4 +26,12 @@ class GestureConsumerComponent(
     fun clearPrevTouchEvent() {
         _touchEvents.clear()
     }
+
+    fun toLocalX(x: Int): Int {
+        return x - left
+    }
+
+    fun toLocalY(y: Int): Int {
+        return y - bottom
+    }
 }

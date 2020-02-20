@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
                             else -> TouchEvent.Action.CANCEL
                         },
                         event.x.toInt(),
-                        event.y.toInt()
+                        glView.height - event.y.toInt()
                     )
                 )
                 true
