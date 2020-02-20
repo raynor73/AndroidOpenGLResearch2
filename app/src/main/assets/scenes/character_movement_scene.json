@@ -124,7 +124,10 @@
         "parent": "root",
         "position" : [0.0, 0.0, -10.0],
         "rotation" : [90.0, 0.0, 0.0],
-        "scale": [1.0, 1.0, 1.0]
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 256, "right": 256, "bottom": 0 }
+        ]
       },
       {
         "name": "left_joystick_background",

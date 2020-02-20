@@ -27,10 +27,11 @@ class ScriptedScene(
     private val frameBuffersManager: FrameBuffersManager,
     private val meshStorage: MeshStorage,
     private val timeRepository: TimeRepository,
-    touchEventsRepository: TouchEventsRepository,
+    private val touchEventsRepository: TouchEventsRepository,
     displayMetricsRepository: DisplayMetricsRepository,
     vectorsPool: ObjectsPool<Vector3f>,
-    quaternionsPool: ObjectsPool<Quaternionf>
+    quaternionsPool: ObjectsPool<Quaternionf>,
+    private val gesturesDispatcher: GesturesDispatcher
 ) : Scene2 {
 
     private val _activeCameras = ArrayList<CameraComponent>().apply { addAll(sceneData.activeCameras) }
@@ -73,6 +74,9 @@ class ScriptedScene(
         val dt = prevTimestamp?.let { prevTimestamp -> (currentTimestamp - prevTimestamp) / NANOS_IN_SECOND } ?: 0f
         prevTimestamp = currentTimestamp
 
+        gesturesDispatcher.begin()
+        touchEventsRepository.touchEvents.forEach { gesturesDispatcher.onTouchEvent(it) }
+
         scriptingEngine.update(dt)
     }
 
@@ -100,5 +104,10 @@ class ScriptedScene(
     @Suppress("unused")
     fun getOrthoCameraComponent(gameObject: GameObject): OrthoCameraComponent? {
         return gameObject.getComponent(OrthoCameraComponent::class.java)
+    }
+
+    @Suppress("unused")
+    fun getGestureConsumerComponent(gameObject: GameObject): GestureConsumerComponent? {
+        return gameObject.getComponent(GestureConsumerComponent::class.java)
     }
 }

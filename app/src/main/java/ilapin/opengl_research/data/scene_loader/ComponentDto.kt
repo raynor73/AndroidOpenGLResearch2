@@ -5,12 +5,15 @@ package ilapin.opengl_research.data.scene_loader
  */
 sealed class ComponentDto {
     class DirectionalLightDto(val color: FloatArray?) : ComponentDto()
+
     class MeshDto(val meshName: String?, val materialName: String?, val layerNames: List<String>?) : ComponentDto()
+
     class PerspectiveCameraDto(
         val fov: Float?,
         val layerNames: List<String>?,
         val ambientLight: FloatArray?
     ) : ComponentDto()
+
     class OrthoCameraDto(
         val left: Float?,
         val right: Float?,
@@ -18,5 +21,13 @@ sealed class ComponentDto {
         val bottom: Float?,
         val layerNames: List<String>?,
         val ambientLight: FloatArray?
+    ) : ComponentDto()
+
+    class GestureConsumerDto(
+        val priority: Int?,
+        val left: Int?,
+        val top: Int?,
+        val right: Int?,
+        val bottom: Int?
     ) : ComponentDto()
 }

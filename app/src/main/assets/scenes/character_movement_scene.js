@@ -6,6 +6,9 @@
 
 var uiCamera;
 var directionalLight;
+var leftJoystick;
+var leftJoystickGestureConsumer;
+
 var scrollController;
 
 var pixelDensityFactor;
@@ -22,6 +25,9 @@ function start() {
 
     directionalLight = findGameObject(scene.rootGameObject, "directional_light");
     uiCamera = findGameObject(scene.rootGameObject, "ui_camera");
+    leftJoystick = findGameObject(scene.rootGameObject, "left_joystick")
+    leftJoystickGestureConsumer = scene.getGestureConsumerComponent(leftJoystick)
+
     scrollController = new ScrollController();
 
     var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
@@ -29,6 +35,8 @@ function start() {
     orthoCamera.right = displayWidth;
     orthoCamera.bottom = 0;
     orthoCamera.top = displayHeight;
+
+    layoutUi()
 }
 
 function update(dt) {
@@ -49,6 +57,8 @@ function update(dt) {
 
         quaternionsPool.recycle(lightRotation);
     }
+
+
 }
 
 function onGoingToForeground() {
@@ -57,6 +67,35 @@ function onGoingToForeground() {
 
 function onGoingToBackground() {
     // do nothing
+}
+
+function layoutUi() {
+    layoutLeftJoystick()
+}
+
+function layoutLeftJoystick() {
+    var position = vectorsPool.obtain();
+    var scale = vectorsPool.obtain();
+
+    var transform = scene.getTransformationComponent(leftJoystick);
+    var backgroundTransform =
+        scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_background"));
+
+    scale.set(backgroundTransform.scale);
+    scale.mul(pixelDensityFactor);
+
+    position.set(transform.position);
+    position.x += scale.x / 2;
+    position.y += scale.z / 2;
+    transform.position = position;
+
+    leftJoystickGestureConsumer.left = 0
+    leftJoystickGestureConsumer.top = scale.z
+    leftJoystickGestureConsumer.right = scale.x
+    leftJoystickGestureConsumer.bottom = 0
+
+    vectorsPool.recycle(position);
+    vectorsPool.recycle(scale);
 }
 
 function findGameObject(currentGameObject, name) {
@@ -111,13 +150,5 @@ function ScrollEvent(dx, dy) {
     this.dy = dy;
 }
 
-function UiRectangle(left, top, right, bottom) {
-    this.left = left;
-    this.top = top;
-    this.right = right;
-    this.bottom = bottom;
-
-    this.onTouchEvent = function(touchEvent) {
-        return false;
-    }
+function JoystickController() {
 }

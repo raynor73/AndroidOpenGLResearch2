@@ -23,6 +23,7 @@ import ilapin.opengl_research.data.scene_loader.AndroidAssetsSceneLoader
 import ilapin.opengl_research.data.scene_loader.ComponentDeserializer
 import ilapin.opengl_research.data.scene_loader.ComponentDto
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
+import ilapin.opengl_research.domain.GesturesDispatcher
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.TouchEventsRepository
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
@@ -149,6 +150,12 @@ class MainScreenModule(private val activity: MainActivity) {
 
     @Provides
     @ActivityScope
+    fun provideGesturesDispatcher(): GesturesDispatcher {
+        return GesturesDispatcher()
+    }
+
+    @Provides
+    @ActivityScope
     fun provideSceneLoader(
         @Named("Activity") context: Context,
         gson: Gson,
@@ -158,7 +165,8 @@ class MainScreenModule(private val activity: MainActivity) {
         meshStorage: MeshStorage,
         vectorsPool: ObjectsPool<Vector3f>,
         displayMetricsRepository: AndroidDisplayMetricsRepository,
-        openGLErrorDetector: OpenGLErrorDetector
+        openGLErrorDetector: OpenGLErrorDetector,
+        gesturesDispatcher: GesturesDispatcher
     ): SceneLoader {
         return AndroidAssetsSceneLoader(
             context,
@@ -169,7 +177,8 @@ class MainScreenModule(private val activity: MainActivity) {
             meshStorage,
             vectorsPool,
             displayMetricsRepository,
-            openGLErrorDetector
+            openGLErrorDetector,
+            gesturesDispatcher
         )
     }
 
@@ -190,7 +199,8 @@ class MainScreenModule(private val activity: MainActivity) {
         timeRepository: TimeRepository,
         displayMetricsRepository: AndroidDisplayMetricsRepository,
         vectorsPool: ObjectsPool<Vector3f>,
-        quaternionsPool: ObjectsPool<Quaternionf>
+        quaternionsPool: ObjectsPool<Quaternionf>,
+        gesturesDispatcher: GesturesDispatcher
     ): GLSurfaceViewRenderer? {
         return if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             GLSurfaceViewRenderer(
@@ -208,7 +218,8 @@ class MainScreenModule(private val activity: MainActivity) {
                 timeRepository,
                 displayMetricsRepository,
                 vectorsPool,
-                quaternionsPool
+                quaternionsPool,
+                gesturesDispatcher
             )
         } else {
             null

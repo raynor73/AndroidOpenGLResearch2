@@ -39,7 +39,8 @@ class GLSurfaceViewRenderer(
     private val timeRepository: TimeRepository,
     private val displayMetricsRepository: AndroidDisplayMetricsRepository,
     private val vectorsPool: ObjectsPool<Vector3f>,
-    private val quaternionsPool: ObjectsPool<Quaternionf>
+    private val quaternionsPool: ObjectsPool<Quaternionf>,
+    private val gesturesDispatcher: GesturesDispatcher
 ) : GLSurfaceView.Renderer, SceneManager {
 
     private val messageQueueSubscription: Disposable
@@ -123,6 +124,8 @@ class GLSurfaceViewRenderer(
         scene?.deinit()
         shadowMapFrameBufferInfo = null
 
+        gesturesDispatcher.removeAllGestureConsumers()
+
         scene = ScriptedScene(
             sceneLoader.loadScene(path),
             scriptingEngine,
@@ -134,7 +137,8 @@ class GLSurfaceViewRenderer(
             touchEventsRepository,
             displayMetricsRepository,
             vectorsPool,
-            quaternionsPool
+            quaternionsPool,
+            gesturesDispatcher
         )
 
         safeLet(displayWidth, displayHeight) { width, height ->

@@ -58,13 +58,6 @@ class MainActivity : AppCompatActivity() {
             glView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
             containerLayout.addView(glView, 0)
 
-            subscriptions += leftJoystickView.positionObservable.subscribe { position ->
-                renderer.putMessage(JoystickPositionEvent(
-                    LEFT_JOYSTICK_ID,
-                    Joystick.Position(position.x, position.y)
-                ))
-            }
-
             subscriptions += rightJoystickView.positionObservable.subscribe { position ->
                 renderer.putMessage(JoystickPositionEvent(
                     RIGHT_JOYSTICK_ID,

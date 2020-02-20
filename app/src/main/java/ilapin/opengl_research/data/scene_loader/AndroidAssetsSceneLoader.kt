@@ -12,6 +12,8 @@ import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.domain.DisplayMetricsRepository
+import ilapin.opengl_research.domain.GestureConsumerComponent
+import ilapin.opengl_research.domain.GesturesDispatcher
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
@@ -36,7 +38,8 @@ class AndroidAssetsSceneLoader(
     private val meshStorage: MeshStorage,
     private val vectorsPool: ObjectsPool<Vector3f>,
     displayMetricsRepository: DisplayMetricsRepository,
-    private val openGLErrorDetector: OpenGLErrorDetector
+    private val openGLErrorDetector: OpenGLErrorDetector,
+    private val gesturesDispatcher: GesturesDispatcher
 ) : SceneLoader {
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
@@ -191,6 +194,23 @@ class AndroidAssetsSceneLoader(
                         camerasMap[gameObjectName] = cameraComponent
 
                         cameraAmbientLights[cameraComponent] = Vector3f().apply { it.ambientLight.toRgb(this) }
+                    }
+
+                    is ComponentDto.GestureConsumerDto -> {
+                        it.priority ?: error("No gesture consumer priority value")
+                        it.left ?: error("No gesture consumer left value")
+                        it.right ?: error("No gesture consumer right value")
+                        it.bottom ?: error("No gesture consumer bottom value")
+                        it.top ?: error("No gesture consumer top value")
+                        val component = GestureConsumerComponent(
+                            it.priority,
+                            it.left,
+                            it.top,
+                            it.right,
+                            it.bottom
+                        )
+                        gesturesDispatcher.addGestureConsumer(component)
+                        gameObject.addComponent(component)
                     }
                 }
             }
