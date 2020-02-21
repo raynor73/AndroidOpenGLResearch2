@@ -32,8 +32,7 @@ function start() {
     scrollController = new ScrollController();
     leftJoystickController = new JoystickController(
         leftJoystickGestureConsumer,
-        scene.getTransformationComponent(leftJoystick)
-        //scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_handle"))
+        scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_handle"))
     );
 
     var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
@@ -94,10 +93,10 @@ function layoutLeftJoystick() {
     position.y += scale.z / 2;
     transform.position = position;
 
-    leftJoystickGestureConsumer.left = 0
-    leftJoystickGestureConsumer.top = scale.z
-    leftJoystickGestureConsumer.right = scale.x
-    leftJoystickGestureConsumer.bottom = 0
+    leftJoystickGestureConsumer.left = 0;
+    leftJoystickGestureConsumer.top = scale.z;
+    leftJoystickGestureConsumer.right = scale.x;
+    leftJoystickGestureConsumer.bottom = 0;
 
     vectorsPool.recycle(position);
     vectorsPool.recycle(scale);
@@ -155,14 +154,14 @@ function ScrollEvent(dx, dy) {
     this.dy = dy;
 }
 
-function JoystickController(gestureConsumer, handleTransform, width, height) {
+function JoystickController(gestureConsumer, handleTransform) {
 
     //this.StateEnum = { IDLE: {}, DRAGGING: {} };
 
     this.gestureConsumer = gestureConsumer;
     this.handleTransform = handleTransform;
-    this.width = width;
-    this.height = height;
+    this.width = gestureConsumer.right - gestureConsumer.left;
+    this.height = gestureConsumer.top - gestureConsumer.bottom;
 
     //this.state = StateEnum.IDLE;
 
@@ -173,35 +172,32 @@ function JoystickController(gestureConsumer, handleTransform, width, height) {
             return;
         }
 
-        var touchEvent = touchEvents.get(0);
-
         var position = vectorsPool.obtain();
 
-        //position.set(this.handleTransform.position);
-        /*position.x = 128; position.y = 128; position.z = -10;
-        println("x: " + position.x + "; y: " + position.y + "; z: " + position.z);
-        this.handleTransform.position = position;*/
+        for (var iterator = touchEvents.iterator(); iterator.hasNext();) {
+            var touchEvent = iterator.next();
 
-        if (
-            touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.UP ||
-            touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.CANCEL
-        ) {
-            position.set(this.handleTransform.position);
-            position.x = 0;
-            position.y = 0;
-            this.handleTransform.position = position;
-        } else {
-            var eventX = this.gestureConsumer.toLocalX(touchEvent.x);
-            var eventY = this.gestureConsumer.toLocalY(touchEvent.y);
+            println("!@# js action: " + touchEvent.action);
 
-            println("eventX: " + eventX + "; eventY: " + eventY);
+            if (
+                touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.UP ||
+                touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.CANCEL
+            ) {
+                position.set(this.handleTransform.localPosition);
+                position.x = 0;
+                position.z = 0;
+                this.handleTransform.position = position;
+            } else {
+                var eventX = this.gestureConsumer.toLocalX(touchEvent.x);
+                var eventY = this.gestureConsumer.toLocalY(touchEvent.y);
 
-            position.set(this.handleTransform.position);
+                position.set(this.handleTransform.localPosition);
 
-            position.x = eventX;
-            position.y = eventY;
+                position.x = eventX - this.width / 2;
+                position.z = -(eventY - this.height / 2);
 
-            this.handleTransform.position = position;
+                this.handleTransform.position = position;
+            }
         }
 
         vectorsPool.recycle(position);

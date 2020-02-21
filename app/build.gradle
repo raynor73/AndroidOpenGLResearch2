@@ -51,7 +51,7 @@ dependencies {
 
     implementation 'com.github.raynor73:Commons:0.3'
     implementation 'com.github.raynor73:AndroidCommons:0.3'
-    implementation 'com.github.raynor73:Engine3DJvm:0.3.4'
+    implementation 'com.github.raynor73:Engine3DJvm:0.4'
     implementation 'com.github.raynor73:MeshLoader:0.1'
     implementation 'com.github.raynor73:MeshLoaderAndroid:0.1'
 

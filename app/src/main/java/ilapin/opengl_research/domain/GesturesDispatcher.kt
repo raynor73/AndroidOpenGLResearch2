@@ -1,7 +1,9 @@
 package ilapin.opengl_research.domain
 
 import android.annotation.SuppressLint
+import ilapin.common.android.log.L
 import ilapin.common.input.TouchEvent
+import ilapin.opengl_research.app.App.Companion.LOG_TAG
 
 /**
  * @author raynor on 20.02.20.
@@ -49,12 +51,14 @@ class GesturesDispatcher {
     fun onTouchEvent(touchEvent: TouchEvent) {
         if (gestureOwners.containsKey(touchEvent.id)) {
             gestureOwners[touchEvent.id]?.onTouchEvent(touchEvent)
-        } else {
+        } else if (touchEvent.action == TouchEvent.Action.DOWN) {
             findMatchingGestureConsumer(touchEvent)?.let {
                 gestureOwners[touchEvent.id] = it
                 it.onTouchEvent(touchEvent)
             }
         }
+
+        L.d(LOG_TAG, "!@# action: ${touchEvent.action}")
 
         if (touchEvent.action == TouchEvent.Action.CANCEL || touchEvent.action == TouchEvent.Action.UP) {
             gestureOwners.remove(touchEvent.id)
