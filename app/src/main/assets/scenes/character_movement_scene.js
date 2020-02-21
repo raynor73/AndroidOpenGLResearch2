@@ -6,11 +6,16 @@
 
 var uiCamera;
 var directionalLight;
+
 var leftJoystick;
 var leftJoystickGestureConsumer;
+var rightJoystick;
+var rightJoystickGestureConsumer;
 
 var scrollController;
+
 var leftJoystickController;
+var rightJoystickController;
 
 var pixelDensityFactor;
 var displayWidth;
@@ -26,13 +31,20 @@ function start() {
 
     directionalLight = findGameObject(scene.rootGameObject, "directional_light");
     uiCamera = findGameObject(scene.rootGameObject, "ui_camera");
+
     leftJoystick = findGameObject(scene.rootGameObject, "left_joystick")
     leftJoystickGestureConsumer = scene.getGestureConsumerComponent(leftJoystick)
+    rightJoystick = findGameObject(scene.rootGameObject, "right_joystick")
+    rightJoystickGestureConsumer = scene.getGestureConsumerComponent(rightJoystick)
 
     scrollController = new ScrollController();
     leftJoystickController = new JoystickController(
         leftJoystickGestureConsumer,
         scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_handle"))
+    );
+    rightJoystickController = new JoystickController(
+        rightJoystickGestureConsumer,
+        scene.getTransformationComponent(findGameObject(rightJoystick, "right_joystick_handle"))
     );
 
     var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
@@ -47,6 +59,7 @@ function start() {
 function update(dt) {
     scrollController.update();
     leftJoystickController.update();
+    rightJoystickController.update();
 
     var scrollEvent = scrollController.scrollEvent;
     if (scrollEvent != null) {
@@ -74,7 +87,8 @@ function onGoingToBackground() {
 }
 
 function layoutUi() {
-    layoutLeftJoystick()
+    layoutLeftJoystick();
+    layoutRightJoystick();
 }
 
 function layoutLeftJoystick() {
@@ -97,6 +111,31 @@ function layoutLeftJoystick() {
     leftJoystickGestureConsumer.top = scale.z;
     leftJoystickGestureConsumer.right = scale.x;
     leftJoystickGestureConsumer.bottom = 0;
+
+    vectorsPool.recycle(position);
+    vectorsPool.recycle(scale);
+}
+
+function layoutRightJoystick() {
+    var position = vectorsPool.obtain();
+    var scale = vectorsPool.obtain();
+
+    var transform = scene.getTransformationComponent(rightJoystick);
+    var backgroundTransform =
+        scene.getTransformationComponent(findGameObject(rightJoystick, "right_joystick_background"));
+
+    scale.set(backgroundTransform.scale);
+    scale.mul(pixelDensityFactor);
+
+    position.set(transform.position);
+    position.x += displayWidth - scale.x / 2;
+    position.y += scale.z / 2;
+    transform.position = position;
+
+    rightJoystickGestureConsumer.left = displayWidth - scale.x;
+    rightJoystickGestureConsumer.top = scale.z;
+    rightJoystickGestureConsumer.right = displayWidth;
+    rightJoystickGestureConsumer.bottom = 0;
 
     vectorsPool.recycle(position);
     vectorsPool.recycle(scale);

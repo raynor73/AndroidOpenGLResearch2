@@ -10,10 +10,8 @@ import ilapin.common.android.kotlin.gone
 import ilapin.common.android.kotlin.setVisible
 import ilapin.common.input.TouchEvent
 import ilapin.common.kotlin.plusAssign
-import ilapin.opengl_research.JoystickPositionEvent
 import ilapin.opengl_research.R
 import ilapin.opengl_research.app.App
-import ilapin.opengl_research.domain.Joystick
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 import javax.inject.Inject
@@ -58,13 +56,6 @@ class MainActivity : AppCompatActivity() {
             glView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
             containerLayout.addView(glView, 0)
 
-            subscriptions += rightJoystickView.positionObservable.subscribe { position ->
-                renderer.putMessage(JoystickPositionEvent(
-                    RIGHT_JOYSTICK_ID,
-                    Joystick.Position(position.x, position.y)
-                ))
-            }
-
             subscriptions += renderer.isLoading.subscribe { isLoading -> progressBar.setVisible(isLoading) }
 
             renderer.putMessage(GLSurfaceViewRenderer.LoadAndStartSceneMessage("scenes/character_movement_scene.json"))
@@ -100,11 +91,5 @@ class MainActivity : AppCompatActivity() {
                     View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-    }
-
-    companion object {
-
-        const val LEFT_JOYSTICK_ID = 0
-        const val RIGHT_JOYSTICK_ID = 1
     }
 }

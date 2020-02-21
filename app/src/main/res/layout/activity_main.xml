@@ -9,13 +9,6 @@
     tools:ignore="RtlHardcoded"
     tools:context=".ui.MainActivity">
 
-    <ilapin.common.android.ui.widgets.joystick_view.JoystickView
-        android:id="@+id/rightJoystickView"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_margin="16dp"
-        android:layout_gravity="bottom|right" />
-
     <fr.castorflex.android.circularprogressbar.CircularProgressBar
         android:id="@+id/progressBar"
         android:layout_width="150dp"
