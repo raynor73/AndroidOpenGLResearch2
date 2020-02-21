@@ -36,19 +36,45 @@ class MainActivity : AppCompatActivity() {
         renderer?.let { renderer ->
             val glView = GLSurfaceView(this)
             glView.setOnTouchListener { _, event ->
-                renderer.putMessage(
-                    TouchEvent(
-                        event.getPointerId(event.actionIndex),
-                        when (event.action) {
-                            MotionEvent.ACTION_DOWN -> TouchEvent.Action.DOWN
-                            MotionEvent.ACTION_MOVE -> TouchEvent.Action.MOVE
-                            MotionEvent.ACTION_UP -> TouchEvent.Action.UP
-                            else -> TouchEvent.Action.CANCEL
-                        },
-                        event.x.toInt(),
-                        glView.height - event.y.toInt()
-                    )
-                )
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                        renderer.putMessage(TouchEvent(
+                            event.getPointerId(event.actionIndex),
+                            TouchEvent.Action.DOWN,
+                            event.getX(event.actionIndex).toInt(),
+                            glView.height - event.getY(event.actionIndex).toInt()
+                        ))
+                    }
+
+                    MotionEvent.ACTION_MOVE -> {
+                        repeat(event.pointerCount) { i ->
+                            renderer.putMessage(TouchEvent(
+                                event.getPointerId(i),
+                                TouchEvent.Action.MOVE,
+                                event.getX(i).toInt(),
+                                glView.height - event.getY(i).toInt()
+                            ))
+                        }
+                    }
+
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
+                        renderer.putMessage(TouchEvent(
+                            event.getPointerId(event.actionIndex),
+                            TouchEvent.Action.UP,
+                            event.getX(event.actionIndex).toInt(),
+                            glView.height - event.getY(event.actionIndex).toInt()
+                        ))
+                    }
+
+                    else -> {
+                        renderer.putMessage(TouchEvent(
+                            event.getPointerId(event.actionIndex),
+                            TouchEvent.Action.CANCEL,
+                            event.getX(event.actionIndex).toInt(),
+                            glView.height - event.getY(event.actionIndex).toInt()
+                        ))
+                    }
+                }
                 true
             }
             glView.setEGLContextClientVersion(2)
