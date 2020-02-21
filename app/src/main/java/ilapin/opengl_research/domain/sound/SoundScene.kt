@@ -52,6 +52,7 @@ class SoundScene(
     }
 
     fun loadSoundClip(name: String, path: String) {
+        // TODO Remove this from here. It is not scene responsibility
         if (isPaused) {
             L.e(LOG_TAG, "SoundScene.loadSoundClip() called but SoundScene is paused")
             return
@@ -104,6 +105,10 @@ class SoundScene(
         )
 
         updateActivePlayersVolume()
+    }
+
+    fun pauseSoundPlayer(name: String) {
+        TODO("Not implemented")
     }
 
     fun stopSoundPlayer(name: String) {
