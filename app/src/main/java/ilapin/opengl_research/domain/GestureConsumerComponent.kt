@@ -1,9 +1,7 @@
 package ilapin.opengl_research.domain
 
-import ilapin.common.android.log.L
 import ilapin.common.input.TouchEvent
 import ilapin.engine3d.GameObjectComponent
-import ilapin.opengl_research.app.App.Companion.LOG_TAG
 
 /**
  * @author raynor on 20.02.20.
@@ -20,7 +18,6 @@ class GestureConsumerComponent(
 
     val touchEvents: List<TouchEvent>
         get() {
-            L.d(LOG_TAG, "!@#: get touchEvents")
             return _touchEvents
         }
 
@@ -29,7 +26,6 @@ class GestureConsumerComponent(
     }
 
     fun clearPrevTouchEvent() {
-        L.d(LOG_TAG, "!@#: clearPrevTouchEvent")
         _touchEvents.clear()
     }
 

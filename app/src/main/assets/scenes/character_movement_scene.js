@@ -177,8 +177,6 @@ function JoystickController(gestureConsumer, handleTransform) {
         for (var iterator = touchEvents.iterator(); iterator.hasNext();) {
             var touchEvent = iterator.next();
 
-            println("!@# js action: " + touchEvent.action);
-
             if (
                 touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.UP ||
                 touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.CANCEL
