@@ -41,7 +41,13 @@
     { "id": "cowboy", "path": "meshes/cowboy.dae" }
   ],
   "scene": {
-    "scriptPath": "scenes/character_movement_scene.js",
+    "scriptPaths": [
+      "scenes/utils.js",
+      "scenes/joystick_controller.js",
+      "scenes/scroll_controller.js",
+      "scenes/player_controller.js",
+      "scenes/character_movement_scene.js"
+    ],
     "activeCameras": ["player_camera", "ui_camera"],
     "renderTargets": [],
     "gameObjects": [

@@ -66,7 +66,7 @@ class ScriptedScene(
         scriptingEngine.displayMetricsRepository = displayMetricsRepository
         scriptingEngine.vectorsPool = vectorsPool
         scriptingEngine.quaternionsPool = quaternionsPool
-        scriptingEngine.evaluateScript(sceneData.scriptSource)
+        scriptingEngine.loadScripts(sceneData.scriptSources)
     }
 
     override fun update() {

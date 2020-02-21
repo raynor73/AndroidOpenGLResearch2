@@ -59,11 +59,13 @@ class AndroidAssetsSceneLoader(
             context.assets.open(path).bufferedReader().use(BufferedReader::readText),
             SceneInfoDto::class.java
         )
-        val sceneScript = context
-            .assets
-            .open(sceneInfoDto.scene?.scriptPath ?: error("No script path found"))
-            .bufferedReader()
-            .use(BufferedReader::readText)
+        val sceneScripts = (sceneInfoDto.scene?.scriptPaths ?: error("No script paths found")).map { scriptPath ->
+            context
+                .assets
+                .open(scriptPath)
+                .bufferedReader()
+                .use(BufferedReader::readText)
+        }
 
         sceneInfoDto.textures?.forEach {
             safeLet(it.id, it.path) { id, path -> texturesManager.createTexture(id, path) }
@@ -232,7 +234,7 @@ class AndroidAssetsSceneLoader(
         sceneInfoDto.scene.activeCameras ?: error("No active camera names found")
 
         return SceneData(
-            sceneScript,
+            sceneScripts,
             rootGameObject ?: error("No root game object"),
             camerasMap.filter { sceneInfoDto.scene.activeCameras.contains(it.key) }.values.toList(),
             layerRenderers,

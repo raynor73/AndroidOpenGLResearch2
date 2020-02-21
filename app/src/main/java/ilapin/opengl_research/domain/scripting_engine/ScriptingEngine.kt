@@ -5,7 +5,7 @@ package ilapin.opengl_research.domain.scripting_engine
  */
 interface ScriptingEngine {
 
-    fun evaluateScript(script: String)
+    fun loadScripts(scripts: List<String>)
 
     fun update(dt: Float)
 

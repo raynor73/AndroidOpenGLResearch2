@@ -12,7 +12,7 @@ import org.joml.Vector3fc
  * @author raynor on 21.01.20.
  */
 class SceneData(
-    val scriptSource: String,
+    val scriptSources: List<String>,
     val rootGameObject: GameObject,
     val activeCameras: List<CameraComponent>,
     val layerRenderers: Multimap<String, MeshRendererComponent>,

@@ -71,8 +71,8 @@ class RhinoScriptingEngine : ScriptingEngine {
     var vectorsPool: ObjectsPool<Vector3f>? = null
     var quaternionsPool: ObjectsPool<Quaternionf>? = null
 
-    override fun evaluateScript(script: String) {
-        context.evaluateString(scope, script, "SceneScript", 1, null)
+    override fun loadScripts(scripts: List<String>) {
+        scripts.forEachIndexed { i, script -> context.evaluateString(scope, script, "SceneScript #$i", 1, null) }
 
         ScriptableObject.putProperty(
             scope,
