@@ -27,9 +27,5 @@ interface Scene2 {
 
     fun update()
 
-    fun onGoingToForeground()
-
-    fun onGoingToBackground()
-
     fun deinit()
 }

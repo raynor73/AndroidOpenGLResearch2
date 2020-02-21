@@ -3,6 +3,7 @@ package ilapin.opengl_research.data.scripting_engine
 import ilapin.common.android.log.L
 import ilapin.opengl_research.ObjectsPool
 import ilapin.opengl_research.app.App.Companion.LOG_TAG
+import ilapin.opengl_research.domain.AppPriorityReporter
 import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.Scene2
 import ilapin.opengl_research.domain.TouchEventsRepository
@@ -62,9 +63,8 @@ class RhinoScriptingEngine : ScriptingEngine {
     private val scope: ScriptableObject by lazy { context.initStandardObjects() }
 
     private var updateJsFunction: org.mozilla.javascript.Function? = null
-    private var onGoingToForegroundJsFunction: org.mozilla.javascript.Function? = null
-    private var onGoingToBackgroundJsFunction: org.mozilla.javascript.Function? = null
 
+    var appPriorityReporter: AppPriorityReporter? = null
     var touchEventsRepository: TouchEventsRepository? = null
     var scene: Scene2? = null
     var displayMetricsRepository: DisplayMetricsRepository? = null
@@ -73,6 +73,12 @@ class RhinoScriptingEngine : ScriptingEngine {
 
     override fun loadScripts(scripts: List<String>) {
         scripts.forEachIndexed { i, script -> context.evaluateString(scope, script, "SceneScript #$i", 1, null) }
+
+        ScriptableObject.putProperty(
+            scope,
+            "appPriorityReporter",
+            Context.javaToJS(appPriorityReporter, scope)
+        )
 
         ScriptableObject.putProperty(
             scope,
@@ -116,14 +122,6 @@ class RhinoScriptingEngine : ScriptingEngine {
 
     override fun update(dt: Float) {
         updateJsFunction?.call(context, scope, scope, arrayOf(dt))
-    }
-
-    fun onGoingToForeground() {
-        onGoingToForegroundJsFunction?.call(context, scope, scope, emptyArray())
-    }
-
-    fun onGoingToBackground() {
-        onGoingToBackgroundJsFunction?.call(context, scope, scope, emptyArray())
     }
 
     override fun deinit() {

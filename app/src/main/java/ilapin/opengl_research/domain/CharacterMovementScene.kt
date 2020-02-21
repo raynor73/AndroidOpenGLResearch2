@@ -149,7 +149,7 @@ class CharacterMovementScene(
         quaternionsPool.recycle(playerRotation)
     }
 
-    override fun onGoingToForeground() {
+    /*override fun onGoingToForeground() {
         isPaused = false
         soundScene.resume()
 
@@ -158,7 +158,7 @@ class CharacterMovementScene(
     override fun onGoingToBackground() {
         isPaused = true
         soundScene.pause()
-    }
+    }*/
 
     override fun deinit() {
         soundScene.deinit()

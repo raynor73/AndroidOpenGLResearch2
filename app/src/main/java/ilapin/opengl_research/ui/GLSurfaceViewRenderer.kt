@@ -41,7 +41,7 @@ class GLSurfaceViewRenderer(
     private val vectorsPool: ObjectsPool<Vector3f>,
     private val quaternionsPool: ObjectsPool<Quaternionf>,
     private val gesturesDispatcher: GesturesDispatcher
-) : GLSurfaceView.Renderer, SceneManager {
+) : GLSurfaceView.Renderer, SceneManager, AppPriorityReporter {
 
     private val messageQueueSubscription: Disposable
 
@@ -57,14 +57,19 @@ class GLSurfaceViewRenderer(
 
     private val _isLoadingSubject = BehaviorSubject.createDefault(false)
 
+    private var _appState = AppPriorityReporter.AppState.FOREGROUND
+
+    override val state: AppPriorityReporter.AppState
+        get() = _appState
+
     val isLoading: Observable<Boolean> = _isLoadingSubject.observeOn(AndroidSchedulers.mainThread())
 
     init {
         messageQueueSubscription = messageQueue.messages().subscribe {
             when (it) {
                 is LifecycleMessage.DeinitMessage -> scene?.deinit()
-                is LifecycleMessage.GoingToForegroundMessage -> scene?.onGoingToForeground()
-                is LifecycleMessage.GoingToBackgroundMessage -> scene?.onGoingToBackground()
+                is LifecycleMessage.GoingToForegroundMessage -> _appState = AppPriorityReporter.AppState.FOREGROUND
+                is LifecycleMessage.GoingToBackgroundMessage -> _appState = AppPriorityReporter.AppState.BACKGROUND
                 is LoadAndStartSceneMessage -> loadAndStartScene(it.path)
             }
         }
@@ -138,7 +143,8 @@ class GLSurfaceViewRenderer(
             displayMetricsRepository,
             vectorsPool,
             quaternionsPool,
-            gesturesDispatcher
+            gesturesDispatcher,
+            this
         )
 
         safeLet(displayWidth, displayHeight) { width, height ->

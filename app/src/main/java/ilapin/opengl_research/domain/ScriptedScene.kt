@@ -31,7 +31,8 @@ class ScriptedScene(
     displayMetricsRepository: DisplayMetricsRepository,
     vectorsPool: ObjectsPool<Vector3f>,
     quaternionsPool: ObjectsPool<Quaternionf>,
-    private val gesturesDispatcher: GesturesDispatcher
+    private val gesturesDispatcher: GesturesDispatcher,
+    appPriorityReporter: AppPriorityReporter
 ) : Scene2 {
 
     private val _activeCameras = ArrayList<CameraComponent>().apply { addAll(sceneData.activeCameras) }
@@ -61,6 +62,7 @@ class ScriptedScene(
     override val renderTargets: List<FrameBufferInfo.RenderTargetFrameBufferInfo> = emptyList()
 
     init {
+        scriptingEngine.appPriorityReporter = appPriorityReporter
         scriptingEngine.touchEventsRepository = touchEventsRepository
         scriptingEngine.scene = this
         scriptingEngine.displayMetricsRepository = displayMetricsRepository
@@ -78,15 +80,6 @@ class ScriptedScene(
         touchEventsRepository.touchEvents.forEach { gesturesDispatcher.onTouchEvent(it) }
 
         scriptingEngine.update(dt)
-    }
-
-    // TODO Make another facility for onGoingToForeground/onGoingToBackground
-    override fun onGoingToForeground() {
-        scriptingEngine.onGoingToForeground()
-    }
-
-    override fun onGoingToBackground() {
-        scriptingEngine.onGoingToBackground()
     }
 
     override fun deinit() {

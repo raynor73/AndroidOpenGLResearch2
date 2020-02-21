@@ -1,3 +1,4 @@
+// var appPriorityReporter = ...
 // var touchEventsRepository = ...
 // var scene = ...
 // var displayMetricsRepository = ...
@@ -103,14 +104,6 @@ function update(dt) {
     }
 
     movePlayer(dt);
-}
-
-function onGoingToForeground() {
-    // do nothing
-}
-
-function onGoingToBackground() {
-    // do nothing
 }
 
 function movePlayer(dt) {
