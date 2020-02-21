@@ -4,10 +4,19 @@
 // var quaternionsPool = ...
 // var vectorsPool = ...
 
+var INITIAL_FORWARD_VECTOR = new Packages.org.joml.Vector3f(0, 0, -1);
+var INITIAL_RIGHT_VECTOR = new Packages.org.joml.Vector3f(1, 0, 0);
+var PLAYER_MOVEMENT_SPEED = 5; // unit/sec
+var PLAYER_STEERING_SPEED = Math.PI; // rad/sec
+
 var rootGestureConsumer;
 
 var uiCamera;
 var directionalLight;
+
+var playerTransform;
+var playerYAngle = 0;
+var playerController;
 
 var leftJoystick;
 var leftJoystickHandleTransform;
@@ -59,6 +68,9 @@ function start() {
         rightJoystickHandleTransform
     );
 
+    playerTransform = scene.getTransformationComponent(findGameObject(scene.rootGameObject, "player"));
+    playerController = new PlayerController(leftJoystickController, rightJoystickController);
+
     var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
     orthoCamera.left = 0;
     orthoCamera.right = displayWidth;
@@ -72,6 +84,7 @@ function update(dt) {
     scrollController.update();
     leftJoystickController.update();
     rightJoystickController.update();
+    playerController.update();
 
     var scrollEvent = scrollController.scrollEvent;
     if (scrollEvent != null) {
@@ -88,6 +101,8 @@ function update(dt) {
 
         quaternionsPool.recycle(lightRotation);
     }
+
+    movePlayer(dt);
 }
 
 function onGoingToForeground() {
@@ -96,6 +111,42 @@ function onGoingToForeground() {
 
 function onGoingToBackground() {
     // do nothing
+}
+
+function movePlayer(dt) {
+    var playerPosition = vectorsPool.obtain();
+    var movingDirection = vectorsPool.obtain();
+    var strafingDirection = vectorsPool.obtain();
+
+    movingDirection.set(INITIAL_FORWARD_VECTOR);
+    movingDirection.rotate(playerTransform.rotation);
+    strafingDirection.set(INITIAL_RIGHT_VECTOR);
+    strafingDirection.rotate(playerTransform.rotation);
+
+    playerPosition.set(playerTransform.position);
+    playerPosition.add(movingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.movingFraction).mul(dt));
+    playerPosition.add(strafingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.strafingFraction).mul(dt));
+    playerTransform.position = playerPosition;
+
+    var playerRotation = quaternionsPool.obtain();
+    playerYAngle += playerController.horizontalSteeringFraction * PLAYER_STEERING_SPEED * dt;
+    playerRotation.identity().rotateY(playerYAngle);
+    playerTransform.rotation = playerRotation;
+
+    /*if (
+        Math.abs(playerController.movingFraction) > 0.01 ||
+        Math.abs(playerController.strafingFraction) > 0.01 ||
+        Math.abs(playerController.horizontalSteeringFraction) > 0.01
+    ) {
+        soundScene.updateSoundListenerPosition(playerTransform.position);
+        soundScene.updateSoundListenerRotation(playerTransform.rotation);
+    }*/
+
+    vectorsPool.recycle(playerPosition);
+    vectorsPool.recycle(movingDirection);
+    vectorsPool.recycle(strafingDirection);
+
+    quaternionsPool.recycle(playerRotation);
 }
 
 function layoutUi() {
@@ -310,4 +361,41 @@ function JoystickController(gestureConsumer, handleTransform) {
 
         vectorsPool.recycle(position);
     };
+}
+
+function PlayerController(leftJoystickController, rightJoystickController) {
+
+    this.THRESHOLD = 0.01
+
+    this.leftJoystickController = leftJoystickController;
+    this.rightJoystickController = rightJoystickController;
+
+    this.movingFraction = 0;
+    this.strafingFraction = 0;
+    this.horizontalSteeringFraction = 0;
+    this.verticalSteeringFraction = 0;
+
+    this.update = function() {
+        if (Math.abs(this.leftJoystickController.joystickPositionY) >= this.THRESHOLD) {
+            this.movingFraction = this.leftJoystickController.joystickPositionY;
+        } else {
+            this.movingFraction = 0;
+        }
+        if (Math.abs(this.leftJoystickController.joystickPositionX) >= this.THRESHOLD) {
+            this.strafingFraction = this.leftJoystickController.joystickPositionX;
+        } else {
+            this.strafingFraction = 0;
+        }
+
+        if (Math.abs(this.rightJoystickController.joystickPositionX) >= this.THRESHOLD) {
+            this.horizontalSteeringFraction = -this.rightJoystickController.joystickPositionX;
+        } else {
+            this.horizontalSteeringFraction = 0;
+        }
+        if (Math.abs(this.rightJoystickController.joystickPositionY) >= this.THRESHOLD) {
+            this.verticalSteeringFraction = -this.rightJoystickController.joystickPositionY;
+        } else {
+            this.verticalSteeringFraction = 0;
+        }
+    }
 }
