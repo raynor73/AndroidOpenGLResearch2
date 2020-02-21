@@ -204,6 +204,9 @@ function JoystickController(gestureConsumer, handleTransform) {
 
     //this.state = StateEnum.IDLE;
 
+    this.joystickPositionX = 0;
+    this.joystickPositionY = 0;
+
     this.update = function() {
         var touchEvents = this.gestureConsumer.touchEvents;
 
@@ -224,16 +227,39 @@ function JoystickController(gestureConsumer, handleTransform) {
                 position.x = 0;
                 position.z = 0;
                 this.handleTransform.position = position;
+
+                this.joystickPositionX = 0;
+                this.joystickPositionY = 0;
             } else {
                 var eventX = this.gestureConsumer.toLocalX(touchEvent.x);
                 var eventY = this.gestureConsumer.toLocalY(touchEvent.y);
 
                 position.set(this.handleTransform.localPosition);
 
-                position.x = eventX - this.width / 2;
-                position.z = -(eventY - this.height / 2);
+                var halfWidth = this.width / 2;
+                var halfHeight = this.height / 2;
+
+                var clampedX = eventX - halfWidth;
+                if (clampedX > halfWidth) {
+                    clampedX = halfWidth;
+                } else if (clampedX < -halfWidth) {
+                    clampedX = -halfWidth;
+                }
+
+                var clampedY = -(eventY - this.height / 2);
+                if (clampedY > halfHeight) {
+                    clampedY = halfHeight;
+                } else if (clampedY < -halfHeight) {
+                    clampedY = -halfHeight;
+                }
+
+                position.x = clampedX;
+                position.z = clampedY;
 
                 this.handleTransform.position = position;
+
+                this.joystickPositionX = clampedX / this.width * 2;
+                this.joystickPositionY = -clampedY / this.height * 2;
             }
         }
 
