@@ -10,10 +10,12 @@ var uiCamera;
 var directionalLight;
 
 var leftJoystick;
+var leftJoystickHandleTransform;
 var leftJoystickGestureConsumer;
 var leftJoystickController;
 
 var rightJoystick;
+var rightJoystickHandleTransform;
 var rightJoystickGestureConsumer;
 var rightJoystickController;
 
@@ -42,13 +44,19 @@ function start() {
     rightJoystickGestureConsumer = scene.getGestureConsumerComponent(rightJoystick)
 
     scrollController = new ScrollController(rootGestureConsumer);
+    leftJoystickHandleTransform = scene.getTransformationComponent(
+        findGameObject(leftJoystick, "left_joystick_handle")
+    );
     leftJoystickController = new JoystickController(
         leftJoystickGestureConsumer,
-        scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_handle"))
+        leftJoystickHandleTransform
+    );
+    rightJoystickHandleTransform = scene.getTransformationComponent(
+        findGameObject(rightJoystick, "right_joystick_handle")
     );
     rightJoystickController = new JoystickController(
         rightJoystickGestureConsumer,
-        scene.getTransformationComponent(findGameObject(rightJoystick, "right_joystick_handle"))
+        rightJoystickHandleTransform
     );
 
     var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
@@ -104,8 +112,13 @@ function layoutLeftJoystick() {
     var backgroundTransform =
         scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_background"));
 
-    scale.set(backgroundTransform.scale);
+    scale.set(leftJoystickHandleTransform.localScale);
     scale.mul(pixelDensityFactor);
+    leftJoystickHandleTransform.scale = scale
+
+    scale.set(backgroundTransform.localScale);
+    scale.mul(pixelDensityFactor);
+    backgroundTransform.scale = scale
 
     position.set(transform.position);
     position.x += scale.x / 2;
@@ -129,8 +142,13 @@ function layoutRightJoystick() {
     var backgroundTransform =
         scene.getTransformationComponent(findGameObject(rightJoystick, "right_joystick_background"));
 
-    scale.set(backgroundTransform.scale);
+    scale.set(rightJoystickHandleTransform.localScale);
     scale.mul(pixelDensityFactor);
+    rightJoystickHandleTransform.scale = scale
+
+    scale.set(backgroundTransform.localScale);
+    scale.mul(pixelDensityFactor);
+    backgroundTransform.scale = scale
 
     position.set(transform.position);
     position.x += displayWidth - scale.x / 2;
@@ -226,8 +244,8 @@ function JoystickController(gestureConsumer, handleTransform) {
 
     this.gestureConsumer = gestureConsumer;
     this.handleTransform = handleTransform;
-    this.width = gestureConsumer.right - gestureConsumer.left;
-    this.height = gestureConsumer.top - gestureConsumer.bottom;
+    this.width = (gestureConsumer.right - gestureConsumer.left) * pixelDensityFactor;
+    this.height = (gestureConsumer.top - gestureConsumer.bottom) * pixelDensityFactor;
 
     //this.state = StateEnum.IDLE;
 
