@@ -4,18 +4,20 @@
 // var quaternionsPool = ...
 // var vectorsPool = ...
 
+var rootGestureConsumer;
+
 var uiCamera;
 var directionalLight;
 
 var leftJoystick;
 var leftJoystickGestureConsumer;
+var leftJoystickController;
+
 var rightJoystick;
 var rightJoystickGestureConsumer;
+var rightJoystickController;
 
 var scrollController;
-
-var leftJoystickController;
-var rightJoystickController;
 
 var pixelDensityFactor;
 var displayWidth;
@@ -25,6 +27,8 @@ var xAngle = -Math.PI / 2;
 var zAngle = -Math.PI / 4;
 
 function start() {
+    rootGestureConsumer = scene.getGestureConsumerComponent(scene.rootGameObject);
+
     pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor();
     displayWidth = displayMetricsRepository.displayWidth;
     displayHeight = displayMetricsRepository.displayHeight;
@@ -37,7 +41,7 @@ function start() {
     rightJoystick = findGameObject(scene.rootGameObject, "right_joystick")
     rightJoystickGestureConsumer = scene.getGestureConsumerComponent(rightJoystick)
 
-    scrollController = new ScrollController();
+    scrollController = new ScrollController(rootGestureConsumer);
     leftJoystickController = new JoystickController(
         leftJoystickGestureConsumer,
         scene.getTransformationComponent(findGameObject(leftJoystick, "left_joystick_handle"))
@@ -89,6 +93,7 @@ function onGoingToBackground() {
 function layoutUi() {
     layoutLeftJoystick();
     layoutRightJoystick();
+    layoutRootGestureConsumer();
 }
 
 function layoutLeftJoystick() {
@@ -141,6 +146,13 @@ function layoutRightJoystick() {
     vectorsPool.recycle(scale);
 }
 
+function layoutRootGestureConsumer() {
+    rootGestureConsumer.left = 0;
+    rootGestureConsumer.top = displayHeight;
+    rootGestureConsumer.right = displayWidth;
+    rootGestureConsumer.bottom = 0;
+}
+
 function findGameObject(currentGameObject, name) {
     if (currentGameObject.name == name) {
         return currentGameObject;
@@ -164,7 +176,9 @@ function toRadians(degrees) {
     return degrees * (Math.PI / 180);
 }
 
-function ScrollController() {
+function ScrollController(gestureConsumer) {
+
+    this.gestureConsumer = gestureConsumer;
 
     this.prevTouchEvent = null;
 
@@ -173,18 +187,31 @@ function ScrollController() {
     this.update = function() {
         this.scrollEvent = null;
 
-        var touchEvent = null;
-        if (touchEventsRepository.touchEvents.size() > 0) {
-            touchEvent = touchEventsRepository.touchEvents.get(0);
+        var touchEvents = this.gestureConsumer.touchEvents;
+
+        if (touchEvents.size() == 0) {
+            return;
         }
 
-        if (touchEvent != null && this.prevTouchEvent != null) {
-            this.scrollEvent = new ScrollEvent(
-                touchEvent.x - this.prevTouchEvent.x,
-                touchEvent.y - this.prevTouchEvent.y
-            );
+        for (var iterator = touchEvents.iterator(); iterator.hasNext();) {
+            var touchEvent = iterator.next();
+
+            if (this.prevTouchEvent != null) {
+                this.scrollEvent = new ScrollEvent(
+                    touchEvent.x - this.prevTouchEvent.x,
+                    touchEvent.y - this.prevTouchEvent.y
+                );
+            }
+
+            if (
+                touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.UP ||
+                touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.CANCEL
+            ) {
+                this.prevTouchEvent = null;
+            } else {
+                this.prevTouchEvent = touchEvent;
+            }
         }
-        this.prevTouchEvent = touchEvent;
     };
 }
 
