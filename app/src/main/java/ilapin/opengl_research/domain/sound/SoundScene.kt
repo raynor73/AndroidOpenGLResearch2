@@ -1,6 +1,5 @@
 package ilapin.opengl_research.domain.sound
 
-import android.annotation.SuppressLint
 import ilapin.common.android.log.L
 import ilapin.common.math.inverseLerp
 import ilapin.common.time.TimeRepository
@@ -24,8 +23,11 @@ class SoundScene(
     private val soundListenerRotation = Quaternionf().identity()
 
     private val players = HashMap<String, SoundPlayer>()
-    @SuppressLint("UseSparseArrays")
+
     private val activePlayers = HashMap<String, ActivePlayer>()
+    private val pausedPlayers = HashMap<String, PausedPlayer>()
+    private val permanentlyPausedPlayers = ArrayList<String>()
+
     private val playersToRemove = ArrayList<String>()
     private val playersToUpdate = ArrayList<ActivePlayer>()
 
@@ -136,6 +138,7 @@ class SoundScene(
         updateActivePlayersVolume()
     }
 
+    // TODO Fix pausing, at presence no consideration of pause timestamp
     fun pause() {
         if (isPaused) {
             L.e(LOG_TAG, "SoundScene.pause() called but SoundScene is already paused")
@@ -164,13 +167,17 @@ class SoundScene(
         isPaused = false
     }
 
-    fun deinit() {
+    fun clear() {
+
+    }
+
+    /*fun deinit() {
         activePlayers.values.forEach { player ->
             soundClipsRepository.stopSoundClip(player.soundClipStreamId)
         }
 
         activePlayers.clear()
-    }
+    }*/
 
     private fun updateActivePlayersVolume() {
         playersToRemove.clear()

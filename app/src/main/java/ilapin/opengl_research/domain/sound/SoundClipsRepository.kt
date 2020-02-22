@@ -7,7 +7,7 @@ interface SoundClipsRepository {
 
     fun loadSoundClip(name: String, path: String)
 
-    fun playSoundClip(name: String, isLooped: Boolean = false): Int
+    fun playSoundClip(name: String, leftVolume: Float, rightVolume: Float, isLooped: Boolean = false): Int
 
     fun pauseSoundClip(streamId: Int)
 

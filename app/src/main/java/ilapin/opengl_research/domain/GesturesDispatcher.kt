@@ -1,6 +1,5 @@
 package ilapin.opengl_research.domain
 
-import android.annotation.SuppressLint
 import ilapin.common.input.TouchEvent
 
 /**
@@ -10,7 +9,6 @@ class GesturesDispatcher {
 
     private val gestureConsumers = ArrayList<GestureConsumerComponent>()
 
-    @SuppressLint("UseSparseArrays")
     private val gestureOwners = HashMap<Int, GestureConsumerComponent>()
 
     fun addGestureConsumer(gestureConsumerComponent: GestureConsumerComponent) {
