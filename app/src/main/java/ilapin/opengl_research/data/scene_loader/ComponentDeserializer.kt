@@ -19,6 +19,9 @@ class ComponentDeserializer : JsonDeserializer<ComponentDto> {
                 "PerspectiveCamera" -> context.deserialize(jsonObject, ComponentDto.PerspectiveCameraDto::class.java)
                 "OrthoCamera" -> context.deserialize(jsonObject, ComponentDto.OrthoCameraDto::class.java)
                 "GestureConsumer" -> context.deserialize(jsonObject, ComponentDto.GestureConsumerDto::class.java)
+                "SoundPlayer3D" -> context.deserialize(jsonObject, ComponentDto.SoundPlayer3DDto::class.java)
+                "SoundPlayer2D" -> context.deserialize(jsonObject, ComponentDto.SoundPlayer2DDto::class.java)
+                "SoundListener" -> context.deserialize(jsonObject, ComponentDto.SoundListenerDto::class.java)
                 else -> null
             }
         }

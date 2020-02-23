@@ -8,6 +8,9 @@ import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.Scene2
 import ilapin.opengl_research.domain.TouchEventsRepository
 import ilapin.opengl_research.domain.scripting_engine.ScriptingEngine
+import ilapin.opengl_research.domain.sound.SoundClipsRepository
+import ilapin.opengl_research.domain.sound.SoundScene
+import ilapin.opengl_research.domain.sound_2d.SoundScene2D
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.mozilla.javascript.Context
@@ -70,6 +73,9 @@ class RhinoScriptingEngine : ScriptingEngine {
     var displayMetricsRepository: DisplayMetricsRepository? = null
     var vectorsPool: ObjectsPool<Vector3f>? = null
     var quaternionsPool: ObjectsPool<Quaternionf>? = null
+    var soundClipsRepository: SoundClipsRepository? = null
+    var soundScene: SoundScene? = null
+    var soundScene2D: SoundScene2D? = null
 
     override fun loadScripts(scripts: List<String>) {
         scripts.forEachIndexed { i, script -> context.evaluateString(scope, script, "SceneScript #$i", 1, null) }
@@ -108,6 +114,24 @@ class RhinoScriptingEngine : ScriptingEngine {
             scope,
             "quaternionsPool",
             Context.javaToJS(quaternionsPool, scope)
+        )
+
+        ScriptableObject.putProperty(
+            scope,
+            "soundClipsRepository",
+            Context.javaToJS(soundClipsRepository, scope)
+        )
+
+        ScriptableObject.putProperty(
+            scope,
+            "soundScene",
+            Context.javaToJS(soundScene, scope)
+        )
+
+        ScriptableObject.putProperty(
+            scope,
+            "soundScene2D",
+            Context.javaToJS(soundScene2D, scope)
         )
 
         val startFunction = scope

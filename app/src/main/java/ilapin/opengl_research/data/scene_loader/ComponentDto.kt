@@ -30,4 +30,23 @@ sealed class ComponentDto {
         val right: Int?,
         val bottom: Int?
     ) : ComponentDto()
+
+    class SoundPlayer3DDto(
+        val playerName: String?,
+        val soundClipName: String?,
+        val duration: Int?,
+        val maxVolumeDistance: Float?,
+        val minVolumeDistance: Float?,
+        val volume: Float?
+    ) : ComponentDto()
+
+    class SoundPlayer2DDto(
+        val playerName: String?,
+        val soundClipName: String?,
+        val duration: Int?,
+        val volume: Float?
+    ) : ComponentDto()
+
+    @Suppress("CanSealedSubClassBeObject")
+    class SoundListenerDto : ComponentDto()
 }

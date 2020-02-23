@@ -33,11 +33,11 @@ class SoundPoolSoundClipsRepository(
         Thread.sleep(1000)
     }
 
-    override fun playSoundClip(name: String, isLooped: Boolean): Int {
+    override fun playSoundClip(name: String, leftVolume: Float, rightVolume: Float, isLooped: Boolean): Int {
         return soundPool.play(
             soundClips[name] ?: error("Sound clip $name not found"),
-            1f,
-            1f,
+            leftVolume,
+            rightVolume,
             1,
             if (isLooped) -1 else 0,
             1f
@@ -66,5 +66,10 @@ class SoundPoolSoundClipsRepository(
 
     override fun changeSoundClipVolume(streamId: Int, leftVolume: Float, rightVolume: Float) {
         soundPool.setVolume(streamId, leftVolume, rightVolume)
+    }
+
+    override fun clear() {
+        soundClips.values.forEach { soundPool.stop(it) }
+        soundClips.clear()
     }
 }

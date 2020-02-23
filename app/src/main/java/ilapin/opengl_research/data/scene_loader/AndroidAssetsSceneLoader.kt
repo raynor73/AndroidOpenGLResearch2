@@ -12,12 +12,13 @@ import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.domain.DisplayMetricsRepository
-import ilapin.opengl_research.domain.GestureConsumerComponent
-import ilapin.opengl_research.domain.GesturesDispatcher
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
+import ilapin.opengl_research.domain.sound.SoundClipsRepository
+import ilapin.opengl_research.domain.sound.SoundScene
+import ilapin.opengl_research.domain.sound_2d.SoundScene2D
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector3fc
@@ -40,7 +41,10 @@ class AndroidAssetsSceneLoader(
     private val vectorsPool: ObjectsPool<Vector3f>,
     displayMetricsRepository: DisplayMetricsRepository,
     private val openGLErrorDetector: OpenGLErrorDetector,
-    private val gesturesDispatcher: GesturesDispatcher
+    private val gesturesDispatcher: GesturesDispatcher,
+    private val soundClipsRepository: SoundClipsRepository,
+    private val soundScene: SoundScene,
+    private val soundScene2D: SoundScene2D
 ) : SceneLoader {
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
@@ -66,6 +70,13 @@ class AndroidAssetsSceneLoader(
                 .open(scriptPath)
                 .bufferedReader()
                 .use(BufferedReader::readText)
+        }
+
+        sceneInfoDto.soundClips?.forEach { soundClip ->
+            soundClipsRepository.loadSoundClip(
+                soundClip.name ?: error("No sound clip name"),
+                soundClip.path ?: error("No sound clip path")
+            )
         }
 
         sceneInfoDto.textures?.forEach {
@@ -221,6 +232,30 @@ class AndroidAssetsSceneLoader(
                         gesturesDispatcher.addGestureConsumer(component)
                         gameObject.addComponent(component)
                     }
+
+                    is ComponentDto.SoundPlayer2DDto -> {
+                        gameObject.addComponent(SoundPlayer2DComponent(
+                            soundScene2D,
+                            it.playerName ?: error("No player name"),
+                            it.soundClipName ?: error("No sound clip name"),
+                            it.duration ?: error("No duration"),
+                            it.volume ?: error("No volume")
+                        ))
+                    }
+
+                    is ComponentDto.SoundPlayer3DDto -> {
+                        gameObject.addComponent(SoundPlayer3DComponent(
+                            soundScene,
+                            it.playerName ?: error("No player name"),
+                            it.soundClipName ?: error("No sound clip name"),
+                            it.duration ?: error("No duration"),
+                            it.maxVolumeDistance ?: error("No max volume distance"),
+                            it.minVolumeDistance ?: error("No min volume distance"),
+                            it.volume ?: error("No volume")
+                        ))
+                    }
+
+                    is ComponentDto.SoundListenerDto -> gameObject.addComponent(SoundListenerComponent(soundScene))
                 }
             }
 
@@ -240,15 +275,20 @@ class AndroidAssetsSceneLoader(
 
         sceneInfoDto.scene.activeCameras ?: error("No active camera names found")
 
-        return SceneData(
-            sceneScripts,
-            rootGameObject ?: error("No root game object"),
-            camerasMap.filter { sceneInfoDto.scene.activeCameras.contains(it.key) }.values.toList(),
-            layerRenderers,
-            lights,
-            cameraAmbientLights,
-            emptyList()
-        )
+        return rootGameObject?.let {
+            // To mark all transformation components dirty
+            it.getComponent(TransformationComponent::class.java)?.position = Vector3f()
+
+            SceneData(
+                sceneScripts,
+                it,
+                camerasMap.filter { entry -> sceneInfoDto.scene.activeCameras.contains(entry.key) }.values.toList(),
+                layerRenderers,
+                lights,
+                cameraAmbientLights,
+                emptyList()
+            )
+        } ?: error("No root game object")
     }
 
     companion object {

@@ -37,6 +37,27 @@ class SoundScene2D(
         players[playerName] = SoundPlayer2D(playerName, soundClipName, duration, volume)
     }
 
+    fun removeSoundPlayer(name: String) {
+        if (!players.containsKey(name)) {
+            error("Trying to add $name sound player multiple times")
+        }
+
+        val streamId = activePlayers[name]?.let {
+            activePlayers.remove(name)
+            it.soundClipStreamId
+        } ?: run {
+            pausedPlayers[name]?.let {
+                pausedPlayers.remove(name)
+                it.soundClipStreamId
+            }
+        } ?: error("No active or paused player $name found")
+
+        soundClipsRepository.stopSoundClip(streamId)
+
+        permanentlyPausedPlayers.remove(name)
+        players.remove(name)
+    }
+
     fun startSoundPlayer(name: String, isLooped: Boolean) {
         if (isPaused) {
             L.e(LOG_TAG, "SoundScene2D.startSoundPlayer() called but SoundScene2D is paused")
@@ -125,6 +146,7 @@ class SoundScene2D(
             return
         }
 
+        permanentlyPausedPlayers.clear()
         permanentlyPausedPlayers += pausedPlayers.keys
 
         activePlayers.values.forEach { player -> pauseSoundPlayer(player.soundPlayer.playerName) }

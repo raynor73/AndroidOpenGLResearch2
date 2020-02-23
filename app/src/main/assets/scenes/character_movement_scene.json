@@ -1,4 +1,8 @@
 {
+  "soundClips": [
+    { "name": "keyboard_click", "path": "sounds/keyboard_click.wav" },
+    { "name": "water_flow", "path": "sounds/water_flow.wav" }
+  ],
   "textures": [
     { "id": "female", "path": "textures/female.png" },
     { "id": "fountain", "path": "textures/fountain.png" },
@@ -61,6 +65,34 @@
         ]
       },
       {
+        "name": "fountain",
+        "parent": "root",
+        "position" : [0.0, 0.01, -10.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "fountain", "materialName": "fountain", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "fountain_water",
+        "parent": "fountain",
+        "position" : [0.0, 0.5, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          {
+            "type": "SoundPlayer3D",
+            "playerName": "fountain",
+            "soundClipName": "water_flow",
+            "duration": 7791,
+            "maxVolumeDistance": 1,
+            "minVolumeDistance": 15,
+            "volume": 0.5
+          }
+        ]
+      },
+      {
         "name": "ground_plane",
         "parent": "root",
         "position" : [0.0, 0.0, 0.0],
@@ -87,7 +119,8 @@
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] }
+          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] },
+          { "type": "SoundListener" }
         ]
       },
       {

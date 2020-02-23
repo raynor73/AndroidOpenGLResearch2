@@ -203,13 +203,17 @@ class CharacterMovementScene(
                 )
             )
             gameObject.addComponent(MeshComponent("quad"))
-            gameObject.addComponent(CollisionShapeGameObjectComponent(
-                physicsEngine.createTriMeshCollisionShape(mesh.applyTransform(
-                    Vector3f(0f, 0f, 0f),
-                    Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
-                    Vector3f(50f, 50f, 1f)
-                ))
-            ))
+            gameObject.addComponent(
+                CollisionShapeGameObjectComponent(
+                    physicsEngine.createTriMeshCollisionShape(
+                        mesh.applyTransform(
+                            Vector3f(0f, 0f, 0f),
+                            Quaternionf().identity().rotateX(-(PI / 2).toFloat()),
+                            Vector3f(50f, 50f, 1f)
+                        )
+                    )
+                )
+            )
             rootGameObject.addChild(gameObject)
         }
 
@@ -325,12 +329,16 @@ class CharacterMovementScene(
                 )
             )
             gameObject.addComponent(MeshComponent("capsule"))
-            gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine.createCharacterCapsuleRigidBody(
-                1f,
-                1f,
-                2f,
-                Vector3f(0f, 4f, -5f)
-            )))
+            gameObject.addComponent(
+                RigidBodyGameObjectComponent(
+                    physicsEngine.createCharacterCapsuleRigidBody(
+                        1f,
+                        1f,
+                        2f,
+                        Vector3f(0f, 4f, -5f)
+                    )
+                )
+            )
             rootGameObject.addChild(gameObject)
         }
 

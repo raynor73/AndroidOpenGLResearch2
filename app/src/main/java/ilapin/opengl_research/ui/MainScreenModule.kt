@@ -23,11 +23,15 @@ import ilapin.opengl_research.data.scene_loader.AndroidAssetsSceneLoader
 import ilapin.opengl_research.data.scene_loader.ComponentDeserializer
 import ilapin.opengl_research.data.scene_loader.ComponentDto
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
-import ilapin.opengl_research.domain.GesturesDispatcher
+import ilapin.opengl_research.data.sound.SoundPoolSoundClipsRepository
+import ilapin.opengl_research.domain.engine.GesturesDispatcher
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.TouchEventsRepository
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
+import ilapin.opengl_research.domain.sound.SoundClipsRepository
+import ilapin.opengl_research.domain.sound.SoundScene
+import ilapin.opengl_research.domain.sound_2d.SoundScene2D
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import javax.inject.Named
@@ -156,6 +160,31 @@ class MainScreenModule(private val activity: MainActivity) {
 
     @Provides
     @ActivityScope
+    fun provideSoundClipsRepository(@Named("Activity") context: Context): SoundClipsRepository {
+        return SoundPoolSoundClipsRepository(context)
+    }
+
+    @Provides
+    @ActivityScope
+    fun provideSoundScene(
+        vectorsPool: ObjectsPool<Vector3f>,
+        timeRepository: TimeRepository,
+        soundClipsRepository: SoundClipsRepository
+    ): SoundScene {
+        return SoundScene(vectorsPool, timeRepository, soundClipsRepository)
+    }
+
+    @Provides
+    @ActivityScope
+    fun provideSoundScene2D(
+        timeRepository: TimeRepository,
+        soundClipsRepository: SoundClipsRepository
+    ): SoundScene2D {
+        return SoundScene2D(soundClipsRepository, timeRepository)
+    }
+
+    @Provides
+    @ActivityScope
     fun provideSceneLoader(
         @Named("Activity") context: Context,
         gson: Gson,
@@ -166,7 +195,10 @@ class MainScreenModule(private val activity: MainActivity) {
         vectorsPool: ObjectsPool<Vector3f>,
         displayMetricsRepository: AndroidDisplayMetricsRepository,
         openGLErrorDetector: OpenGLErrorDetector,
-        gesturesDispatcher: GesturesDispatcher
+        gesturesDispatcher: GesturesDispatcher,
+        soundClipsRepository: SoundClipsRepository,
+        soundScene: SoundScene,
+        soundScene2D: SoundScene2D
     ): SceneLoader {
         return AndroidAssetsSceneLoader(
             context,
@@ -178,7 +210,10 @@ class MainScreenModule(private val activity: MainActivity) {
             vectorsPool,
             displayMetricsRepository,
             openGLErrorDetector,
-            gesturesDispatcher
+            gesturesDispatcher,
+            soundClipsRepository,
+            soundScene,
+            soundScene2D
         )
     }
 
@@ -200,7 +235,10 @@ class MainScreenModule(private val activity: MainActivity) {
         displayMetricsRepository: AndroidDisplayMetricsRepository,
         vectorsPool: ObjectsPool<Vector3f>,
         quaternionsPool: ObjectsPool<Quaternionf>,
-        gesturesDispatcher: GesturesDispatcher
+        gesturesDispatcher: GesturesDispatcher,
+        soundScene: SoundScene,
+        soundScene2D: SoundScene2D,
+        soundClipsRepository: SoundClipsRepository
     ): GLSurfaceViewRenderer? {
         return if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             GLSurfaceViewRenderer(
@@ -219,7 +257,10 @@ class MainScreenModule(private val activity: MainActivity) {
                 displayMetricsRepository,
                 vectorsPool,
                 quaternionsPool,
-                gesturesDispatcher
+                gesturesDispatcher,
+                soundScene,
+                soundScene2D,
+                soundClipsRepository
             )
         } else {
             null

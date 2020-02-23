@@ -20,4 +20,6 @@ interface SoundClipsRepository {
     fun stopSoundClip(streamId: Int)
 
     fun changeSoundClipVolume(streamId: Int, leftVolume: Float, rightVolume: Float)
+
+    fun clear()
 }

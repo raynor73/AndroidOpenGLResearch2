@@ -11,10 +11,11 @@ import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
-import ilapin.opengl_research.domain.engine.CameraComponent
-import ilapin.opengl_research.domain.engine.MeshRendererComponent
-import ilapin.opengl_research.domain.engine.OrthoCameraComponent
+import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.scene_loader.SceneData
+import ilapin.opengl_research.domain.sound.SoundClipsRepository
+import ilapin.opengl_research.domain.sound.SoundScene
+import ilapin.opengl_research.domain.sound_2d.SoundScene2D
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector3fc
@@ -35,7 +36,10 @@ class ScriptedScene(
     vectorsPool: ObjectsPool<Vector3f>,
     quaternionsPool: ObjectsPool<Quaternionf>,
     private val gesturesDispatcher: GesturesDispatcher,
-    appPriorityReporter: AppPriorityReporter
+    appPriorityReporter: AppPriorityReporter,
+    private val soundScene: SoundScene,
+    private val soundScene2d: SoundScene2D,
+    private val soundClipsRepository: SoundClipsRepository
 ) : Scene2 {
 
     private val _activeCameras = ArrayList<CameraComponent>().apply { addAll(sceneData.activeCameras) }
@@ -71,6 +75,9 @@ class ScriptedScene(
         scriptingEngine.displayMetricsRepository = displayMetricsRepository
         scriptingEngine.vectorsPool = vectorsPool
         scriptingEngine.quaternionsPool = quaternionsPool
+        scriptingEngine.soundClipsRepository = soundClipsRepository
+        scriptingEngine.soundScene = soundScene
+        scriptingEngine.soundScene2D = soundScene2d
         scriptingEngine.loadScripts(sceneData.scriptSources)
     }
 
@@ -82,6 +89,9 @@ class ScriptedScene(
         gesturesDispatcher.begin()
         touchEventsRepository.touchEvents.forEach { gesturesDispatcher.onTouchEvent(it) }
 
+        rootGameObject.update()
+        soundScene.update()
+        soundScene2d.update()
         scriptingEngine.update(dt)
     }
 
@@ -90,6 +100,9 @@ class ScriptedScene(
         frameBuffersManager.removeAllFrameBuffers()
         geometryManager.removeAllBuffers()
         texturesManager.removeAllTextures()
+        soundScene.clear()
+        soundScene2d.clear()
+        soundClipsRepository.clear()
     }
 
     @Suppress("unused")
@@ -105,5 +118,20 @@ class ScriptedScene(
     @Suppress("unused")
     fun getGestureConsumerComponent(gameObject: GameObject): GestureConsumerComponent? {
         return gameObject.getComponent(GestureConsumerComponent::class.java)
+    }
+
+    @Suppress("unused")
+    fun getSoundPlayer3DComponent(gameObject: GameObject): SoundPlayer3DComponent? {
+        return gameObject.getComponent(SoundPlayer3DComponent::class.java)
+    }
+
+    @Suppress("unused")
+    fun getSoundPlayer2DComponent(gameObject: GameObject): SoundPlayer2DComponent? {
+        return gameObject.getComponent(SoundPlayer2DComponent::class.java)
+    }
+
+    @Suppress("unused")
+    fun getSoundListenerComponent(gameObject: GameObject): SoundListenerComponent? {
+        return gameObject.getComponent(SoundListenerComponent::class.java)
     }
 }

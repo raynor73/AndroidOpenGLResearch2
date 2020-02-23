@@ -16,6 +16,9 @@ import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.domain.*
 import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
+import ilapin.opengl_research.domain.sound.SoundClipsRepository
+import ilapin.opengl_research.domain.sound.SoundScene
+import ilapin.opengl_research.domain.sound_2d.SoundScene2D
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -41,7 +44,10 @@ class GLSurfaceViewRenderer(
     private val displayMetricsRepository: AndroidDisplayMetricsRepository,
     private val vectorsPool: ObjectsPool<Vector3f>,
     private val quaternionsPool: ObjectsPool<Quaternionf>,
-    private val gesturesDispatcher: GesturesDispatcher
+    private val gesturesDispatcher: GesturesDispatcher,
+    private val soundScene: SoundScene,
+    private val soundScene2D: SoundScene2D,
+    private val soundClipsRepository: SoundClipsRepository
 ) : GLSurfaceView.Renderer, SceneManager, AppPriorityReporter {
 
     private val messageQueueSubscription: Disposable
@@ -145,7 +151,10 @@ class GLSurfaceViewRenderer(
             vectorsPool,
             quaternionsPool,
             gesturesDispatcher,
-            this
+            this,
+            soundScene,
+            soundScene2D,
+            soundClipsRepository
         )
 
         safeLet(displayWidth, displayHeight) { width, height ->

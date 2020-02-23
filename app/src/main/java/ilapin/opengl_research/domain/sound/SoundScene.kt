@@ -69,6 +69,27 @@ class SoundScene(
         )
     }
 
+    fun removeSoundPlayer(name: String) {
+        if (!players.containsKey(name)) {
+            error("Trying to add $name sound player multiple times")
+        }
+
+        val streamId = activePlayers[name]?.let {
+            activePlayers.remove(name)
+            it.soundClipStreamId
+        } ?: run {
+            pausedPlayers[name]?.let {
+                pausedPlayers.remove(name)
+                it.soundClipStreamId
+            }
+        } ?: error("No active or paused player $name found")
+
+        soundClipsRepository.stopSoundClip(streamId)
+
+        permanentlyPausedPlayers.remove(name)
+        players.remove(name)
+    }
+
     fun startSoundPlayer(name: String, isLooped: Boolean) {
         if (isPaused) {
             L.e(LOG_TAG, "SoundScene.startSoundPlayer() called but SoundScene is paused")
@@ -155,12 +176,13 @@ class SoundScene(
         (players[name] ?: error("Sound player $name not found")).volume = volume
     }
 
-   fun pause() {
+    fun pause() {
         if (isPaused) {
-            L.e(LOG_TAG, "SoundScene.pause() called but SoundScene is already paused")
-            return
+        L.e(LOG_TAG, "SoundScene.pause() called but SoundScene is already paused")
+        return
         }
 
+        permanentlyPausedPlayers.clear()
         permanentlyPausedPlayers += pausedPlayers.keys
 
         activePlayers.values.forEach { player -> pauseSoundPlayer(player.soundPlayer.playerName) }
