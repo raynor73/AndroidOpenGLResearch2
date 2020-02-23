@@ -33,31 +33,11 @@ class SoundScene(
     private var isPaused = false
 
     fun updateSoundListenerPosition(position: Vector3fc) {
-        if (isPaused) {
-            L.e(LOG_TAG, "SoundScene.updateSoundListenerPosition() called but SoundScene is paused")
-            return
-        }
-
         soundListenerPosition.set(position)
     }
 
     fun updateSoundListenerRotation(rotation: Quaternionfc) {
-        if (isPaused) {
-            L.e(LOG_TAG, "SoundScene.updateSoundListenerRotation() called but SoundScene is paused")
-            return
-        }
-
         soundListenerRotation.set(rotation)
-    }
-
-    fun loadSoundClip(name: String, path: String) {
-        // TODO Remove this from here. It is not scene responsibility
-        if (isPaused) {
-            L.e(LOG_TAG, "SoundScene.loadSoundClip() called but SoundScene is paused")
-            return
-        }
-
-        soundClipsRepository.loadSoundClip(name, path)
     }
 
     fun addSoundPlayer(
@@ -95,52 +75,95 @@ class SoundScene(
             return
         }
 
+        if (activePlayers.containsKey(name)) {
+            L.e(LOG_TAG, "SoundScene.startSoundPlayer() called but player is already started")
+            return
+        }
+
         val player = players[name] ?: error("Sound player $name not found")
+        val levels = calculateVolumeLevels(
+            soundListenerPosition,
+            soundListenerRotation,
+            player.position,
+            player.minVolumeDistance,
+            player.maxVolumeDistance
+        )
         activePlayers[name] = ActivePlayer(
             timeRepository.getTimestamp(),
-            soundClipsRepository.playSoundClip(player.soundClipName, isLooped),
+            soundClipsRepository.playSoundClip(player.soundClipName, levels.left, levels.right, isLooped),
             player,
             isLooped
         )
     }
 
-    fun pauseSoundPlayer(name: String) {
-        TODO("Not implemented")
-    }
-
-    fun stopSoundPlayer(name: String) {
-        val stoppingPlayer = activePlayers.remove(name) ?: error("Active player $name not found")
-        soundClipsRepository.stopSoundClip(stoppingPlayer.soundClipStreamId)
-    }
-
-    fun updateSoundPlayerPosition(name: String, position: Vector3fc) {
+    fun resumeSoundPlayer(name: String) {
         if (isPaused) {
-            L.e(LOG_TAG, "SoundScene.updateSoundPlayerPosition() called but SoundScene is paused")
+            L.e(LOG_TAG, "SoundScene2D.resumeSoundPlayer() called but SoundScene2D is paused")
             return
         }
 
+        if (activePlayers.containsKey(name)) {
+            L.e(LOG_TAG, "SoundScene2D.resumeSoundPlayer() called but player is active")
+            return
+        }
+
+        val activatedPlayer =
+            (pausedPlayers[name] ?: error("Sound player $name not found")).toActive(timeRepository.getTimestamp())
+        activePlayers[name] = activatedPlayer
+
+        soundClipsRepository.resumeSoundClip(activatedPlayer.soundClipStreamId)
+    }
+
+    fun pauseSoundPlayer(name: String) {
+        if (isPaused) {
+            L.e(LOG_TAG, "SoundScene2D.pauseSoundPlayer() called but SoundScene2D is paused")
+            return
+        }
+
+        if (pausedPlayers.containsKey(name)) {
+            L.e(LOG_TAG, "SoundScene2D.pauseSoundPlayer() called but player is already paused")
+            return
+        }
+
+        val pausedPlayer =
+            (activePlayers[name] ?: error("Sound player $name not found")).toPaused(timeRepository.getTimestamp())
+        activePlayers.remove(name)
+        pausedPlayers[name] = pausedPlayer
+
+        soundClipsRepository.pauseSoundClip(pausedPlayer.soundClipStreamId)
+    }
+
+    fun stopSoundPlayer(name: String) {
+        val streamId = activePlayers[name]?.let {
+            activePlayers.remove(name)
+            it.soundClipStreamId
+        } ?: run {
+            pausedPlayers[name]?.let {
+                pausedPlayers.remove(name)
+                it.soundClipStreamId
+            }
+        } ?: error("No active or paused player $name found")
+
+        soundClipsRepository.stopSoundClip(streamId)
+    }
+
+    fun updateSoundPlayerPosition(name: String, position: Vector3fc) {
         (players[name] ?: error("Sound player $name not found")).position = position
     }
 
     fun updateSoundPlayerVolume(name: String, volume: Float) {
-        if (isPaused) {
-            L.e(LOG_TAG, "SoundScene.updateSoundPlayerVolume() called but SoundScene is paused")
-            return
-        }
-
         (players[name] ?: error("Sound player $name not found")).volume = volume
     }
 
-    // TODO Fix pausing, at presence no consideration of pause timestamp
-    fun pause() {
+   fun pause() {
         if (isPaused) {
             L.e(LOG_TAG, "SoundScene.pause() called but SoundScene is already paused")
             return
         }
 
-        activePlayers.values.forEach { player ->
-            soundClipsRepository.pauseSoundClip(player.soundClipStreamId)
-        }
+        permanentlyPausedPlayers += pausedPlayers.keys
+
+        activePlayers.values.forEach { player -> pauseSoundPlayer(player.soundPlayer.playerName) }
 
         isPaused = true
     }
@@ -151,9 +174,13 @@ class SoundScene(
             return
         }
 
-        activePlayers.values.forEach { player ->
-            soundClipsRepository.resumeSoundClip(player.soundClipStreamId)
+        pausedPlayers.values.forEach { player ->
+            if (!permanentlyPausedPlayers.contains(player.soundPlayer.playerName)) {
+                resumeSoundPlayer(player.soundPlayer.playerName)
+            }
         }
+
+        permanentlyPausedPlayers.clear()
 
         isPaused = false
     }

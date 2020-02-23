@@ -11,6 +11,9 @@ import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
+import ilapin.opengl_research.domain.engine.CameraComponent
+import ilapin.opengl_research.domain.engine.MeshRendererComponent
+import ilapin.opengl_research.domain.engine.OrthoCameraComponent
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import org.joml.Quaternionf
 import org.joml.Vector3f

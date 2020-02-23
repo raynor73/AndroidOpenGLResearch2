@@ -1,8 +1,9 @@
-package ilapin.opengl_research
+package ilapin.opengl_research.domain.engine
 
 import android.opengl.GLES20
 import ilapin.common.kotlin.safeLet
 import ilapin.engine3d.GameObjectComponent
+import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
@@ -68,7 +69,7 @@ class MeshRendererComponent(
         shaderProgram.vertexCoordinateAttribute.takeIf { it >= 0 }?.let { vertexCoordinateAttribute ->
             GLES20.glVertexAttribPointer(
                     vertexCoordinateAttribute,
-                    VERTEX_COORDINATE_COMPONENTS,
+                VERTEX_COORDINATE_COMPONENTS,
                     GLES20.GL_FLOAT,
                     false,
                     VERTEX_COMPONENTS * BYTES_IN_FLOAT,

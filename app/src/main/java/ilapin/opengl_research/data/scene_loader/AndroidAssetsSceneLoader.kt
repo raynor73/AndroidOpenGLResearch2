@@ -15,6 +15,7 @@ import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.GestureConsumerComponent
 import ilapin.opengl_research.domain.GesturesDispatcher
 import ilapin.opengl_research.domain.MeshStorage
+import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import org.joml.Quaternionf
@@ -126,17 +127,21 @@ class AndroidAssetsSceneLoader(
                 when (it) {
                     is ComponentDto.DirectionalLightDto -> {
                         it.color ?: error("No directional light color found for game object $gameObjectName")
-                        val lightComponent = DirectionalLightComponent(Vector3f().apply { it.color.toRgb(this) })
+                        val lightComponent =
+                            DirectionalLightComponent(Vector3f().apply {
+                                it.color.toRgb(this)
+                            })
 
                         val halfShadowSize = GLOBAL_DIRECTIONAL_LIGHT_SHADOW_SIZE / 2
-                        val cameraComponent = DirectionalLightShadowMapCameraComponent(
-                            vectorsPool,
-                            GLOBAL_DIRECTIONAL_LIGHT_DISTANCE_FROM_VIEWER,
-                            -halfShadowSize,
-                            halfShadowSize,
-                            -halfShadowSize,
-                            halfShadowSize
-                        )
+                        val cameraComponent =
+                            DirectionalLightShadowMapCameraComponent(
+                                vectorsPool,
+                                GLOBAL_DIRECTIONAL_LIGHT_DISTANCE_FROM_VIEWER,
+                                -halfShadowSize,
+                                halfShadowSize,
+                                -halfShadowSize,
+                                halfShadowSize
+                            )
                         cameraComponent.zNear = 1f
                         cameraComponent.zFar = 2 * GLOBAL_DIRECTIONAL_LIGHT_DISTANCE_FROM_VIEWER
 
@@ -166,11 +171,12 @@ class AndroidAssetsSceneLoader(
                         it.fov ?: error("No FOV")
                         it.layerNames ?: error("No layer names")
                         it.ambientLight ?: error("No camera ambient light")
-                        val cameraComponent = PerspectiveCameraComponent(
-                            vectorsPool,
-                            it.fov,
-                            it.layerNames
-                        )
+                        val cameraComponent =
+                            PerspectiveCameraComponent(
+                                vectorsPool,
+                                it.fov,
+                                it.layerNames
+                            )
                         gameObject.addComponent(cameraComponent)
                         camerasMap[gameObjectName] = cameraComponent
 
@@ -184,14 +190,15 @@ class AndroidAssetsSceneLoader(
                         it.bottom ?: error("No bottom camera boundary")
                         it.top ?: error("No top camera boundary")
                         it.ambientLight ?: error("No camera ambient light")
-                        val cameraComponent = OrthoCameraComponent(
-                            vectorsPool,
-                            it.left,
-                            it.right,
-                            it.bottom,
-                            it.top,
-                            it.layerNames
-                        )
+                        val cameraComponent =
+                            OrthoCameraComponent(
+                                vectorsPool,
+                                it.left,
+                                it.right,
+                                it.bottom,
+                                it.top,
+                                it.layerNames
+                            )
                         gameObject.addComponent(cameraComponent)
                         camerasMap[gameObjectName] = cameraComponent
 

@@ -12,6 +12,7 @@ import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
+import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scripting_engine.ScriptingEngine
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
@@ -161,7 +162,7 @@ class CharacterMovementScene(
     }*/
 
     override fun deinit() {
-        soundScene.deinit()
+        soundScene.clear()
     }
 
     private fun setupPhysics() {
@@ -195,7 +196,12 @@ class CharacterMovementScene(
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
-            gameObject.addComponent(MaterialComponent("green", Vector4f(1f, 1f, 1f, 1f)))
+            gameObject.addComponent(
+                MaterialComponent(
+                    "green",
+                    Vector4f(1f, 1f, 1f, 1f)
+                )
+            )
             gameObject.addComponent(MeshComponent("quad"))
             gameObject.addComponent(CollisionShapeGameObjectComponent(
                 physicsEngine.createTriMeshCollisionShape(mesh.applyTransform(
@@ -222,7 +228,12 @@ class CharacterMovementScene(
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
-            gameObject.addComponent(MaterialComponent("blue", Vector4f(1f, 1f, 1f, 1f)))
+            gameObject.addComponent(
+                MaterialComponent(
+                    "blue",
+                    Vector4f(1f, 1f, 1f, 1f)
+                )
+            )
             gameObject.addComponent(MeshComponent("quad"))
             rootGameObject.addChild(gameObject)
         }
@@ -247,7 +258,12 @@ class CharacterMovementScene(
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             player.addComponent(renderer)
-            player.addComponent(MaterialComponent("female", Vector4f(1f, 1f, 1f, 1f)))
+            player.addComponent(
+                MaterialComponent(
+                    "female",
+                    Vector4f(1f, 1f, 1f, 1f)
+                )
+            )
             player.addComponent(MeshComponent("player"))
             rootGameObject.addChild(player)
         }
@@ -272,7 +288,12 @@ class CharacterMovementScene(
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
-            gameObject.addComponent(MaterialComponent("fountain", Vector4f(1f, 1f, 1f, 1f)))
+            gameObject.addComponent(
+                MaterialComponent(
+                    "fountain",
+                    Vector4f(1f, 1f, 1f, 1f)
+                )
+            )
             gameObject.addComponent(MeshComponent("fountain"))
             rootGameObject.addChild(gameObject)
         }
@@ -297,7 +318,12 @@ class CharacterMovementScene(
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
-            gameObject.addComponent(MaterialComponent(null, Vector4f(.5f, .5f, 0f, 1f)))
+            gameObject.addComponent(
+                MaterialComponent(
+                    null,
+                    Vector4f(.5f, .5f, 0f, 1f)
+                )
+            )
             gameObject.addComponent(MeshComponent("capsule"))
             gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine.createCharacterCapsuleRigidBody(
                 1f,
@@ -336,7 +362,12 @@ class CharacterMovementScene(
             )
             layerRenderers[DEFAULT_LAYER_NAME] += renderer
             gameObject.addComponent(renderer)
-            gameObject.addComponent(MaterialComponent(null, Vector4f(.5f, 0f, .5f, 1f)))
+            gameObject.addComponent(
+                MaterialComponent(
+                    null,
+                    Vector4f(.5f, 0f, .5f, 1f)
+                )
+            )
             gameObject.addComponent(MeshComponent("cowboy"))
             gameObject.addComponent(SkeletalAnimationComponent(
                 animatedModel.jointsData.headJoint.toJoint(),
@@ -357,7 +388,13 @@ class CharacterMovementScene(
     private fun setupLights() {
         run {
             val gameObject = GameObject("directionalLight")
-            val lightComponent = DirectionalLightComponent(Vector3f(0.7f, 0.7f, 0.7f))
+            val lightComponent = DirectionalLightComponent(
+                Vector3f(
+                    0.7f,
+                    0.7f,
+                    0.7f
+                )
+            )
             gameObject.addComponent(lightComponent)
             directionalLightTransform = TransformationComponent(
                 Vector3f(0f, 0f, 0f),
@@ -366,14 +403,15 @@ class CharacterMovementScene(
             )
             gameObject.addComponent(directionalLightTransform)
             val halfShadowSize = GLOBAL_DIRECTIONAL_LIGHT_SHADOW_SIZE / 2
-            val cameraComponent = DirectionalLightShadowMapCameraComponent(
-                vectorsPool,
-                GLOBAL_DIRECTIONAL_LIGHT_DISTANCE_FROM_VIEWER,
-                -halfShadowSize,
-                halfShadowSize,
-                -halfShadowSize,
-                halfShadowSize
-            )
+            val cameraComponent =
+                DirectionalLightShadowMapCameraComponent(
+                    vectorsPool,
+                    GLOBAL_DIRECTIONAL_LIGHT_DISTANCE_FROM_VIEWER,
+                    -halfShadowSize,
+                    halfShadowSize,
+                    -halfShadowSize,
+                    halfShadowSize
+                )
             cameraComponent.zNear = 1f
             cameraComponent.zFar = 2 * GLOBAL_DIRECTIONAL_LIGHT_DISTANCE_FROM_VIEWER
             gameObject.addComponent(cameraComponent)
@@ -405,7 +443,7 @@ class CharacterMovementScene(
     }
 
     private fun setupSounds() {
-        soundScene.loadSoundClip("water_flow", "sounds/water_flow.wav")
+        //soundScene.loadSoundClip("water_flow", "sounds/water_flow.wav") Make use of sound repository instead
         soundScene.addSoundPlayer("fountain", "water_flow", 7791, Vector3f(0f, 0.5f, -10f), 1f, 15f, 0.5f)
         soundScene.updateSoundListenerPosition(playerTransform.position)
         soundScene.updateSoundListenerRotation(playerTransform.rotation)

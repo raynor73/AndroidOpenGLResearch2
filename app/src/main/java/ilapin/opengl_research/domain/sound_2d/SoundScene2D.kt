@@ -71,6 +71,8 @@ class SoundScene2D(
         val activatedPlayer =
             (pausedPlayers[name] ?: error("Sound player $name not found")).toActive(timeRepository.getTimestamp())
         activePlayers[name] = activatedPlayer
+
+        soundClipsRepository.resumeSoundClip(activatedPlayer.soundClipStreamId)
     }
 
     fun pauseSoundPlayer(name: String) {
@@ -88,6 +90,8 @@ class SoundScene2D(
             (activePlayers[name] ?: error("Sound player $name not found")).toPaused(timeRepository.getTimestamp())
         activePlayers.remove(name)
         pausedPlayers[name] = pausedPlayer
+
+        soundClipsRepository.pauseSoundClip(pausedPlayer.soundClipStreamId)
     }
 
     fun stopSoundPlayer(name: String) {
@@ -105,11 +109,6 @@ class SoundScene2D(
     }
 
     fun updateSoundPlayerVolume(name: String, volume: Float) {
-        if (isPaused) {
-            L.e(LOG_TAG, "SoundScene2D.updateSoundPlayerVolume() called but SoundScene2D is paused")
-            return
-        }
-
         (players[name] ?: error("Sound player $name not found")).volume = volume
 
         activePlayers[name]?.let { activePlayer ->

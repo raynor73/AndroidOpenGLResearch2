@@ -14,6 +14,7 @@ import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.assets_management.ShadersManager
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.domain.*
+import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers

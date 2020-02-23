@@ -1,4 +1,4 @@
-package ilapin.opengl_research
+package ilapin.opengl_research.domain.engine
 
 import ilapin.engine3d.GameObjectComponent
 import org.joml.Vector4f

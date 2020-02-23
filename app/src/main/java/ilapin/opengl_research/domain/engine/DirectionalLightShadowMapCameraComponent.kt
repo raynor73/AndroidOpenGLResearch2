@@ -1,6 +1,8 @@
-package ilapin.opengl_research
+package ilapin.opengl_research.domain.engine
 
 import ilapin.engine3d.TransformationComponent
+import ilapin.opengl_research.CAMERA_LOOK_AT_DIRECTION
+import ilapin.opengl_research.ObjectsPool
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector3fc

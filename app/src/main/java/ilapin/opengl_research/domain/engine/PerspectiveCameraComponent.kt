@@ -1,6 +1,7 @@
-package ilapin.opengl_research
+package ilapin.opengl_research.domain.engine
 
 import ilapin.engine3d.TransformationComponent
+import ilapin.opengl_research.*
 import org.joml.Matrix4f
 import org.joml.Vector3f
 
