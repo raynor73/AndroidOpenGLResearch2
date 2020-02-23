@@ -8,6 +8,8 @@
 // var quaternionsPool = ...
 // var vectorsPool = ...
 
+var isPaused = false
+
 var INITIAL_FORWARD_VECTOR = new Packages.org.joml.Vector3f(0, 0, -1);
 var INITIAL_RIGHT_VECTOR = new Packages.org.joml.Vector3f(1, 0, 0);
 var PLAYER_MOVEMENT_SPEED = 5; // unit/sec
@@ -87,28 +89,47 @@ function start() {
 }
 
 function update(dt) {
-    scrollController.update();
-    leftJoystickController.update();
-    rightJoystickController.update();
-    playerController.update();
+    isPaused =
+        appPriorityReporter.state != Packages.ilapin.opengl_research.domain.AppPriorityReporter.AppState.FOREGROUND;
 
-    var scrollEvent = scrollController.scrollEvent;
-    if (scrollEvent != null) {
-        var transform = scene.getTransformationComponent(directionalLight);
+    if (!isPaused) {
+        if (soundScene.isPaused()) {
+            soundScene.resume();
+        }
+        if (soundScene2D.isPaused()) {
+            soundScene2D.resume();
+        }
 
-        zAngle -= toRadians(scrollEvent.dx / pixelDensityFactor);
-        xAngle -= toRadians(scrollEvent.dy / pixelDensityFactor);
+        scrollController.update();
+        leftJoystickController.update();
+        rightJoystickController.update();
+        playerController.update();
 
-        var lightRotation = quaternionsPool.obtain();
+        var scrollEvent = scrollController.scrollEvent;
+        if (scrollEvent != null) {
+            var transform = scene.getTransformationComponent(directionalLight);
 
-        lightRotation.identity();
-        lightRotation.rotateZ(zAngle).rotateX(xAngle);
-        transform.rotation = lightRotation;
+            zAngle -= toRadians(scrollEvent.dx / pixelDensityFactor);
+            xAngle -= toRadians(scrollEvent.dy / pixelDensityFactor);
 
-        quaternionsPool.recycle(lightRotation);
+            var lightRotation = quaternionsPool.obtain();
+
+            lightRotation.identity();
+            lightRotation.rotateZ(zAngle).rotateX(xAngle);
+            transform.rotation = lightRotation;
+
+            quaternionsPool.recycle(lightRotation);
+        }
+
+        movePlayer(dt);
+    } else {
+        if (!soundScene.isPaused()) {
+            soundScene.pause();
+        }
+        if (!soundScene2D.isPaused()) {
+            soundScene2D.pause();
+        }
     }
-
-    movePlayer(dt);
 }
 
 function movePlayer(dt) {

@@ -30,7 +30,10 @@ class SoundScene(
 
     private val playersToRemove = ArrayList<String>()
 
-    private var isPaused = false
+    private var _isPaused = false
+
+    val isPaused: Boolean
+        get() = _isPaused
 
     fun updateSoundListenerPosition(position: Vector3fc) {
         soundListenerPosition.set(position)
@@ -49,7 +52,7 @@ class SoundScene(
         minVolumeDistance: Float,
         volume: Float
     ) {
-        if (isPaused) {
+        if (_isPaused) {
             L.e(LOG_TAG, "SoundScene.addSoundPlayer() called but SoundScene is paused")
             return
         }
@@ -91,7 +94,7 @@ class SoundScene(
     }
 
     fun startSoundPlayer(name: String, isLooped: Boolean) {
-        if (isPaused) {
+        if (_isPaused) {
             L.e(LOG_TAG, "SoundScene.startSoundPlayer() called but SoundScene is paused")
             return
         }
@@ -118,7 +121,7 @@ class SoundScene(
     }
 
     fun resumeSoundPlayer(name: String) {
-        if (isPaused) {
+        if (_isPaused) {
             L.e(LOG_TAG, "SoundScene2D.resumeSoundPlayer() called but SoundScene2D is paused")
             return
         }
@@ -131,18 +134,19 @@ class SoundScene(
         val activatedPlayer =
             (pausedPlayers[name] ?: error("Sound player $name not found")).toActive(timeRepository.getTimestamp())
         activePlayers[name] = activatedPlayer
+        pausedPlayers.remove(name)
 
         soundClipsRepository.resumeSoundClip(activatedPlayer.soundClipStreamId)
     }
 
     fun pauseSoundPlayer(name: String) {
-        if (isPaused) {
-            L.e(LOG_TAG, "SoundScene2D.pauseSoundPlayer() called but SoundScene2D is paused")
+        if (_isPaused) {
+            L.e(LOG_TAG, "SoundScene.pauseSoundPlayer() called but SoundScene2D is paused")
             return
         }
 
         if (pausedPlayers.containsKey(name)) {
-            L.e(LOG_TAG, "SoundScene2D.pauseSoundPlayer() called but player is already paused")
+            L.e(LOG_TAG, "SoundScene.pauseSoundPlayer() called but player is already paused")
             return
         }
 
@@ -177,7 +181,7 @@ class SoundScene(
     }
 
     fun pause() {
-        if (isPaused) {
+        if (_isPaused) {
         L.e(LOG_TAG, "SoundScene.pause() called but SoundScene is already paused")
         return
         }
@@ -187,14 +191,16 @@ class SoundScene(
 
         activePlayers.values.forEach { player -> pauseSoundPlayer(player.soundPlayer.playerName) }
 
-        isPaused = true
+        _isPaused = true
     }
 
     fun resume() {
-        if (!isPaused) {
-            L.e(LOG_TAG, "SoundScene.pause() called but SoundScene is not paused")
+        if (!_isPaused) {
+            L.e(LOG_TAG, "SoundScene.resume() called but SoundScene is not paused")
             return
         }
+
+        _isPaused = false
 
         pausedPlayers.values.forEach { player ->
             if (!permanentlyPausedPlayers.contains(player.soundPlayer.playerName)) {
@@ -203,8 +209,6 @@ class SoundScene(
         }
 
         permanentlyPausedPlayers.clear()
-
-        isPaused = false
     }
 
     fun clear() {
@@ -216,7 +220,7 @@ class SoundScene(
         pausedPlayers.clear()
         players.clear()
 
-        isPaused = false
+        _isPaused = false
     }
 
     fun update() {
