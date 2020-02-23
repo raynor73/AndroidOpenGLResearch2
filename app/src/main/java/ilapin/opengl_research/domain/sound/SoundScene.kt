@@ -29,7 +29,6 @@ class SoundScene(
     private val permanentlyPausedPlayers = ArrayList<String>()
 
     private val playersToRemove = ArrayList<String>()
-    private val playersToUpdate = ArrayList<ActivePlayer>()
 
     private var isPaused = false
 
@@ -40,7 +39,6 @@ class SoundScene(
         }
 
         soundListenerPosition.set(position)
-        updateActivePlayersVolume()
     }
 
     fun updateSoundListenerRotation(rotation: Quaternionfc) {
@@ -50,7 +48,6 @@ class SoundScene(
         }
 
         soundListenerRotation.set(rotation)
-        updateActivePlayersVolume()
     }
 
     fun loadSoundClip(name: String, path: String) {
@@ -105,8 +102,6 @@ class SoundScene(
             player,
             isLooped
         )
-
-        updateActivePlayersVolume()
     }
 
     fun pauseSoundPlayer(name: String) {
@@ -125,7 +120,6 @@ class SoundScene(
         }
 
         (players[name] ?: error("Sound player $name not found")).position = position
-        updateActivePlayersVolume()
     }
 
     fun updateSoundPlayerVolume(name: String, volume: Float) {
@@ -135,7 +129,6 @@ class SoundScene(
         }
 
         (players[name] ?: error("Sound player $name not found")).volume = volume
-        updateActivePlayersVolume()
     }
 
     // TODO Fix pausing, at presence no consideration of pause timestamp
@@ -158,8 +151,6 @@ class SoundScene(
             return
         }
 
-        updateActivePlayersVolume()
-
         activePlayers.values.forEach { player ->
             soundClipsRepository.resumeSoundClip(player.soundClipStreamId)
         }
@@ -168,20 +159,19 @@ class SoundScene(
     }
 
     fun clear() {
-
-    }
-
-    /*fun deinit() {
-        activePlayers.values.forEach { player ->
-            soundClipsRepository.stopSoundClip(player.soundClipStreamId)
+        (activePlayers.values.map { it.soundClipStreamId } + pausedPlayers.values.map { it.soundClipStreamId }).forEach {
+            soundClipsRepository.stopSoundClip(it)
         }
 
         activePlayers.clear()
-    }*/
+        pausedPlayers.clear()
+        players.clear()
 
-    private fun updateActivePlayersVolume() {
+        isPaused = false
+    }
+
+    fun update() {
         playersToRemove.clear()
-        playersToUpdate.clear()
 
         val currentTimestamp = timeRepository.getTimestamp()
         activePlayers.forEach {
@@ -190,8 +180,6 @@ class SoundScene(
                 currentTimestamp + RESERVE_TIME - it.value.activationTimestamp > it.value.soundPlayer.duration * NANOS_IN_MILLISECOND
             ) {
                 playersToRemove += it.key
-            } else {
-                playersToUpdate += it.value
             }
         }
 
@@ -199,7 +187,7 @@ class SoundScene(
             activePlayers.remove(playerName)?.soundClipStreamId?.let { soundClipsRepository.stopSoundClip(it) }
         }
 
-        playersToUpdate.forEach { activePlayer ->
+        activePlayers.values.forEach { activePlayer ->
             val volumeLevels = calculateVolumeLevels(
                 soundListenerPosition,
                 soundListenerRotation,
