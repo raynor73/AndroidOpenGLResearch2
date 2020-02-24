@@ -4,6 +4,7 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import ilapin.common.kotlin.safeLet
+import ilapin.common.math.lerp
 import ilapin.common.messagequeue.MessageQueue
 import ilapin.common.time.TimeRepository
 import ilapin.engine3d.TransformationComponent
@@ -25,6 +26,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.BehaviorSubject
 import org.joml.*
 import java.nio.charset.Charset
+import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -65,6 +67,8 @@ class GLSurfaceViewRenderer(
     private val _isLoadingSubject = BehaviorSubject.createDefault(false)
 
     private var _appState = AppPriorityReporter.AppState.FOREGROUND
+
+    private val openGLStateStack = LinkedList<OpenGLState>()
 
     override val state: AppPriorityReporter.AppState
         get() = _appState
@@ -110,6 +114,9 @@ class GLSurfaceViewRenderer(
 
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
         GLES20.glEnable(GLES20.GL_CULL_FACE)
+        GLES20.glEnable(GLES20.GL_SCISSOR_TEST)
+
+        GLES20.glClearColor(0f, 0f, 0f, 1f)
 
         setupShaders()
 
@@ -181,15 +188,14 @@ class GLSurfaceViewRenderer(
         val height = displayHeight ?: return
         val displayAspect = width.toFloat() / height
 
-        GLES20.glViewport(0, 0, width, height)
-        GLES20.glClearColor(0f, 0f, 0f, 1f)
-
         // Clearing all render targets
         scene.renderTargets.forEach { renderTarget ->
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
+            glViewportAndScissor(0, 0, renderTarget.textureInfo.width, renderTarget.textureInfo.height)
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         }
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+        glViewportAndScissor(0, 0, width, height)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
 
         // Opaque rendering
@@ -228,10 +234,10 @@ class GLSurfaceViewRenderer(
         renderShadowMap(scene, layerName, lightViewMatrix, lightProjectionMatrix)
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
-        GLES20.glEnable(GLES20.GL_BLEND)
+        /*GLES20.glEnable(GLES20.GL_BLEND)
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE)
         GLES20.glDepthMask(false)
-        GLES20.glDepthFunc(GLES20.GL_EQUAL)
+        GLES20.glDepthFunc(GLES20.GL_EQUAL)*/
 
         val shaderProgram = shadersManager
             .findShaderProgram("directional_light_shader_program") as ShaderProgramInfo.DirectionalLightShaderProgram
@@ -286,6 +292,8 @@ class GLSurfaceViewRenderer(
             lightViewMatrix: Matrix4fc,
             lightProjectionMatrix: Matrix4fc
     ) {
+        val shadowMapFrameBufferInfo = shadowMapFrameBufferInfo ?: return
+
         val modelMatrix = matrixPool.obtain()
 
         val shaderProgram = shadersManager
@@ -293,10 +301,30 @@ class GLSurfaceViewRenderer(
 
         GLES20.glUseProgram(shaderProgram.shaderProgram)
 
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, shadowMapFrameBufferInfo?.frameBuffer ?: 0)
-        GLES20.glDepthMask(true)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, shadowMapFrameBufferInfo.frameBuffer)
+        /*GLES20.glDepthMask(true)
         GLES20.glDisable(GLES20.GL_BLEND)
-        GLES20.glDepthFunc(GLES20.GL_LESS)
+        GLES20.glDepthFunc(GLES20.GL_LESS)*/
+        pushOpenGLState(
+            OpenGLState(
+                OpenGLState.Viewport(
+                    0,
+                    0,
+                    shadowMapFrameBufferInfo.depthTextureInfo.width,
+                    shadowMapFrameBufferInfo.depthTextureInfo.height
+                ),
+                OpenGLState.Scissor(
+                    0,
+                    0,
+                    shadowMapFrameBufferInfo.depthTextureInfo.width,
+                    shadowMapFrameBufferInfo.depthTextureInfo.height
+                ),
+                false,
+                OpenGLState.BlendFunction(GLES20.GL_ONE, GLES20.GL_ONE),
+                true,
+                GLES20.GL_LESS
+            )
+        )
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
@@ -318,6 +346,8 @@ class GLSurfaceViewRenderer(
 
         matrixPool.recycle(modelMatrix)
 
+        popOpenGLState()
+
         openGLErrorDetector.dispatchOpenGLErrors("renderShadowMap")
     }
 
@@ -329,20 +359,64 @@ class GLSurfaceViewRenderer(
     ) {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
 
+        val width: Int
+        val height: Int
+        when (renderTarget) {
+            is FrameBufferInfo.DepthFrameBufferInfo -> {
+                width = renderTarget.depthTextureInfo.width
+                height = renderTarget.depthTextureInfo.height
+            }
+
+            is FrameBufferInfo.RenderTargetFrameBufferInfo -> {
+                width = renderTarget.textureInfo.width
+                height = renderTarget.textureInfo.height
+            }
+
+            FrameBufferInfo.DisplayFrameBufferInfo -> {
+                width = displayWidth ?: return
+                height = displayHeight ?: return
+            }
+        }
+
         scene.activeCameras.forEach { camera ->
+            val viewportX = lerp(0f, width.toFloat(), camera.viewportX).toInt()
+            val viewportY = lerp(0f, height.toFloat(), camera.viewportY).toInt()
+            val viewportWidth = lerp(0f, width.toFloat(), camera.viewportWidth).toInt()
+            val viewportHeight = lerp(0f, height.toFloat(), camera.viewportHeight).toInt()
+            openGLStateStack.push(
+                OpenGLState(
+                    OpenGLState.Viewport(viewportX, viewportY, viewportWidth, viewportHeight),
+                    OpenGLState.Scissor(viewportX, viewportY, viewportWidth, viewportHeight),
+                    true,
+                    OpenGLState.BlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA),
+                    true,
+                    GLES20.GL_LESS
+                )
+            )
+
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
 
             camera.layerNames.forEach { layerName ->
-                GLES20.glEnable(GLES20.GL_BLEND)
-                GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+                /*GLES20.glEnable(GLES20.GL_BLEND)
+                GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)*/
 
                 renderUnlitObjects(scene, camera, layerName, isTranslucentRendering, viewportAspect)
                 renderAmbientLight(scene, camera, layerName, isTranslucentRendering, viewportAspect)
 
-                GLES20.glEnable(GLES20.GL_BLEND)
+                /*GLES20.glEnable(GLES20.GL_BLEND)
                 GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE)
                 GLES20.glDepthMask(false)
-                GLES20.glDepthFunc(GLES20.GL_EQUAL)
+                GLES20.glDepthFunc(GLES20.GL_EQUAL)*/
+                pushOpenGLState(
+                    OpenGLState(
+                        OpenGLState.Viewport(viewportX, viewportY, viewportWidth, viewportHeight),
+                        OpenGLState.Scissor(viewportX, viewportY, viewportWidth, viewportHeight),
+                        true,
+                        OpenGLState.BlendFunction(GLES20.GL_ONE, GLES20.GL_ONE),
+                        false,
+                        GLES20.GL_EQUAL
+                    )
+                )
 
                 scene.lights.forEach { light ->
                     when (light) {
@@ -358,10 +432,13 @@ class GLSurfaceViewRenderer(
                     }
                 }
 
-                GLES20.glDepthMask(true)
+                /*GLES20.glDepthMask(true)
                 GLES20.glDisable(GLES20.GL_BLEND)
-                GLES20.glDepthFunc(GLES20.GL_LESS)
+                GLES20.glDepthFunc(GLES20.GL_LESS)*/
+                popOpenGLState()
             }
+
+            popOpenGLState()
         }
 
         openGLErrorDetector.dispatchOpenGLErrors("render")
@@ -469,6 +546,31 @@ class GLSurfaceViewRenderer(
         matrixPool.recycle(projectionMatrix)
 
         openGLErrorDetector.dispatchOpenGLErrors("renderAmbientLight")
+    }
+
+    private fun pushOpenGLState(state: OpenGLState) {
+        applyOpenGLState(state)
+        openGLStateStack.push(state)
+    }
+
+    private fun popOpenGLState() {
+        openGLStateStack.pop()
+        openGLStateStack.peekFirst()?.let { applyOpenGLState(it) }
+    }
+
+    private fun applyOpenGLState(state: OpenGLState) {
+        GLES20.glViewport(state.viewport.x, state.viewport.y, state.viewport.width, state.viewport.height)
+        GLES20.glScissor(state.scissor.x, state.scissor.y, state.scissor.width, state.scissor.height)
+        if (state.blend) {
+            GLES20.glEnable(GLES20.GL_BLEND)
+        } else {
+            GLES20.glDisable(GLES20.GL_BLEND)
+        }
+        GLES20.glBlendFunc(state.blendFunction.sFactor, state.blendFunction.dFactor)
+        GLES20.glDepthMask(state.depthMask)
+        GLES20.glDepthFunc(state.depthFunction)
+
+        openGLErrorDetector.dispatchOpenGLErrors("applyOpenGLState")
     }
 
     private fun fillAmbientShaderUniforms(

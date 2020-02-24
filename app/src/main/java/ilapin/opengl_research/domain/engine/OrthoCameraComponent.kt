@@ -14,9 +14,6 @@ open class OrthoCameraComponent(
     layerNames: List<String>
 ) : CameraComponent(layerNames) {
 
-    var zNear = Z_NEAR
-    var zFar = Z_FAR
-
     fun calculateViewMatrix(dest: Matrix4f): Matrix4f {
         val transform = gameObject?.getComponent(TransformationComponent::class.java) ?: return dest
 
