@@ -234,10 +234,6 @@ class GLSurfaceViewRenderer(
         renderShadowMap(scene, layerName, lightViewMatrix, lightProjectionMatrix)
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
-        /*GLES20.glEnable(GLES20.GL_BLEND)
-        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE)
-        GLES20.glDepthMask(false)
-        GLES20.glDepthFunc(GLES20.GL_EQUAL)*/
 
         val shaderProgram = shadersManager
             .findShaderProgram("directional_light_shader_program") as ShaderProgramInfo.DirectionalLightShaderProgram
@@ -302,9 +298,6 @@ class GLSurfaceViewRenderer(
         GLES20.glUseProgram(shaderProgram.shaderProgram)
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, shadowMapFrameBufferInfo.frameBuffer)
-        /*GLES20.glDepthMask(true)
-        GLES20.glDisable(GLES20.GL_BLEND)
-        GLES20.glDepthFunc(GLES20.GL_LESS)*/
         pushOpenGLState(
             OpenGLState(
                 OpenGLState.Viewport(
@@ -383,7 +376,7 @@ class GLSurfaceViewRenderer(
             val viewportY = lerp(0f, height.toFloat(), camera.viewportY).toInt()
             val viewportWidth = lerp(0f, width.toFloat(), camera.viewportWidth).toInt()
             val viewportHeight = lerp(0f, height.toFloat(), camera.viewportHeight).toInt()
-            openGLStateStack.push(
+            pushOpenGLState(
                 OpenGLState(
                     OpenGLState.Viewport(viewportX, viewportY, viewportWidth, viewportHeight),
                     OpenGLState.Scissor(viewportX, viewportY, viewportWidth, viewportHeight),
@@ -397,16 +390,9 @@ class GLSurfaceViewRenderer(
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
 
             camera.layerNames.forEach { layerName ->
-                /*GLES20.glEnable(GLES20.GL_BLEND)
-                GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)*/
-
                 renderUnlitObjects(scene, camera, layerName, isTranslucentRendering, viewportAspect)
                 renderAmbientLight(scene, camera, layerName, isTranslucentRendering, viewportAspect)
 
-                /*GLES20.glEnable(GLES20.GL_BLEND)
-                GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE)
-                GLES20.glDepthMask(false)
-                GLES20.glDepthFunc(GLES20.GL_EQUAL)*/
                 pushOpenGLState(
                     OpenGLState(
                         OpenGLState.Viewport(viewportX, viewportY, viewportWidth, viewportHeight),
@@ -418,7 +404,7 @@ class GLSurfaceViewRenderer(
                     )
                 )
 
-                scene.lights.forEach { light ->
+                scene.layerLights[layerName].forEach { light ->
                     when (light) {
                         is DirectionalLightComponent -> renderDirectionalLight(
                             scene,
@@ -432,9 +418,6 @@ class GLSurfaceViewRenderer(
                     }
                 }
 
-                /*GLES20.glDepthMask(true)
-                GLES20.glDisable(GLES20.GL_BLEND)
-                GLES20.glDepthFunc(GLES20.GL_LESS)*/
                 popOpenGLState()
             }
 

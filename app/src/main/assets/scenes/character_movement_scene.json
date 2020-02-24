@@ -71,7 +71,7 @@
         "name": "keyboard",
         "parent": "root",
         "position" : [0.0, 0.0, -1.0],
-        "rotation" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 45.0, 10.0],
         "scale": [0.1, 0.1, 0.1],
         "components": [
           { "type": "Mesh", "meshName": "keyboard", "materialName": "keyboard", "layerNames": ["keyboard_layer"] }
@@ -84,7 +84,26 @@
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "PerspectiveCamera", "fov": 45, "layerNames": ["keyboard_layer"], "ambientLight": [0.5, 0.5, 0.5] }
+          {
+            "type": "PerspectiveCamera",
+            "fov": 45,
+            "layerNames": ["keyboard_layer"],
+            "ambientLight": [0.5, 0.5, 0.5],
+            "viewportX": 0.75,
+            "viewportY": 0.75,
+            "viewportWidth": 0.25,
+            "viewportHeight": 0.25
+          }
+        ]
+      },
+      {
+        "name": "keyboard_directional_light",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [-90.0, 45.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "DirectionalLight", "color": [0.7, 0.7, 0.7], "layerNames": ["keyboard_layer"] }
         ]
       },
       {
@@ -163,7 +182,7 @@
         "rotation" : [-90.0, 45.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "DirectionalLight", "color": [0.7, 0.7, 0.7] }
+          { "type": "DirectionalLight", "color": [0.7, 0.7, 0.7], "layerNames": ["defaultLayer"] }
         ]
       },
       {

@@ -46,7 +46,7 @@ class CharacterMovementScene(
 
     private val _layerRenderers = HashMultimap.create<String, MeshRendererComponent>()
 
-    private val _lights = ArrayList<GameObjectComponent>()
+    private val _layerLights = HashMultimap.create<String, GameObjectComponent>()
 
     private val _cameraAmbientLights = HashMap<CameraComponent, Vector3fc>()
 
@@ -60,7 +60,7 @@ class CharacterMovementScene(
 
     override val layerRenderers: Multimap<String, MeshRendererComponent> = _layerRenderers
 
-    override val lights: List<GameObjectComponent> = _lights
+    override val layerLights: Multimap<String, GameObjectComponent> = _layerLights
 
     override val cameraAmbientLights: Map<CameraComponent, Vector3fc> = _cameraAmbientLights
 
@@ -425,7 +425,7 @@ class CharacterMovementScene(
             gameObject.addComponent(cameraComponent)
             rootGameObject.addChild(gameObject)
 
-            _lights += lightComponent
+            _layerLights["defaultLayer"] += lightComponent
         }
     }
 

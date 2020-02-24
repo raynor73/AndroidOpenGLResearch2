@@ -16,7 +16,7 @@ class SceneData(
     val rootGameObject: GameObject,
     val activeCameras: List<CameraComponent>,
     val layerRenderers: Multimap<String, MeshRendererComponent>,
-    val lights: List<GameObjectComponent>,
+    val layerLights: Multimap<String, GameObjectComponent>,
     val cameraAmbientLights: Map<CameraComponent, Vector3fc>,
     val renderTargets: List<FrameBufferInfo.RenderTargetFrameBufferInfo>
 )

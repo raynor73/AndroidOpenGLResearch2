@@ -24,8 +24,6 @@ import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f
 import java.io.BufferedReader
-import java.util.*
-import kotlin.collections.HashMap
 import kotlin.collections.set
 
 /**
@@ -55,7 +53,7 @@ class AndroidAssetsSceneLoader(
 
         val materialsMap = HashMap<String, MaterialComponent>()
 
-        val lights = ArrayList<GameObjectComponent>()
+        val layerLights = HashMultimap.create<String, GameObjectComponent>()
         val layerRenderers = HashMultimap.create<String, MeshRendererComponent>()
         val camerasMap = HashMap<String, CameraComponent>()
         val cameraAmbientLights = HashMap<CameraComponent, Vector3fc>()
@@ -138,6 +136,7 @@ class AndroidAssetsSceneLoader(
                 when (it) {
                     is ComponentDto.DirectionalLightDto -> {
                         it.color ?: error("No directional light color found for game object $gameObjectName")
+                        it.layerNames ?: error("No directional light layer names found for game object $gameObjectName")
                         val lightComponent =
                             DirectionalLightComponent(Vector3f().apply {
                                 it.color.toRgb(this)
@@ -159,7 +158,7 @@ class AndroidAssetsSceneLoader(
                         gameObject.addComponent(cameraComponent)
                         gameObject.addComponent(lightComponent)
 
-                        lights += lightComponent
+                        it.layerNames.forEach { layerName -> layerLights[layerName] += lightComponent }
                     }
 
                     is ComponentDto.MeshDto -> {
@@ -187,7 +186,14 @@ class AndroidAssetsSceneLoader(
                                 vectorsPool,
                                 it.fov,
                                 it.layerNames
-                            )
+                            ).apply {
+                                zNear = it.zNear ?: Z_NEAR
+                                zFar = it.zFar ?: Z_FAR
+                                viewportX = it.viewportX ?: 0f
+                                viewportY = it.viewportY ?: 0f
+                                viewportWidth = it.viewportWidth ?: 1f
+                                viewportHeight = it.viewportHeight ?: 1f
+                            }
                         gameObject.addComponent(cameraComponent)
                         camerasMap[gameObjectName] = cameraComponent
 
@@ -209,7 +215,14 @@ class AndroidAssetsSceneLoader(
                                 it.bottom,
                                 it.top,
                                 it.layerNames
-                            )
+                            ).apply {
+                                zNear = it.zNear ?: Z_NEAR
+                                zFar = it.zFar ?: Z_FAR
+                                viewportX = it.viewportX ?: 0f
+                                viewportY = it.viewportY ?: 0f
+                                viewportWidth = it.viewportWidth ?: 1f
+                                viewportHeight = it.viewportHeight ?: 1f
+                            }
                         gameObject.addComponent(cameraComponent)
                         camerasMap[gameObjectName] = cameraComponent
 
@@ -284,7 +297,7 @@ class AndroidAssetsSceneLoader(
                 it,
                 camerasMap.filter { entry -> sceneInfoDto.scene.activeCameras.contains(entry.key) }.values.toList(),
                 layerRenderers,
-                lights,
+                layerLights,
                 cameraAmbientLights,
                 emptyList()
             )

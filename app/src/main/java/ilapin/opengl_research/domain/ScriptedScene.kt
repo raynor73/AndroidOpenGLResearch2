@@ -6,7 +6,9 @@ import ilapin.common.time.TimeRepository
 import ilapin.engine3d.GameObject
 import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
-import ilapin.opengl_research.*
+import ilapin.opengl_research.FrameBufferInfo
+import ilapin.opengl_research.NANOS_IN_SECOND
+import ilapin.opengl_research.ObjectsPool
 import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
@@ -48,7 +50,9 @@ class ScriptedScene(
         putAll(sceneData.layerRenderers)
     }
 
-    private val _lights = ArrayList<GameObjectComponent>().apply { addAll(sceneData.lights) }
+    private val _layerLights = HashMultimap.create<String, GameObjectComponent>().apply {
+        putAll(sceneData.layerLights)
+    }
 
     private val _cameraAmbientLights = HashMap<CameraComponent, Vector3fc>().apply {
         putAll(sceneData.cameraAmbientLights)
@@ -62,7 +66,7 @@ class ScriptedScene(
 
     override val layerRenderers: Multimap<String, MeshRendererComponent> = _layerRenderers
 
-    override val lights: List<GameObjectComponent> = _lights
+    override val layerLights: Multimap<String, GameObjectComponent> = _layerLights
 
     override val cameraAmbientLights: Map<CameraComponent, Vector3fc> = _cameraAmbientLights
 

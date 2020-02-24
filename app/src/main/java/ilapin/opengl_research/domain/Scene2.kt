@@ -19,7 +19,7 @@ interface Scene2 {
 
     val layerRenderers: Multimap<String, MeshRendererComponent>
 
-    val lights: List<GameObjectComponent>
+    val layerLights: Multimap<String, GameObjectComponent>
 
     val cameraAmbientLights: Map<CameraComponent, Vector3fc>
 
