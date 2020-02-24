@@ -95,7 +95,7 @@ function start() {
     var keyboard = findGameObject(scene.rootGameObject, "keyboard");
     keyboardTransform = scene.getTransformationComponent(keyboard);
     keyboardGestureConsumer = scene.getGestureConsumerComponent(keyboard);
-    keyboardClickDetector = ClickDetector(keyboardGestureConsumer);
+    keyboardClickDetector = new ClickDetector(keyboardGestureConsumer);
     keyboardClickSoundPlayer = scene.getSoundPlayer2DComponent(keyboard);
 
     layoutUi()

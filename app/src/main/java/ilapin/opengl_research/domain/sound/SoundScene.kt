@@ -230,7 +230,7 @@ class SoundScene(
         activePlayers.forEach {
             if (
                 !it.value.isLooped &&
-                currentTimestamp + RESERVE_TIME - it.value.activationTimestamp > it.value.soundPlayer.duration * NANOS_IN_MILLISECOND
+                currentTimestamp - it.value.activationTimestamp > it.value.soundPlayer.duration * NANOS_IN_MILLISECOND
             ) {
                 playersToRemove += it.key
             }
@@ -290,6 +290,5 @@ class SoundScene(
     companion object {
 
         private val INITIAL_RIGHT_VECTOR: Vector3fc = Vector3f(1f, 0f, 0f)
-        private const val RESERVE_TIME = 100 * NANOS_IN_MILLISECOND // ns
     }
 }

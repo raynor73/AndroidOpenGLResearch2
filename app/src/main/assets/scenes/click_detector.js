@@ -19,12 +19,19 @@ function ClickDetector(gestureConsumer) {
             var touchEvent = iterator.next();
 
             if (
-                prevTouchEvent != null &&
+                this.prevTouchEvent != null &&
                 touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.UP ||
                 touchEvent.action == Packages.ilapin.common.input.TouchEvent.Action.CANCEL
             ) {
                 this.prevTouchEvent = null;
-                this.isClickDetected = true;
+                if (
+                    touchEvent.x > this.gestureConsumer.left &&
+                    touchEvent.x < this.gestureConsumer.right &&
+                    touchEvent.y > this.gestureConsumer.bottom &&
+                    touchEvent.y < this.gestureConsumer.top
+                ) {
+                    this.isClickDetected = true;
+                }
             } else {
                 this.prevTouchEvent = touchEvent;
             }

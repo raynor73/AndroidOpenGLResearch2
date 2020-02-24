@@ -181,7 +181,7 @@ class SoundScene2D(
         activePlayers.forEach {
             if (
                 !it.value.isLooped &&
-                currentTimestamp + RESERVE_TIME - it.value.activationTimestamp > it.value.soundPlayer.duration * NANOS_IN_MILLISECOND
+                currentTimestamp - it.value.activationTimestamp > it.value.soundPlayer.duration * NANOS_IN_MILLISECOND
             ) {
                 playersToRemove += it.key
             }
@@ -202,10 +202,5 @@ class SoundScene2D(
         players.clear()
 
         _isPaused = false
-    }
-
-    companion object {
-
-        private const val RESERVE_TIME = 100 * NANOS_IN_MILLISECOND // ns
     }
 }
