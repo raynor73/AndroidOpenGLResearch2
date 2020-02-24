@@ -43,6 +43,13 @@ var displayHeight;
 var xAngle = -Math.PI / 2;
 var zAngle = -Math.PI / 4;
 
+var keyboardTransform;
+var keyboardGestureConsumer;
+var keyboardClickDetector;
+var keyboardYAngle = 0;
+var keyboardClickSoundPlayer;
+var KEYBOARD_ROTATION_SPEED = Math.PI; // rad/sec
+
 function start() {
     rootGestureConsumer = scene.getGestureConsumerComponent(scene.rootGameObject);
 
@@ -83,7 +90,13 @@ function start() {
     orthoCamera.bottom = 0;
     orthoCamera.top = displayHeight;
 
-    scene.getSoundPlayer3DComponent(findGameObject(scene.rootGameObject, "fountain_water")).play(true)
+    scene.getSoundPlayer3DComponent(findGameObject(scene.rootGameObject, "fountain_water")).play(true);
+
+    var keyboard = findGameObject(scene.rootGameObject, "keyboard");
+    keyboardTransform = scene.getTransformationComponent(keyboard);
+    keyboardGestureConsumer = scene.getGestureConsumerComponent(keyboard);
+    keyboardClickDetector = ClickDetector(keyboardGestureConsumer);
+    keyboardClickSoundPlayer = scene.getSoundPlayer2DComponent(keyboard);
 
     layoutUi()
 }
@@ -100,6 +113,7 @@ function update(dt) {
             soundScene2D.resume();
         }
 
+        keyboardClickDetector.update();
         scrollController.update();
         leftJoystickController.update();
         rightJoystickController.update();
@@ -121,6 +135,11 @@ function update(dt) {
             quaternionsPool.recycle(lightRotation);
         }
 
+        if (keyboardClickDetector.isClickDetected) {
+            keyboardClickSoundPlayer.play(false);
+        }
+
+        rotateKeyboard(dt);
         movePlayer(dt);
     } else {
         if (!soundScene.isPaused()) {
@@ -130,6 +149,16 @@ function update(dt) {
             soundScene2D.pause();
         }
     }
+}
+
+function rotateKeyboard(dt) {
+    var rotation = quaternionsPool.obtain();
+
+    keyboardYAngle += KEYBOARD_ROTATION_SPEED * dt;
+    rotation.identity().rotateY(keyboardYAngle).rotateZ(toRadians(10));
+    keyboardTransform.rotation = rotation;
+
+    quaternionsPool.recycle(rotation);
 }
 
 function movePlayer(dt) {
@@ -152,15 +181,6 @@ function movePlayer(dt) {
     playerRotation.identity().rotateY(playerYAngle);
     playerTransform.rotation = playerRotation;
 
-    /*if (
-        Math.abs(playerController.movingFraction) > 0.01 ||
-        Math.abs(playerController.strafingFraction) > 0.01 ||
-        Math.abs(playerController.horizontalSteeringFraction) > 0.01
-    ) {
-        soundScene.updateSoundListenerPosition(playerTransform.position);
-        soundScene.updateSoundListenerRotation(playerTransform.rotation);
-    }*/
-
     vectorsPool.recycle(playerPosition);
     vectorsPool.recycle(movingDirection);
     vectorsPool.recycle(strafingDirection);
@@ -172,6 +192,14 @@ function layoutUi() {
     layoutLeftJoystick();
     layoutRightJoystick();
     layoutRootGestureConsumer();
+    layoutKeyboardGestureConsumer();
+}
+
+function layoutKeyboardGestureConsumer() {
+    keyboardGestureConsumer.left = displayWidth * 0.75;
+    keyboardGestureConsumer.top = displayHeight;
+    keyboardGestureConsumer.right = displayWidth;
+    keyboardGestureConsumer.bottom = displayHeight * 0.75;
 }
 
 function layoutLeftJoystick() {

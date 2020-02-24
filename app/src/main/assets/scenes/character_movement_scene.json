@@ -17,7 +17,7 @@
     { "id": "blue", "textureName": "blue", "diffuseColor": [1, 1, 1, 1] },
     { "id": "female", "textureName": "female", "diffuseColor": [1, 1, 1, 1] },
     { "id": "fountain", "textureName": "fountain", "diffuseColor": [1, 1, 1, 1] },
-    { "id": "keyboard", "textureName": "keyboard", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "keyboard", "textureName": "keyboard", "diffuseColor": [1, 1, 1, 1], "isDoubleSided": true },
     { "id": "capsule", "diffuseColor": [0.5, 0.5, 0, 1] },
     { "id": "cowboy", "diffuseColor": [0.5, 0, 0.5, 1] },
     {
@@ -53,6 +53,7 @@
       "scenes/joystick_controller.js",
       "scenes/scroll_controller.js",
       "scenes/player_controller.js",
+      "scenes/click_detector.js",
       "scenes/character_movement_scene.js"
     ],
     "activeCameras": ["player_camera", "ui_camera", "keyboard_camera"],
@@ -70,11 +71,19 @@
       {
         "name": "keyboard",
         "parent": "root",
-        "position" : [0.0, 0.0, -1.0],
-        "rotation" : [0.0, 45.0, 10.0],
+        "position" : [0.0, 0.0, -2.0],
+        "rotation" : [0.0, 0.0, 10.0],
         "scale": [0.1, 0.1, 0.1],
         "components": [
-          { "type": "Mesh", "meshName": "keyboard", "materialName": "keyboard", "layerNames": ["keyboard_layer"] }
+          { "type": "Mesh", "meshName": "keyboard", "materialName": "keyboard", "layerNames": ["keyboard_layer"] },
+          { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 200, "right": 200, "bottom": 0 },
+          {
+            "type": "SoundPlayer2D",
+            "playerName": "keyboard_click",
+            "soundClipName": "keyboard_click",
+            "duration": 157,
+            "volume": 1
+          }
         ]
       },
       {
