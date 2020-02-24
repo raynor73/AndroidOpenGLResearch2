@@ -9,13 +9,15 @@
     { "id": "green", "color": [0, 0.5, 0, 1] },
     { "id": "blue", "color": [0, 0, 0.5, 1] },
     { "id": "joystick_background", "path": "textures/joystick_background.png" },
-    { "id": "joystick_handle", "path": "textures/joystick_handle.png" }
+    { "id": "joystick_handle", "path": "textures/joystick_handle.png" },
+    { "id": "keyboard", "path": "textures/keyboard.png" }
   ],
   "materials": [
     { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
     { "id": "blue", "textureName": "blue", "diffuseColor": [1, 1, 1, 1] },
     { "id": "female", "textureName": "female", "diffuseColor": [1, 1, 1, 1] },
     { "id": "fountain", "textureName": "fountain", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "keyboard", "textureName": "keyboard", "diffuseColor": [1, 1, 1, 1] },
     { "id": "capsule", "diffuseColor": [0.5, 0.5, 0, 1] },
     { "id": "cowboy", "diffuseColor": [0.5, 0, 0.5, 1] },
     {
@@ -42,7 +44,8 @@
     { "id": "female", "path": "meshes/female.obj" },
     { "id": "fountain", "path": "meshes/fountain.obj" },
     { "id": "capsule", "path": "meshes/capsule.obj" },
-    { "id": "cowboy", "path": "meshes/cowboy.dae" }
+    { "id": "cowboy", "path": "meshes/cowboy.dae" },
+    { "id": "keyboard", "path": "meshes/keyboard.obj" }
   ],
   "scene": {
     "scriptPaths": [
@@ -62,6 +65,16 @@
         "scale": [1.0, 1.0, 1.0],
         "components": [
           { "type": "GestureConsumer", "priority": 0, "left": 0, "top": 1024, "right": 768, "bottom": 0 }
+        ]
+      },
+      {
+        "name": "keyboard",
+        "parent": "root",
+        "position" : [0.0, 0.5, -3.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [0.1, 0.1, 0.1],
+        "components": [
+          { "type": "Mesh", "meshName": "keyboard", "materialName": "keyboard", "layerNames": ["defaultLayer"] }
         ]
       },
       {
