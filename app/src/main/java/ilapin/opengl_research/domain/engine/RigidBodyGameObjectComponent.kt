@@ -6,8 +6,6 @@ import ilapin.opengl_research.toVector
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import org.ode4j.math.DVector3
-import org.ode4j.ode.DBody
 
 /**
  * @author raynor on 08.02.20.

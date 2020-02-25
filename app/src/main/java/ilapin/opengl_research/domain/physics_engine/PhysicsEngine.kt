@@ -26,7 +26,8 @@ class PhysicsEngine : DGeom.DNearCallback {
 
     private val contactGroup: DJointGroup
 
-    private val characterCapsules = ArrayList<DBody>()
+    private val characterCapsules = HashMap<String, DBody>()
+    private val triMeshes = HashMap<String, DTriMesh>()
 
     init {
         OdeHelper.initODE2(0)
@@ -42,11 +43,16 @@ class PhysicsEngine : DGeom.DNearCallback {
     }
 
     fun createCharacterCapsuleRigidBody(
+        name: String,
         massValue: Float,
         radius: Float,
         length: Float,
         position: Vector3fc
-    ): DBody {
+    ) {
+        if (characterCapsules.containsKey(name)) {
+            error("Already has $name Character Capsule")
+        }
+
         val mass = OdeHelper.createMass()
 
         val rigidBody = OdeHelper.createBody(world)
@@ -65,25 +71,23 @@ class PhysicsEngine : DGeom.DNearCallback {
 
         space.add(collisionShape)
 
-        characterCapsules += rigidBody
-
-        return rigidBody
+        characterCapsules[name] = rigidBody
     }
 
-    fun createTriMeshCollisionShape(mesh: Mesh): DTriMesh {
+    fun createTriMeshCollisionShape(name: String, mesh: Mesh) {
         val triMeshData = OdeHelper.createTriMeshData()
 
         triMeshData.build(mesh.vertexCoordinatesOnlyAsArray(), mesh.indices.map { it.toInt() }.toIntArray())
         triMeshData.preprocess()
 
-        return OdeHelper.createTriMesh(space, triMeshData, null, null, null)
+        triMeshes[name] = OdeHelper.createTriMesh(space, triMeshData, null, null, null)
     }
 
     fun update(dt: Float) {
         repeat(ceil(dt / SIMULATION_STEP_TIME).toInt()) {
             OdeHelper.spaceCollide(space, null, this)
             world.step(SIMULATION_STEP_TIME)
-            characterCapsules.forEach {
+            characterCapsules.values.forEach {
                 tmpQuaternion.identity().rotateX(-(PI / 2).toFloat()).toQuaternion(tmpDQuaternion)
                 it.quaternion = tmpDQuaternion
             }
