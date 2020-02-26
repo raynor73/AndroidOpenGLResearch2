@@ -14,6 +14,7 @@ import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.engine.*
+import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
@@ -42,7 +43,8 @@ class AndroidAssetsSceneLoader(
     private val gesturesDispatcher: GesturesDispatcher,
     private val soundClipsRepository: SoundClipsRepository,
     private val soundScene: SoundScene,
-    private val soundScene2D: SoundScene2D
+    private val soundScene2D: SoundScene2D,
+    private val physicsEngine: PhysicsEngine
 ) : SceneLoader {
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
@@ -114,6 +116,15 @@ class AndroidAssetsSceneLoader(
                 }
             }
         }
+
+        val gravity = sceneInfoDto.scene.gravity
+        physicsEngine.setGravity(
+            if (gravity != null) {
+                Vector3f(gravity[0], gravity[1], gravity[2])
+            } else {
+                Vector3f()
+            }
+        )
 
         sceneInfoDto.scene.gameObjects?.forEach { gameObjectDto ->
             val gameObjectName = gameObjectDto.name ?: throw IllegalArgumentException("No game object name")
@@ -269,6 +280,22 @@ class AndroidAssetsSceneLoader(
                     }
 
                     is ComponentDto.SoundListenerDto -> gameObject.addComponent(SoundListenerComponent(soundScene))
+
+                    is ComponentDto.PlayerCapsuleRigidBodyDto -> {
+                        val transform =
+                            gameObject.getComponent(TransformationComponent::class.java) ?: error("No transform")
+                        it.mass ?: error("No mass")
+                        it.radius ?: error("No radius")
+                        it.length ?: error("No length")
+                        physicsEngine.createCharacterCapsuleRigidBody(
+                            gameObjectName,
+                            it.mass,
+                            it.radius,
+                            it.length,
+                            transform.position
+                        )
+                        gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine, gameObjectName))
+                    }
                 }
             }
 

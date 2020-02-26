@@ -1,5 +1,7 @@
 package ilapin.opengl_research.data.scene_loader
 
+import org.joml.Vector3fc
+
 /**
  * @author raynor on 21.01.20.
  */
@@ -61,4 +63,13 @@ sealed class ComponentDto {
 
     @Suppress("CanSealedSubClassBeObject")
     class SoundListenerDto : ComponentDto()
+
+    class PlayerCapsuleRigidBodyDto(val mass: Float?, val radius: Float?, val length: Float?) : ComponentDto()
+
+    class TriMeshRigidBodyDto(
+        val meshName: String?,
+        val position: List<Float>?,
+        val rotation: List<Float>?,
+        val scale: List<Float>?
+    ) : ComponentDto()
 }

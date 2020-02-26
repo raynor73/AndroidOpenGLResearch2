@@ -13,17 +13,22 @@ class ComponentDeserializer : JsonDeserializer<ComponentDto> {
     override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): ComponentDto? {
         val jsonObject = json.asJsonObject
         return jsonObject["type"]?.let {
-            when (it.asString) {
-                "DirectionalLight" -> context.deserialize(jsonObject, ComponentDto.DirectionalLightDto::class.java)
-                "Mesh" -> context.deserialize(jsonObject, ComponentDto.MeshDto::class.java)
-                "PerspectiveCamera" -> context.deserialize(jsonObject, ComponentDto.PerspectiveCameraDto::class.java)
-                "OrthoCamera" -> context.deserialize(jsonObject, ComponentDto.OrthoCameraDto::class.java)
-                "GestureConsumer" -> context.deserialize(jsonObject, ComponentDto.GestureConsumerDto::class.java)
-                "SoundPlayer3D" -> context.deserialize(jsonObject, ComponentDto.SoundPlayer3DDto::class.java)
-                "SoundPlayer2D" -> context.deserialize(jsonObject, ComponentDto.SoundPlayer2DDto::class.java)
-                "SoundListener" -> context.deserialize(jsonObject, ComponentDto.SoundListenerDto::class.java)
-                else -> null
-            }
+            context.deserialize(
+                jsonObject,
+                when (it.asString) {
+                    "DirectionalLight" -> ComponentDto.DirectionalLightDto::class.java
+                    "Mesh" -> ComponentDto.MeshDto::class.java
+                    "PerspectiveCamera" -> ComponentDto.PerspectiveCameraDto::class.java
+                    "OrthoCamera" -> ComponentDto.OrthoCameraDto::class.java
+                    "GestureConsumer" -> ComponentDto.GestureConsumerDto::class.java
+                    "SoundPlayer3D" -> ComponentDto.SoundPlayer3DDto::class.java
+                    "SoundPlayer2D" -> ComponentDto.SoundPlayer2DDto::class.java
+                    "SoundListener" -> ComponentDto.SoundListenerDto::class.java
+                    "PlayerCapsuleRigidBody" -> ComponentDto.PlayerCapsuleRigidBodyDto::class.java
+                    "TriMeshRigidBody" -> ComponentDto.TriMeshRigidBodyDto::class.java
+                    else -> null
+                }
+            )
         }
     }
 }

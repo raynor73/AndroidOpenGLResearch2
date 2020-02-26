@@ -58,6 +58,7 @@
     ],
     "activeCameras": ["player_camera", "ui_camera", "keyboard_camera"],
     "renderTargets": [],
+    "gravity": [0.0, -9.81, 0.0],
     "gameObjects": [
       {
         "name": "root",
@@ -116,6 +117,17 @@
         ]
       },
       {
+        "name": "playerCapsule",
+        "parent": "root",
+        "position" : [0.0, 4, -5],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "capsule", "materialName": "capsule", "layerNames": ["defaultLayer"] },
+          { "type": "PlayerCapsuleRigidBody", "mass": 1, "radius": 1, "length": 2 }
+        ]
+      },
+      {
         "name": "fountain",
         "parent": "root",
         "position" : [0.0, 0.01, -10.0],
@@ -150,7 +162,14 @@
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [50.0, 1.0, 50.0],
         "components": [
-          { "type": "Mesh", "meshName": "quad", "materialName": "green", "layerNames": ["defaultLayer"] }
+          { "type": "Mesh", "meshName": "quad", "materialName": "green", "layerNames": ["defaultLayer"] },
+          {
+            "type": "TriMeshRigidBodyDto",
+            "meshName": "quad",
+            "position": [0, 0, 0],
+            "rotation": [-90, 0, 0],
+            "scale": [50, 50, 1]
+          }
         ]
       },
       {

@@ -14,6 +14,7 @@ import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.domain.engine.*
+import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
@@ -41,7 +42,8 @@ class ScriptedScene(
     appPriorityReporter: AppPriorityReporter,
     private val soundScene: SoundScene,
     private val soundScene2d: SoundScene2D,
-    private val soundClipsRepository: SoundClipsRepository
+    private val soundClipsRepository: SoundClipsRepository,
+    private val physicsEngine: PhysicsEngine
 ) : Scene2 {
 
     private val _activeCameras = ArrayList<CameraComponent>().apply { addAll(sceneData.activeCameras) }
@@ -93,6 +95,7 @@ class ScriptedScene(
         gesturesDispatcher.begin()
         touchEventsRepository.touchEvents.forEach { gesturesDispatcher.onTouchEvent(it) }
 
+        physicsEngine.update(dt)
         rootGameObject.update()
         soundScene.update()
         soundScene2d.update()
@@ -107,6 +110,7 @@ class ScriptedScene(
         soundScene.clear()
         soundScene2d.clear()
         soundClipsRepository.clear()
+        physicsEngine.clear()
     }
 
     @Suppress("unused")

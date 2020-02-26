@@ -4,9 +4,12 @@ import ilapin.opengl_research.domain.Mesh
 import ilapin.opengl_research.toQuaternion
 import ilapin.opengl_research.toVector
 import ilapin.opengl_research.vertexCoordinatesOnlyAsArray
+import org.joml.Matrix4x3f
 import org.joml.Quaternionf
+import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.ode4j.math.DQuaternion
+import org.ode4j.math.DVector3
 import org.ode4j.ode.*
 import org.ode4j.ode.OdeConstants.dContactBounce
 import org.ode4j.ode.OdeConstants.dContactSoftCFM
@@ -18,8 +21,8 @@ import kotlin.math.ceil
  */
 class PhysicsEngine : DGeom.DNearCallback {
 
-    private val world: DWorld
-    private val space: DSpace
+    private var world: DWorld? = null
+    private var space: DSpace? = null
 
     private val tmpQuaternion = Quaternionf()
     private val tmpDQuaternion = DQuaternion()
@@ -29,17 +32,16 @@ class PhysicsEngine : DGeom.DNearCallback {
     private val characterCapsules = HashMap<String, DBody>()
     private val triMeshes = HashMap<String, DTriMesh>()
 
+    private val tmpVector = Vector3f()
+    private val tmpColumn = DVector3()
+
     init {
         OdeHelper.initODE2(0)
-        world = OdeHelper.createWorld()
-        space = OdeHelper.createHashSpace()
         contactGroup = OdeHelper.createJointGroup()
-
-        world.setGravity(0.0, -9.81, 0.0)
     }
 
     fun setGravity(gravity: Vector3fc) {
-        world.setGravity(gravity.toVector())
+        world?.setGravity(gravity.toVector())
     }
 
     fun createCharacterCapsuleRigidBody(
@@ -69,7 +71,7 @@ class PhysicsEngine : DGeom.DNearCallback {
         rigidBody.setLinearVel(0.0, 0.0, 0.0)
         rigidBody.setAngularVel(0.0, 0.0, 0.0)
 
-        space.add(collisionShape)
+        space?.add(collisionShape)
 
         characterCapsules[name] = rigidBody
     }
@@ -86,13 +88,42 @@ class PhysicsEngine : DGeom.DNearCallback {
     fun update(dt: Float) {
         repeat(ceil(dt / SIMULATION_STEP_TIME).toInt()) {
             OdeHelper.spaceCollide(space, null, this)
-            world.step(SIMULATION_STEP_TIME)
+            world?.step(SIMULATION_STEP_TIME)
             characterCapsules.values.forEach {
                 tmpQuaternion.identity().rotateX(-(PI / 2).toFloat()).toQuaternion(tmpDQuaternion)
                 it.quaternion = tmpDQuaternion
             }
             contactGroup.empty()
         }
+    }
+
+    fun getRigidBodyRotationAndPosition(rigidBodyName: String, rotationMatrix: Matrix4x3f, position: Vector3f) {
+        val rigidBody = characterCapsules[rigidBodyName] ?: error("Rigid body $rigidBodyName not found")
+
+        val rotationDMatrix3 = rigidBody.rotation
+
+        rotationDMatrix3.getColumn0(tmpColumn)
+        tmpColumn.toVector(tmpVector)
+        rotationMatrix.setColumn(0, tmpVector)
+
+        rotationDMatrix3.getColumn1(tmpColumn)
+        tmpColumn.toVector(tmpVector)
+        rotationMatrix.setColumn(1, tmpVector)
+
+        rotationDMatrix3.getColumn2(tmpColumn)
+        tmpColumn.toVector(tmpVector)
+        rotationMatrix.setColumn(2, tmpVector)
+
+        rigidBody.position.toVector(position)
+    }
+
+    fun clear() {
+        OdeHelper.closeODE()
+        world = OdeHelper.createWorld()
+        space = OdeHelper.createHashSpace()
+
+        characterCapsules.clear()
+        triMeshes.clear()
     }
 
     override fun call(data: Any?, o1: DGeom, o2: DGeom) {

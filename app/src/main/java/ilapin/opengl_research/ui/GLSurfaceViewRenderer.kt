@@ -16,6 +16,7 @@ import ilapin.opengl_research.data.assets_management.ShadersManager
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.domain.*
 import ilapin.opengl_research.domain.engine.*
+import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
@@ -49,7 +50,8 @@ class GLSurfaceViewRenderer(
     private val gesturesDispatcher: GesturesDispatcher,
     private val soundScene: SoundScene,
     private val soundScene2D: SoundScene2D,
-    private val soundClipsRepository: SoundClipsRepository
+    private val soundClipsRepository: SoundClipsRepository,
+    private val physicsEngine: PhysicsEngine
 ) : GLSurfaceView.Renderer, SceneManager, AppPriorityReporter {
 
     private val messageQueueSubscription: Disposable
@@ -161,7 +163,8 @@ class GLSurfaceViewRenderer(
             this,
             soundScene,
             soundScene2D,
-            soundClipsRepository
+            soundClipsRepository,
+            physicsEngine
         )
 
         safeLet(displayWidth, displayHeight) { width, height ->

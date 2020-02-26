@@ -203,7 +203,7 @@ class CharacterMovementScene(
                 )
             )
             gameObject.addComponent(MeshComponent("quad"))
-            gameObject.addComponent(
+            /*gameObject.addComponent(
                 CollisionShapeGameObjectComponent(
                     physicsEngine.createTriMeshCollisionShape(
                         mesh.applyTransform(
@@ -213,7 +213,7 @@ class CharacterMovementScene(
                         )
                     )
                 )
-            )
+            )*/
             rootGameObject.addChild(gameObject)
         }
 
@@ -329,7 +329,7 @@ class CharacterMovementScene(
                 )
             )
             gameObject.addComponent(MeshComponent("capsule"))
-            gameObject.addComponent(
+            /*gameObject.addComponent(
                 RigidBodyGameObjectComponent(
                     physicsEngine.createCharacterCapsuleRigidBody(
                         1f,
@@ -338,7 +338,7 @@ class CharacterMovementScene(
                         Vector3f(0f, 4f, -5f)
                     )
                 )
-            )
+            )*/
             rootGameObject.addChild(gameObject)
         }
 

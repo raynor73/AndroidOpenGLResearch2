@@ -198,7 +198,8 @@ class MainScreenModule(private val activity: MainActivity) {
         gesturesDispatcher: GesturesDispatcher,
         soundClipsRepository: SoundClipsRepository,
         soundScene: SoundScene,
-        soundScene2D: SoundScene2D
+        soundScene2D: SoundScene2D,
+        physicsEngine: PhysicsEngine
     ): SceneLoader {
         return AndroidAssetsSceneLoader(
             context,
@@ -213,7 +214,8 @@ class MainScreenModule(private val activity: MainActivity) {
             gesturesDispatcher,
             soundClipsRepository,
             soundScene,
-            soundScene2D
+            soundScene2D,
+            physicsEngine
         )
     }
 
@@ -238,7 +240,8 @@ class MainScreenModule(private val activity: MainActivity) {
         gesturesDispatcher: GesturesDispatcher,
         soundScene: SoundScene,
         soundScene2D: SoundScene2D,
-        soundClipsRepository: SoundClipsRepository
+        soundClipsRepository: SoundClipsRepository,
+        physicsEngine: PhysicsEngine
     ): GLSurfaceViewRenderer? {
         return if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             GLSurfaceViewRenderer(
@@ -260,7 +263,8 @@ class MainScreenModule(private val activity: MainActivity) {
                 gesturesDispatcher,
                 soundScene,
                 soundScene2D,
-                soundClipsRepository
+                soundClipsRepository,
+                physicsEngine
             )
         } else {
             null
