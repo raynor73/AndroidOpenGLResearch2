@@ -296,6 +296,10 @@ class AndroidAssetsSceneLoader(
                         )
                         gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine, gameObjectName))
                     }
+
+                    /*is ComponentDto.TriMeshRigidBodyDto -> {
+
+                    }*/
                 }
             }
 

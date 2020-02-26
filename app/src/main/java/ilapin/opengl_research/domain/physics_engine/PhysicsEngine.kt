@@ -27,7 +27,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     private val tmpQuaternion = Quaternionf()
     private val tmpDQuaternion = DQuaternion()
 
-    private val contactGroup: DJointGroup
+    private val contactGroup = OdeHelper.createJointGroup()
 
     private val characterCapsules = HashMap<String, DBody>()
     private val triMeshes = HashMap<String, DTriMesh>()
@@ -36,8 +36,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     private val tmpColumn = DVector3()
 
     init {
-        OdeHelper.initODE2(0)
-        contactGroup = OdeHelper.createJointGroup()
+        initODE()
     }
 
     fun setGravity(gravity: Vector3fc) {
@@ -67,9 +66,9 @@ class PhysicsEngine : DGeom.DNearCallback {
 
         rigidBody.position = position.toVector()
         rigidBody.quaternion = Quaternionf().identity().rotateX(-(PI / 2).toFloat()).toQuaternion()
-        rigidBody.maxAngularSpeed = .0
+        /*rigidBody.maxAngularSpeed = .0
         rigidBody.setLinearVel(0.0, 0.0, 0.0)
-        rigidBody.setAngularVel(0.0, 0.0, 0.0)
+        rigidBody.setAngularVel(0.0, 0.0, 0.0)*/
 
         space?.add(collisionShape)
 
@@ -89,10 +88,10 @@ class PhysicsEngine : DGeom.DNearCallback {
         repeat(ceil(dt / SIMULATION_STEP_TIME).toInt()) {
             OdeHelper.spaceCollide(space, null, this)
             world?.step(SIMULATION_STEP_TIME)
-            characterCapsules.values.forEach {
+            /*characterCapsules.values.forEach {
                 tmpQuaternion.identity().rotateX(-(PI / 2).toFloat()).toQuaternion(tmpDQuaternion)
                 it.quaternion = tmpDQuaternion
-            }
+            }*/
             contactGroup.empty()
         }
     }
@@ -119,11 +118,15 @@ class PhysicsEngine : DGeom.DNearCallback {
 
     fun clear() {
         OdeHelper.closeODE()
-        world = OdeHelper.createWorld()
-        space = OdeHelper.createHashSpace()
+
+        world = null
+        space = null
 
         characterCapsules.clear()
         triMeshes.clear()
+        contactGroup.clear()
+
+        initODE()
     }
 
     override fun call(data: Any?, o1: DGeom, o2: DGeom) {
@@ -142,6 +145,12 @@ class PhysicsEngine : DGeom.DNearCallback {
             val contactJoint = OdeHelper.createContactJoint(world, contactGroup, contactsBuffer[i])
             contactJoint.attach(o1.body, o2.body)
         }
+    }
+
+    private fun initODE() {
+        OdeHelper.initODE2(0)
+        world = OdeHelper.createWorld()
+        space = OdeHelper.createHashSpace()
     }
 
     companion object {

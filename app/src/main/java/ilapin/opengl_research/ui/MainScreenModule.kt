@@ -137,6 +137,7 @@ class MainScreenModule(private val activity: MainActivity) {
     }
 
     @Provides
+    @ActivityScope
     fun physicsEngine(): PhysicsEngine {
         return PhysicsEngine()
     }

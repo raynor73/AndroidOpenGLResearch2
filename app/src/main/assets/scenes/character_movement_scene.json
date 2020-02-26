@@ -162,14 +162,7 @@
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [50.0, 1.0, 50.0],
         "components": [
-          { "type": "Mesh", "meshName": "quad", "materialName": "green", "layerNames": ["defaultLayer"] },
-          {
-            "type": "TriMeshRigidBodyDto",
-            "meshName": "quad",
-            "position": [0, 0, 0],
-            "rotation": [-90, 0, 0],
-            "scale": [50, 50, 1]
-          }
+          { "type": "Mesh", "meshName": "quad", "materialName": "green", "layerNames": ["defaultLayer"] }
         ]
       },
       {
