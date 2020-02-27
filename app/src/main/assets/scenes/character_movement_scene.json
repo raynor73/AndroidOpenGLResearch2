@@ -18,7 +18,7 @@
     { "id": "female", "textureName": "female", "diffuseColor": [1, 1, 1, 1] },
     { "id": "fountain", "textureName": "fountain", "diffuseColor": [1, 1, 1, 1] },
     { "id": "keyboard", "textureName": "keyboard", "diffuseColor": [1, 1, 1, 1], "isDoubleSided": true },
-    { "id": "capsule", "diffuseColor": [0.5, 0.5, 0, 1] },
+    { "id": "capsule", "diffuseColor": [0.5, 0.5, 0, 1], "isWireframe": true },
     { "id": "cowboy", "diffuseColor": [0.5, 0, 0.5, 1] },
     {
       "id": "joystick_background",
@@ -117,17 +117,6 @@
         ]
       },
       {
-        "name": "playerCapsule",
-        "parent": "root",
-        "position" : [0.0, 4, -5],
-        "rotation" : [0.0, 0.0, 0.0],
-        "scale": [0.5, 0.5, 0.5],
-        "components": [
-          { "type": "Mesh", "meshName": "capsule", "materialName": "capsule", "layerNames": ["defaultLayer"] },
-          { "type": "PlayerCapsuleRigidBody", "mass": 1, "radius": 0.5, "length": 1 }
-        ]
-      },
-      {
         "name": "fountain",
         "parent": "root",
         "position" : [0.0, 0.01, -10.0],
@@ -184,13 +173,24 @@
       },
       {
         "name": "player",
-        "parent": "playerCapsule",
-        "position" : [0.0, 0.0, 0.0],
+        "parent": "root",
+        "position" : [0.0, 4, -5],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
           { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] },
-          { "type": "SoundListener" }
+          { "type": "SoundListener" },
+          { "type": "PlayerCapsuleRigidBody", "mass": 1, "radius": 0.5, "length": 1 }
+        ]
+      },
+      {
+        "name": "playerCapsule",
+        "parent": "player",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [0.5, 0.5, 0.5],
+        "components": [
+          { "type": "Mesh", "meshName": "capsule", "materialName": "capsule", "layerNames": ["defaultLayer"] }
         ]
       },
       {
