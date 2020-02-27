@@ -4,10 +4,7 @@ import ilapin.opengl_research.domain.Mesh
 import ilapin.opengl_research.toQuaternion
 import ilapin.opengl_research.toVector
 import ilapin.opengl_research.vertexCoordinatesOnlyAsArray
-import org.joml.Matrix4x3f
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector3fc
+import org.joml.*
 import org.ode4j.math.DQuaternion
 import org.ode4j.math.DVector3
 import org.ode4j.ode.*
@@ -66,32 +63,55 @@ class PhysicsEngine : DGeom.DNearCallback {
 
         rigidBody.position = position.toVector()
         rigidBody.quaternion = Quaternionf().identity().rotateX(-(PI / 2).toFloat()).toQuaternion()
-        /*rigidBody.maxAngularSpeed = .0
+        rigidBody.maxAngularSpeed = .0
         rigidBody.setLinearVel(0.0, 0.0, 0.0)
-        rigidBody.setAngularVel(0.0, 0.0, 0.0)*/
+        rigidBody.setAngularVel(0.0, 0.0, 0.0)
 
         space?.add(collisionShape)
 
         characterCapsules[name] = rigidBody
     }
 
-    fun createTriMeshCollisionShape(name: String, mesh: Mesh) {
+    fun createTriMeshRigidBody(
+        name: String,
+        mesh: Mesh,
+        massValue: Float?,
+        position: Vector3fc,
+        rotation: Quaternionfc
+    ) {
         val triMeshData = OdeHelper.createTriMeshData()
 
         triMeshData.build(mesh.vertexCoordinatesOnlyAsArray(), mesh.indices.map { it.toInt() }.toIntArray())
         triMeshData.preprocess()
 
-        triMeshes[name] = OdeHelper.createTriMesh(space, triMeshData, null, null, null)
+        val triMesh = OdeHelper.createTriMesh(space, triMeshData, null, null, null)
+        triMeshes[name] = triMesh
+
+        val mass = OdeHelper.createMass()
+
+        val rigidBody = OdeHelper.createBody(world)
+
+        if (massValue != null) {
+            mass.setTrimeshTotal(massValue.toDouble(), triMesh)
+            rigidBody.mass = mass
+        } else {
+            rigidBody.setKinematic()
+        }
+
+        triMesh.body = rigidBody
+
+        rigidBody.position = position.toVector()
+        rigidBody.quaternion = rotation.toQuaternion()
     }
 
     fun update(dt: Float) {
         repeat(ceil(dt / SIMULATION_STEP_TIME).toInt()) {
             OdeHelper.spaceCollide(space, null, this)
             world?.step(SIMULATION_STEP_TIME)
-            /*characterCapsules.values.forEach {
+            characterCapsules.values.forEach {
                 tmpQuaternion.identity().rotateX(-(PI / 2).toFloat()).toQuaternion(tmpDQuaternion)
                 it.quaternion = tmpDQuaternion
-            }*/
+            }
             contactGroup.empty()
         }
     }

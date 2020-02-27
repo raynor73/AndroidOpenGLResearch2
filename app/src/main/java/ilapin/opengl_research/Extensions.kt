@@ -228,6 +228,10 @@ fun Quaternionf.toQuaternion(): DQuaternion {
     return DQuaternion(w.toDouble(), x.toDouble(), y.toDouble(), z.toDouble())
 }
 
+fun Quaternionfc.toQuaternion(): DQuaternion {
+    return DQuaternion(w().toDouble(), x().toDouble(), y().toDouble(), z().toDouble())
+}
+
 fun Quaternionf.toQuaternion(dest: DQuaternion) {
     dest.set(w.toDouble(), x.toDouble(), y.toDouble(), z.toDouble())
 }

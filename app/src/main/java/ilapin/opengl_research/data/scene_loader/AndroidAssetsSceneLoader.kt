@@ -297,9 +297,29 @@ class AndroidAssetsSceneLoader(
                         gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine, gameObjectName))
                     }
 
-                    /*is ComponentDto.TriMeshRigidBodyDto -> {
-
-                    }*/
+                    is ComponentDto.TriMeshRigidBodyDto -> {
+                        val transform =
+                            gameObject.getComponent(TransformationComponent::class.java) ?: error("No transform")
+                        it.meshName ?: error("No mesh name")
+                        it.meshPosition ?: error("No mesh position")
+                        it.meshRotation ?: error("No mesh rotation")
+                        it.meshScale ?: error("No mesh scale")
+                        physicsEngine.createTriMeshRigidBody(
+                            gameObjectName,
+                            meshStorage.findMesh(it.meshName).applyTransform(
+                                Vector3f(it.meshPosition[0], it.meshPosition[1], it.meshPosition[2]),
+                                Quaternionf().identity().rotationXYZ(
+                                    Math.toRadians(it.meshRotation[0].toDouble()).toFloat(),
+                                    Math.toRadians(it.meshRotation[1].toDouble()).toFloat(),
+                                    Math.toRadians(it.meshRotation[2].toDouble()).toFloat()
+                                ),
+                                Vector3f(it.meshScale[0], it.meshScale[1], it.meshScale[2])
+                            ),
+                            it.mass,
+                            transform.position,
+                            transform.rotation
+                        )
+                    }
                 }
             }
 

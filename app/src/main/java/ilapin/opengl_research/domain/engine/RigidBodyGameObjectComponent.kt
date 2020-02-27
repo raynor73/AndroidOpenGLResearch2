@@ -19,6 +19,30 @@ class RigidBodyGameObjectComponent(
     private val rotationQuaternion = Quaternionf()
     private val position = Vector3f()
 
+    fun setRotation() {
+
+    }
+
+    fun setPosition() {
+
+    }
+
+    fun setVelocity() {
+
+    }
+
+    fun setAngularVelocity() {
+
+    }
+
+    fun addForce() {
+
+    }
+
+    fun addTorque() {
+
+    }
+
     override fun update() {
         super.update()
 

@@ -1,7 +1,5 @@
 package ilapin.opengl_research.data.scene_loader
 
-import org.joml.Vector3fc
-
 /**
  * @author raynor on 21.01.20.
  */
@@ -68,8 +66,9 @@ sealed class ComponentDto {
 
     class TriMeshRigidBodyDto(
         val meshName: String?,
-        val position: List<Float>?,
-        val rotation: List<Float>?,
-        val scale: List<Float>?
+        val meshPosition: List<Float>?,
+        val meshRotation: List<Float>?,
+        val meshScale: List<Float>?,
+        val mass: Float?
     ) : ComponentDto()
 }

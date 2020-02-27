@@ -9,7 +9,6 @@ import ilapin.engine3d.TransformationComponent
 import ilapin.opengl_research.FrameBufferInfo
 import ilapin.opengl_research.NANOS_IN_SECOND
 import ilapin.opengl_research.ObjectsPool
-import ilapin.opengl_research.applyTransform
 import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
@@ -23,7 +22,6 @@ import ilapin.opengl_research.domain.sound_2d.SoundScene2D
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector3fc
-import kotlin.math.PI
 
 /**
  * @author raynor on 18.02.20.
@@ -87,15 +85,6 @@ class ScriptedScene(
         scriptingEngine.soundScene = soundScene
         scriptingEngine.soundScene2D = soundScene2d
         scriptingEngine.loadScripts(sceneData.scriptSources)
-
-        physicsEngine.createTriMeshCollisionShape(
-            "ground_plane_trimesh",
-            meshStorage.findMesh("quad").applyTransform(
-                Vector3f(0f, 0f, 0f),
-                Quaternionf().identity(),//.rotateX(-(PI / 2).toFloat()),
-                Vector3f(50f, 1f, 50f)
-            )
-        )
     }
 
     override fun update() {
