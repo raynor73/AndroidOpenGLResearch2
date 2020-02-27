@@ -27,11 +27,19 @@ class RigidBodyGameObjectComponent(
 
     }
 
-    fun setVelocity() {
+    fun setVelocityViaMotor() {
 
     }
 
-    fun setAngularVelocity() {
+    fun setAngularVelocityViaMotor() {
+
+    }
+
+    fun setVelocityDirectly() {
+
+    }
+
+    fun setAngularVelocityDirectly() {
 
     }
 

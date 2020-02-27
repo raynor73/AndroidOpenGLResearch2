@@ -18,7 +18,14 @@
     { "id": "female", "textureName": "female", "diffuseColor": [1, 1, 1, 1] },
     { "id": "fountain", "textureName": "fountain", "diffuseColor": [1, 1, 1, 1] },
     { "id": "keyboard", "textureName": "keyboard", "diffuseColor": [1, 1, 1, 1], "isDoubleSided": true },
-    { "id": "capsule", "diffuseColor": [0.5, 0.5, 0, 1], "isWireframe": true },
+    {
+      "id": "capsule",
+      "diffuseColor": [0.5, 0.5, 0, 1],
+      "isWireframe": true,
+      "isUnlit": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
     { "id": "cowboy", "diffuseColor": [0.5, 0, 0.5, 1] },
     {
       "id": "joystick_background",
@@ -178,13 +185,12 @@
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] },
           { "type": "SoundListener" },
           { "type": "PlayerCapsuleRigidBody", "mass": 1, "radius": 0.5, "length": 1 }
         ]
       },
       {
-        "name": "playerCapsule",
+        "name": "player_capsule",
         "parent": "player",
         "position" : [0.0, 0.0, 0.0],
         "rotation" : [0.0, 0.0, 0.0],
@@ -194,8 +200,18 @@
         ]
       },
       {
-        "name": "player_camera",
+        "name": "player_mesh",
         "parent": "player",
+        "position" : [0.0, 0.0, -1],
+        "rotation" : [90.0, 0.0, 0.0],
+        "scale": [1, 1, 1],
+        "components": [
+          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "player_camera",
+        "parent": "player_mesh",
         "position" : [0.0, 1.0, 3.0],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],

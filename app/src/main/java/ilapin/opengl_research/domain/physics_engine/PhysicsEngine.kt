@@ -28,6 +28,7 @@ class PhysicsEngine : DGeom.DNearCallback {
 
     private val characterCapsules = HashMap<String, DBody>()
     private val rigidBodies = HashMap<String, DBody>()
+    private val linearMotors = HashMap<String, DLMotorJoint>()
 
     private val tmpVector = Vector3f()
     private val tmpColumn = DVector3()
@@ -46,6 +47,13 @@ class PhysicsEngine : DGeom.DNearCallback {
                 force.y().toDouble(),
                 force.z().toDouble()
         )
+    }
+
+    fun setVelocityViaMotor(rigidBodyName: String, velocity: Vector3fc) {
+        val motor = linearMotors[rigidBodyName] ?: error("Linear motor for $rigidBodyName not found")
+        motor.paramVel = velocity.x().toDouble()
+        motor.paramVel2 = velocity.y().toDouble()
+        motor.paramVel3 = velocity.z().toDouble()
     }
 
     fun createCharacterCapsuleRigidBody(
@@ -77,6 +85,18 @@ class PhysicsEngine : DGeom.DNearCallback {
         rigidBody.setAngularVel(0.0, 0.0, 0.0)
 
         space?.add(collisionShape)
+
+        val motor = OdeHelper.createLMotorJoint(world, null)
+        motor.numAxes = 2
+        motor.setAxis(0, 0, 1.0, 0.0, 0.0)
+        motor.setAxis(1, 0, 0.0, 0.0, 1.0)
+        motor.paramFMax = 10.0
+        motor.paramFMax2 = 10.0
+        motor.paramVel = 0.0
+        motor.paramVel2 = 0.0
+
+        motor.attach(rigidBody, null)
+        linearMotors[name] = motor
 
         characterCapsules[name] = rigidBody
     }
