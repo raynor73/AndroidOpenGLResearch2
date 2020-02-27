@@ -84,6 +84,7 @@ class ScriptedScene(
         scriptingEngine.soundClipsRepository = soundClipsRepository
         scriptingEngine.soundScene = soundScene
         scriptingEngine.soundScene2D = soundScene2d
+        scriptingEngine.physicsEngine = physicsEngine
         scriptingEngine.loadScripts(sceneData.scriptSources)
     }
 

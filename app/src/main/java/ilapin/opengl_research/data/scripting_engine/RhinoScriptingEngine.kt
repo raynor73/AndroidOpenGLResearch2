@@ -7,6 +7,7 @@ import ilapin.opengl_research.domain.AppPriorityReporter
 import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.Scene2
 import ilapin.opengl_research.domain.TouchEventsRepository
+import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scripting_engine.ScriptingEngine
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
@@ -76,6 +77,7 @@ class RhinoScriptingEngine : ScriptingEngine {
     var soundClipsRepository: SoundClipsRepository? = null
     var soundScene: SoundScene? = null
     var soundScene2D: SoundScene2D? = null
+    var physicsEngine: PhysicsEngine? = null
 
     override fun loadScripts(scripts: List<String>) {
         scripts.forEachIndexed { i, script -> context.evaluateString(scope, script, "SceneScript #$i", 1, null) }
@@ -132,6 +134,12 @@ class RhinoScriptingEngine : ScriptingEngine {
             scope,
             "soundScene2D",
             Context.javaToJS(soundScene2D, scope)
+        )
+
+        ScriptableObject.putProperty(
+            scope,
+            "physicsEngine",
+            Context.javaToJS(physicsEngine, scope)
         )
 
         val startFunction = scope

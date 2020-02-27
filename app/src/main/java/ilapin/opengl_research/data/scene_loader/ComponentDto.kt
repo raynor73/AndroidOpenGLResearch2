@@ -62,7 +62,17 @@ sealed class ComponentDto {
     @Suppress("CanSealedSubClassBeObject")
     class SoundListenerDto : ComponentDto()
 
-    class PlayerCapsuleRigidBodyDto(val mass: Float?, val radius: Float?, val length: Float?) : ComponentDto()
+    class PlayerCapsuleRigidBodyDto(
+        val mass: Float?,
+        val radius: Float?,
+        val length: Float?,
+        val maxForceX: Float?,
+        val maxForceY: Float?,
+        val maxForceZ: Float?/*,
+        val maxTorqueX: Float?,
+        val maxTorqueY: Float?,
+        val maxTorqueZ: Float?*/
+    ) : ComponentDto()
 
     class TriMeshRigidBodyDto(
         val meshName: String?,

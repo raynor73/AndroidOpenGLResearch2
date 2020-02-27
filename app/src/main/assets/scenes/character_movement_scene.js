@@ -4,6 +4,7 @@
 // var soundClipsRepository = ...
 // var soundScene = ...
 // var soundScene2D = ...
+// var physicsEngine = ...
 // var displayMetricsRepository = ...
 // var quaternionsPool = ...
 // var vectorsPool = ...
@@ -21,6 +22,8 @@ var uiCamera;
 var directionalLight;
 
 var playerRigidBody;
+var playerYAngle = 0;
+var playerMeshTransform;
 var playerController;
 
 var leftJoystick;
@@ -81,6 +84,7 @@ function start() {
     );
 
     playerRigidBody = scene.getRigidBodyComponent(findGameObject(scene.rootGameObject, "player"));
+    playerMeshTransform = scene.getTransformationComponent(findGameObject(scene.rootGameObject, "player_mesh"));
     playerController = new PlayerController(leftJoystickController, rightJoystickController);
 
     var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
@@ -163,11 +167,18 @@ function rotateKeyboard(dt) {
 function movePlayer(dt) {
     var movingVelocity = vectorsPool.obtain();
     var strafingVelocity = vectorsPool.obtain();
+    var playerRotation = quaternionsPool.obtain();
+
+    playerYAngle += playerController.horizontalSteeringFraction * PLAYER_STEERING_SPEED * dt;
+    playerRotation.identity().rotateXYZ(Math.PI / 2, 0, -playerYAngle);
+    playerMeshTransform.rotation = playerRotation;
 
     movingVelocity.set(INITIAL_FORWARD_VECTOR);
+    movingVelocity.rotateY(playerYAngle);
     movingVelocity.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.movingFraction);
 
     strafingVelocity.set(INITIAL_RIGHT_VECTOR);
+    strafingVelocity.rotateY(playerYAngle);
     strafingVelocity.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.strafingFraction);
 
     movingVelocity.add(strafingVelocity);
@@ -176,6 +187,7 @@ function movePlayer(dt) {
 
     vectorsPool.recycle(movingVelocity);
     vectorsPool.recycle(strafingVelocity);
+    quaternionsPool.recycle(playerRotation);
 
     /*var playerPosition = vectorsPool.obtain();
     var movingDirection = vectorsPool.obtain();

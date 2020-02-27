@@ -186,7 +186,15 @@
         "scale": [1.0, 1.0, 1.0],
         "components": [
           { "type": "SoundListener" },
-          { "type": "PlayerCapsuleRigidBody", "mass": 1, "radius": 0.5, "length": 1 }
+          {
+            "type": "PlayerCapsuleRigidBody",
+            "mass": 1,
+            "radius": 0.5,
+            "length": 1,
+            "maxForceX": 100,
+            "maxForceY": 0,
+            "maxForceZ": 100
+          }
         ]
       },
       {

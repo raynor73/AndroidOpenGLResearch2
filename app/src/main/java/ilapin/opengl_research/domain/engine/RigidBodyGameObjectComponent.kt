@@ -35,7 +35,11 @@ class RigidBodyGameObjectComponent(
         )
     }
 
-    fun setAngularVelocityViaMotor() {
+    fun setAngularVelocityViaMotor(velocity: Vector3fc) {
+        physicsEngine.setAngularVelocityViaMotor(
+            gameObject?.name ?: error("No game object"),
+            velocity
+        )
     }
 
     fun setVelocityDirectly() {

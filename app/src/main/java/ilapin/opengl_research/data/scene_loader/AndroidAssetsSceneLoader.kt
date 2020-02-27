@@ -292,7 +292,13 @@ class AndroidAssetsSceneLoader(
                             it.mass,
                             it.radius,
                             it.length,
-                            transform.position
+                            transform.position,
+                            it.maxForceX ?: 0f,
+                            it.maxForceY ?: 0f,
+                            it.maxForceZ ?: 0f/*,
+                            it.maxTorqueX ?: 0f,
+                            it.maxTorqueY ?: 0f,
+                            it.maxTorqueZ ?: 0f*/
                         )
                         gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine, gameObjectName))
                     }
