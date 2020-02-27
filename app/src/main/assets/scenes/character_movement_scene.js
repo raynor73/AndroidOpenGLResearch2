@@ -139,8 +139,10 @@ function update(dt) {
             keyboardClickSoundPlayer.play(false);
         }
 
+        println("!@# Player x: " + playerTransform.position.x() + "; y: " + playerTransform.position.y() + "; z: " + playerTransform.position.z());
+
         rotateKeyboard(dt);
-        movePlayer(dt);
+        //movePlayer(dt);
     } else {
         if (!soundScene.isPaused()) {
             soundScene.pause();

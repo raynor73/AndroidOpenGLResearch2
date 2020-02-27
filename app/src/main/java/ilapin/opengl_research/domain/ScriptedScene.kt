@@ -142,4 +142,9 @@ class ScriptedScene(
     fun getSoundListenerComponent(gameObject: GameObject): SoundListenerComponent? {
         return gameObject.getComponent(SoundListenerComponent::class.java)
     }
+
+    @Suppress("unused")
+    fun getRigidBodyComponent(gameObject: GameObject): RigidBodyGameObjectComponent? {
+        return gameObject.getComponent(RigidBodyGameObjectComponent::class.java)
+    }
 }

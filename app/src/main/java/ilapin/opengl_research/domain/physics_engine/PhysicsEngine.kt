@@ -27,7 +27,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     private val contactGroup = OdeHelper.createJointGroup()
 
     private val characterCapsules = HashMap<String, DBody>()
-    private val triMeshes = HashMap<String, DTriMesh>()
+    private val rigidBodies = HashMap<String, DBody>()
 
     private val tmpVector = Vector3f()
     private val tmpColumn = DVector3()
@@ -38,6 +38,14 @@ class PhysicsEngine : DGeom.DNearCallback {
 
     fun setGravity(gravity: Vector3fc) {
         world?.setGravity(gravity.toVector())
+    }
+
+    fun addForce(rigidBodyName: String, force: Vector3fc) {
+        (rigidBodies[rigidBodyName] ?: error("Rigid body $rigidBodyName not found")).addForce(
+                force.x().toDouble(),
+                force.y().toDouble(),
+                force.z().toDouble()
+        )
     }
 
     fun createCharacterCapsuleRigidBody(
@@ -54,6 +62,7 @@ class PhysicsEngine : DGeom.DNearCallback {
         val mass = OdeHelper.createMass()
 
         val rigidBody = OdeHelper.createBody(world)
+        rigidBodies[name] = rigidBody
 
         mass.setCapsuleTotal(massValue.toDouble(), 2, radius.toDouble(), length.toDouble())
         rigidBody.mass = mass
@@ -85,11 +94,11 @@ class PhysicsEngine : DGeom.DNearCallback {
         triMeshData.preprocess()
 
         val triMesh = OdeHelper.createTriMesh(space, triMeshData, null, null, null)
-        triMeshes[name] = triMesh
 
         val mass = OdeHelper.createMass()
 
         val rigidBody = OdeHelper.createBody(world)
+        rigidBodies[name] = rigidBody
 
         if (massValue != null) {
             mass.setTrimeshTotal(massValue.toDouble(), triMesh)
@@ -143,7 +152,7 @@ class PhysicsEngine : DGeom.DNearCallback {
         space = null
 
         characterCapsules.clear()
-        triMeshes.clear()
+        rigidBodies.clear()
         contactGroup.clear()
 
         initODE()
