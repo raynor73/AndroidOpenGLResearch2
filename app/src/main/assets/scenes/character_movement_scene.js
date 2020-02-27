@@ -20,8 +20,7 @@ var rootGestureConsumer;
 var uiCamera;
 var directionalLight;
 
-var playerTransform;
-var playerYAngle = 0;
+var playerRigidBody;
 var playerController;
 
 var leftJoystick;
@@ -81,7 +80,7 @@ function start() {
         rightJoystickHandleTransform
     );
 
-    playerTransform = scene.getTransformationComponent(findGameObject(scene.rootGameObject, "player"));
+    playerRigidBody = scene.getRigidBodyComponent(findGameObject(scene.rootGameObject, "player"));
     playerController = new PlayerController(leftJoystickController, rightJoystickController);
 
     var orthoCamera = scene.getOrthoCameraComponent(uiCamera);
@@ -139,10 +138,8 @@ function update(dt) {
             keyboardClickSoundPlayer.play(false);
         }
 
-        println("!@# Player x: " + playerTransform.position.x() + "; y: " + playerTransform.position.y() + "; z: " + playerTransform.position.z());
-
         rotateKeyboard(dt);
-        //movePlayer(dt);
+        movePlayer(dt);
     } else {
         if (!soundScene.isPaused()) {
             soundScene.pause();
@@ -164,7 +161,23 @@ function rotateKeyboard(dt) {
 }
 
 function movePlayer(dt) {
-    var playerPosition = vectorsPool.obtain();
+    var movingVelocity = vectorsPool.obtain();
+    var strafingVelocity = vectorsPool.obtain();
+
+    movingVelocity.set(INITIAL_FORWARD_VECTOR);
+    movingVelocity.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.movingFraction);
+
+    strafingVelocity.set(INITIAL_RIGHT_VECTOR);
+    strafingVelocity.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.strafingFraction);
+
+    movingVelocity.add(strafingVelocity);
+
+    playerRigidBody.setVelocityViaMotor(movingVelocity);
+
+    vectorsPool.recycle(movingVelocity);
+    vectorsPool.recycle(strafingVelocity);
+
+    /*var playerPosition = vectorsPool.obtain();
     var movingDirection = vectorsPool.obtain();
     var strafingDirection = vectorsPool.obtain();
 
@@ -187,7 +200,7 @@ function movePlayer(dt) {
     vectorsPool.recycle(movingDirection);
     vectorsPool.recycle(strafingDirection);
 
-    quaternionsPool.recycle(playerRotation);
+    quaternionsPool.recycle(playerRotation);*/
 }
 
 function layoutUi() {

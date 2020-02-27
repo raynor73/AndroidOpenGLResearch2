@@ -90,8 +90,8 @@ class PhysicsEngine : DGeom.DNearCallback {
         motor.numAxes = 2
         motor.setAxis(0, 0, 1.0, 0.0, 0.0)
         motor.setAxis(1, 0, 0.0, 0.0, 1.0)
-        motor.paramFMax = 10.0
-        motor.paramFMax2 = 10.0
+        motor.paramFMax = 100.0
+        motor.paramFMax2 = 100.0
         motor.paramVel = 0.0
         motor.paramVel2 = 0.0
 
