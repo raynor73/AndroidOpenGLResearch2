@@ -11,7 +11,8 @@
     { "id": "joystick_background", "path": "textures/joystick_background.png" },
     { "id": "joystick_handle", "path": "textures/joystick_handle.png" },
     { "id": "keyboard", "path": "textures/keyboard.png" },
-    { "id": "rect_button", "path": "textures/rect_button.png" }
+    { "id": "rect_button", "path": "textures/rect_button.png" },
+    { "id": "house_diffuse", "path": "textures/house_diffuse.png" }
   ],
   "materials": [
     { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
@@ -62,7 +63,8 @@
       "isTranslucent": true,
       "castShadows": false,
       "receiveShadows": false
-    }
+    },
+    { "id": "house", "textureName": "house_diffuse", "diffuseColor": [1, 1, 1, 1] }
   ],
   "meshes": [
     { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
@@ -71,7 +73,8 @@
     { "id": "capsule", "path": "meshes/capsule.obj" },
     { "id": "cowboy", "path": "meshes/cowboy.dae" },
     { "id": "keyboard", "path": "meshes/keyboard.obj" },
-    { "id": "sphere", "path": "meshes/sphere.obj" }
+    { "id": "sphere", "path": "meshes/sphere.obj" },
+    { "id": "house", "path": "meshes/house.obj", "keepInStorage": true }
   ],
   "scene": {
     "scriptPaths": [
@@ -204,7 +207,6 @@
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "SoundListener" },
           {
             "type": "PlayerCapsuleRigidBody",
             "mass": 1,
@@ -233,6 +235,7 @@
         "rotation" : [90.0, 0.0, 0.0],
         "scale": [1, 1, 1],
         "components": [
+          { "type": "SoundListener" },
           { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] }
         ]
       },
@@ -343,6 +346,23 @@
         "components": [
           { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 64, "right": 64, "bottom": 0 },
           { "type": "Mesh", "meshName": "quad", "materialName": "rect_button", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "house",
+        "parent": "root",
+        "position" : [12.0, 0.0, -12.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1, 1, 1],
+        "components": [
+          { "type": "Mesh", "meshName": "house", "materialName": "house", "layerNames": ["defaultLayer"] },
+          {
+            "type": "TriMeshRigidBody",
+            "meshName": "house",
+            "meshPosition": [0, 0, 0],
+            "meshRotation": [0, 0, 0],
+            "meshScale": [1, 1, 1]
+          }
         ]
       },
       {
