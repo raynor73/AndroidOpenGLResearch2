@@ -54,6 +54,14 @@
       "isTranslucent": true,
       "castShadows": false,
       "receiveShadows": false
+    },
+    {
+      "id": "fireball",
+      "diffuseColor": [1, 0.56, 0, 0.1],
+      "isUnlit": true,
+      "isTranslucent": true,
+      "castShadows": false,
+      "receiveShadows": false
     }
   ],
   "meshes": [
@@ -62,7 +70,8 @@
     { "id": "fountain", "path": "meshes/fountain.obj" },
     { "id": "capsule", "path": "meshes/capsule.obj" },
     { "id": "cowboy", "path": "meshes/cowboy.dae" },
-    { "id": "keyboard", "path": "meshes/keyboard.obj" }
+    { "id": "keyboard", "path": "meshes/keyboard.obj" },
+    { "id": "sphere", "path": "meshes/sphere.obj" }
   ],
   "scene": {
     "scriptPaths": [
@@ -191,7 +200,7 @@
       {
         "name": "player",
         "parent": "root",
-        "position" : [0.0, 4, -5],
+        "position" : [0.0, 4, 0],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
@@ -334,6 +343,16 @@
         "components": [
           { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 64, "right": 64, "bottom": 0 },
           { "type": "Mesh", "meshName": "quad", "materialName": "rect_button", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "fireball",
+        "parent": "root",
+        "position" : [3.0, 1.5, -3.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [0.2, 0.2, 0.2],
+        "components": [
+          { "type": "Mesh", "meshName": "sphere", "materialName": "fireball", "layerNames": ["defaultLayer"] }
         ]
       }
     ]
