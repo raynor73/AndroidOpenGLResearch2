@@ -201,13 +201,8 @@ class GLSurfaceViewRenderer(
         glViewportAndScissor(0, 0, width, height)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
 
-        // Opaque rendering
-        scene.renderTargets.forEach { renderTarget -> render(scene, renderTarget, false, displayAspect) }
-        render(scene, FrameBufferInfo.DisplayFrameBufferInfo, false, displayAspect)
-
-        // Translucent rendering
-        scene.renderTargets.forEach { renderTarget -> render(scene, renderTarget, true, displayAspect) }
-        render(scene, FrameBufferInfo.DisplayFrameBufferInfo, true, displayAspect)
+        scene.renderTargets.forEach { renderTarget -> render(scene, renderTarget, displayAspect) }
+        render(scene, FrameBufferInfo.DisplayFrameBufferInfo, displayAspect)
 
         openGLErrorDetector.dispatchOpenGLErrors("render")
     }
@@ -350,7 +345,6 @@ class GLSurfaceViewRenderer(
     private fun render(
         scene: Scene2,
         renderTarget: FrameBufferInfo,
-        isTranslucentRendering: Boolean,
         viewportAspect: Float
     ) {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderTarget.frameBuffer)
@@ -393,41 +387,82 @@ class GLSurfaceViewRenderer(
             GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT)
 
             camera.layerNames.forEach { layerName ->
-                renderUnlitObjects(scene, camera, layerName, isTranslucentRendering, viewportAspect)
-                renderAmbientLight(scene, camera, layerName, isTranslucentRendering, viewportAspect)
-
-                pushOpenGLState(
-                    OpenGLState(
-                        OpenGLState.Viewport(viewportX, viewportY, viewportWidth, viewportHeight),
-                        OpenGLState.Scissor(viewportX, viewportY, viewportWidth, viewportHeight),
-                        true,
-                        OpenGLState.BlendFunction(GLES20.GL_ONE, GLES20.GL_ONE),
-                        false,
-                        GLES20.GL_EQUAL
-                    )
+                // Opaque rendering
+                renderCameraLayer(
+                    scene,
+                    camera,
+                    layerName,
+                    false,
+                    viewportAspect,
+                    renderTarget,
+                    viewportX,
+                    viewportY,
+                    viewportWidth,
+                    viewportHeight
                 )
 
-                scene.layerLights[layerName].forEach { light ->
-                    when (light) {
-                        is DirectionalLightComponent -> renderDirectionalLight(
-                            scene,
-                            renderTarget,
-                            light,
-                            camera,
-                            layerName,
-                            false,
-                            viewportAspect
-                        )
-                    }
-                }
-
-                popOpenGLState()
+                // Translucent rendering
+                renderCameraLayer(
+                    scene,
+                    camera,
+                    layerName,
+                    true,
+                    viewportAspect,
+                    renderTarget,
+                    viewportX,
+                    viewportY,
+                    viewportWidth,
+                    viewportHeight
+                )
             }
 
             popOpenGLState()
         }
 
         openGLErrorDetector.dispatchOpenGLErrors("render")
+    }
+
+    private fun renderCameraLayer(
+        scene: Scene2,
+        camera: CameraComponent,
+        layerName: String,
+        isTranslucentRendering: Boolean,
+        viewportAspect: Float,
+        renderTarget: FrameBufferInfo,
+        viewportX: Int,
+        viewportY: Int,
+        viewportWidth: Int,
+        viewportHeight: Int
+    ) {
+        renderUnlitObjects(scene, camera, layerName, isTranslucentRendering, viewportAspect)
+        renderAmbientLight(scene, camera, layerName, isTranslucentRendering, viewportAspect)
+
+        pushOpenGLState(
+            OpenGLState(
+                OpenGLState.Viewport(viewportX, viewportY, viewportWidth, viewportHeight),
+                OpenGLState.Scissor(viewportX, viewportY, viewportWidth, viewportHeight),
+                true,
+                OpenGLState.BlendFunction(GLES20.GL_ONE, GLES20.GL_ONE),
+                false,
+                GLES20.GL_EQUAL
+            )
+        )
+
+        scene.layerLights[layerName].forEach { light ->
+            when (light) {
+                is DirectionalLightComponent -> renderDirectionalLight(
+                    scene,
+                    renderTarget,
+                    light,
+                    camera,
+                    layerName,
+                    isTranslucentRendering,
+                    viewportAspect
+                )
+            }
+        }
+
+        popOpenGLState()
     }
 
     private fun renderUnlitObjects(
