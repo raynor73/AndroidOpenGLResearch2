@@ -36,6 +36,10 @@ class SoundPlayer2DComponent(
             )
         }
 
+    override fun copy(): GameObjectComponent {
+        return SoundPlayer2DComponent(soundScene, playerName + nextCopyPostfix(), soundClipName, duration, volume)
+    }
+
     fun play(isLooped: Boolean) {
         soundScene.startSoundPlayer(playerName, isLooped)
     }

@@ -1,4 +1,4 @@
-package ilapin.opengl_research.domain.engine
+package ilapin.opengl_research.data.engine
 
 import android.opengl.GLES20
 import ilapin.common.kotlin.safeLet
@@ -6,6 +6,8 @@ import ilapin.engine3d.GameObjectComponent
 import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
+import ilapin.opengl_research.domain.engine.MaterialComponent
+import ilapin.opengl_research.domain.engine.MeshComponent
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
@@ -15,6 +17,7 @@ import org.joml.Matrix4fc
  */
 class MeshRendererComponent(
     private val lineWidth: Float,
+    val layerNames: List<String>,
     private val texturesManager: OpenGLTexturesManager,
     private val geometryManager: OpenGLGeometryManager,
     private val openGLErrorDetector: OpenGLErrorDetector
@@ -277,6 +280,16 @@ class MeshRendererComponent(
                 0.0f, 0.5f, 0.0f, 0.0f,
                 0.0f, 0.0f, 0.5f, 0.0f,
                 0.5f, 0.5f, 0.5f, 1.0f
+        )
+    }
+
+    override fun copy(): GameObjectComponent {
+        return MeshRendererComponent(
+            lineWidth,
+            layerNames,
+            texturesManager,
+            geometryManager,
+            openGLErrorDetector
         )
     }
 }

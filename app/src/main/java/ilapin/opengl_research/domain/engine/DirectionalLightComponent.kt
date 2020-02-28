@@ -23,4 +23,8 @@ class DirectionalLightComponent(color: Vector3fc) : GameObjectComponent() {
             tmpVector.rotate(transform.rotation)
             return tmpVector
         }
+
+    override fun copy(): GameObjectComponent {
+        return DirectionalLightComponent(color)
+    }
 }

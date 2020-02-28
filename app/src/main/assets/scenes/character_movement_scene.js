@@ -56,6 +56,8 @@ var keyboardYAngle = 0;
 var keyboardClickSoundPlayer;
 var KEYBOARD_ROTATION_SPEED = Math.PI; // rad/sec
 
+var fireballEngine;
+
 function start() {
     rootGestureConsumer = scene.getGestureConsumerComponent(scene.rootGameObject);
 
@@ -110,6 +112,8 @@ function start() {
     buttonGestureConsumer = scene.getGestureConsumerComponent(button);
     buttonClickDetector = new ClickDetector(buttonGestureConsumer);
 
+    fireballEngine = new FireballEngine(findGameObject(scene.rootGameObject, "fireball_prefab"));
+
     layoutUi()
 }
 
@@ -152,6 +156,7 @@ function update(dt) {
             keyboardClickSoundPlayer.play(false);
         }
 
+        fireballEngine.update(dt);
         rotateKeyboard(dt);
         movePlayer(dt);
         performPlayerActions();
@@ -177,7 +182,13 @@ function rotateKeyboard(dt) {
 
 function performPlayerActions() {
     if (buttonClickDetector.isClickDetected) {
-        println("!@# Fire!!!");
+        var direction = vectorsPool.obtain();
+
+        direction.set(INITIAL_FORWARD_VECTOR);
+        direction.rotateY(playerYAngle);
+        fireballEngine.castFireball(direction);
+
+        vectorsPool.recycle(direction);
     }
 }
 

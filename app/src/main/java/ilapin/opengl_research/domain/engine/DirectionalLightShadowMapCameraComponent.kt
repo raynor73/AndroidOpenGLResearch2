@@ -1,5 +1,6 @@
 package ilapin.opengl_research.domain.engine
 
+import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
 import ilapin.opengl_research.CAMERA_LOOK_AT_DIRECTION
 import ilapin.opengl_research.ObjectsPool
@@ -32,5 +33,9 @@ class DirectionalLightShadowMapCameraComponent(
 
         vectorsPool.recycle(correctedPosition)
         return calculateViewMatrix(dest)
+    }
+
+    override fun copy(): GameObjectComponent {
+        return DirectionalLightShadowMapCameraComponent(vectorsPool, distanceFromViewer, left, right, bottom, top)
     }
 }

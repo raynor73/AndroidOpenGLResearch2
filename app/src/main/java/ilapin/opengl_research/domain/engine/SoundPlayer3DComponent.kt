@@ -42,6 +42,18 @@ class SoundPlayer3DComponent(
             )
         }
 
+    override fun copy(): GameObjectComponent {
+        return SoundPlayer3DComponent(
+            soundScene,
+            playerName + nextCopyPostfix(),
+            soundClipName,
+            duration,
+            maxVolumeDistance,
+            minVolumeDistance,
+            volume
+        )
+    }
+
     override fun update() {
         super.update()
 

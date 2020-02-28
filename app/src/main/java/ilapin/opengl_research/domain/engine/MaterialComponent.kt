@@ -15,4 +15,18 @@ class MaterialComponent(
     var isTranslucent: Boolean = false,
     var castShadows: Boolean = true,
     var receiveShadows: Boolean = true
-) : GameObjectComponent()
+) : GameObjectComponent() {
+
+    override fun copy(): GameObjectComponent {
+        return MaterialComponent(
+            textureName,
+            diffuseColor,
+            isDoubleSided,
+            isWireframe,
+            isUnlit,
+            isTranslucent,
+            castShadows,
+            receiveShadows
+        )
+    }
+}

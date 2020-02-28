@@ -14,4 +14,8 @@ class SkeletalAnimationComponent(
     init {
         rootJoint.calculateInvertedBindTransform(Matrix4f())
     }
+
+    override fun copy(): GameObjectComponent {
+        TODO("Not implemented")
+    }
 }

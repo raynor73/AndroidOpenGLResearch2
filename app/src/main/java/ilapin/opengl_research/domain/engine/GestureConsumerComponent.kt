@@ -36,4 +36,8 @@ class GestureConsumerComponent(
     fun toLocalY(y: Int): Int {
         return y - bottom
     }
+
+    override fun copy(): GameObjectComponent {
+        return GestureConsumerComponent(priority, left, top, right, bottom)
+    }
 }

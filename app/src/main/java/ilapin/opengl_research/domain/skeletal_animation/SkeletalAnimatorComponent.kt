@@ -30,6 +30,10 @@ class SkeletalAnimatorComponent(
     val jointTransforms: List<Matrix4fc?>?
         get() = _jointTransforms
 
+    override fun copy(): GameObjectComponent {
+        return SkeletalAnimatorComponent(vectorsPool, quaternionsPool, matrixPool, timeRepository)
+    }
+
     override fun update() {
         super.update()
 

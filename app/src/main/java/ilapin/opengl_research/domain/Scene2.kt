@@ -5,7 +5,7 @@ import ilapin.engine3d.GameObject
 import ilapin.engine3d.GameObjectComponent
 import ilapin.opengl_research.domain.engine.CameraComponent
 import ilapin.opengl_research.FrameBufferInfo
-import ilapin.opengl_research.domain.engine.MeshRendererComponent
+import ilapin.opengl_research.data.engine.MeshRendererComponent
 import org.joml.Vector3fc
 
 /**

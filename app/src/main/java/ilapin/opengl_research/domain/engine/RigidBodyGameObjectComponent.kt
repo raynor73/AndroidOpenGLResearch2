@@ -63,6 +63,10 @@ class RigidBodyGameObjectComponent(
         transform.rotation = rotationQuaternion
     }
 
+    override fun copy(): GameObjectComponent {
+        return RigidBodyGameObjectComponent(physicsEngine, rigidBodyName + nextCopyPostfix())
+    }
+
     override fun deinit() {
         super.deinit()
 

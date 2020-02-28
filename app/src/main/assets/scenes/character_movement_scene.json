@@ -58,7 +58,7 @@
     },
     {
       "id": "fireball",
-      "diffuseColor": [1, 0.56, 0, 0.1],
+      "diffuseColor": [1, 0.56, 0, 0.3],
       "isUnlit": true,
       "isTranslucent": true,
       "castShadows": false,
@@ -83,6 +83,7 @@
       "scenes/scroll_controller.js",
       "scenes/player_controller.js",
       "scenes/click_detector.js",
+      "scenes/fireball_engine.js",
       "scenes/character_movement_scene.js"
     ],
     "activeCameras": ["player_camera", "ui_camera", "keyboard_camera"],

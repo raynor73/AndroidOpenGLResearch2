@@ -1,5 +1,6 @@
 package ilapin.opengl_research.domain.engine
 
+import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
 import ilapin.opengl_research.*
 import org.joml.Matrix4f
@@ -48,5 +49,9 @@ class PerspectiveCameraComponent(
         dest.identity().setPerspective(fov, aspect, zNear, zFar)
 
         return dest
+    }
+
+    override fun copy(): GameObjectComponent {
+        return PerspectiveCameraComponent(vectorsPool, fov, layerNames)
     }
 }

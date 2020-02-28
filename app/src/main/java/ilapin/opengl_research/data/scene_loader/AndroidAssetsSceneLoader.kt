@@ -11,6 +11,7 @@ import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
+import ilapin.opengl_research.data.engine.MeshRendererComponent
 import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.engine.*
@@ -56,7 +57,6 @@ class AndroidAssetsSceneLoader(
         val materialsMap = HashMap<String, MaterialComponent>()
 
         val layerLights = HashMultimap.create<String, GameObjectComponent>()
-        val layerRenderers = HashMultimap.create<String, MeshRendererComponent>()
         val camerasMap = HashMap<String, CameraComponent>()
         val cameraAmbientLights = HashMap<CameraComponent, Vector3fc>()
 
@@ -178,11 +178,11 @@ class AndroidAssetsSceneLoader(
                         it.meshName ?: error("No mesh name")
                         val renderer = MeshRendererComponent(
                             pixelDensityFactor,
+                            it.layerNames,
                             texturesManager,
                             geometryManager,
                             openGLErrorDetector
                         )
-                        it.layerNames.forEach { layerName -> layerRenderers[layerName] += renderer }
                         gameObject.addComponent(renderer)
                         gameObject.addComponent(materialsMap[it.materialName] ?: error("Material ${it.materialName} not found"))
                         gameObject.addComponent(MeshComponent(it.meshName))
@@ -353,7 +353,6 @@ class AndroidAssetsSceneLoader(
                 sceneScripts,
                 it,
                 camerasMap.filter { entry -> sceneInfoDto.scene.activeCameras.contains(entry.key) }.values.toList(),
-                layerRenderers,
                 layerLights,
                 cameraAmbientLights,
                 emptyList()

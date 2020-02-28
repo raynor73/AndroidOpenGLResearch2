@@ -9,6 +9,10 @@ import ilapin.opengl_research.domain.sound.SoundScene
  */
 class SoundListenerComponent(private val soundScene: SoundScene) : GameObjectComponent() {
 
+    override fun copy(): GameObjectComponent {
+        error("Can't copy Sound Listener")
+    }
+
     override fun update() {
         super.update()
 

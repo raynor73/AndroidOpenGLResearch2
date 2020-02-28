@@ -12,6 +12,7 @@ import ilapin.opengl_research.ObjectsPool
 import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
+import ilapin.opengl_research.data.engine.MeshRendererComponent
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
@@ -48,9 +49,7 @@ class ScriptedScene(
 
     private val _activeCameras = ArrayList<CameraComponent>().apply { addAll(sceneData.activeCameras) }
 
-    private val _layerRenderers = HashMultimap.create<String, MeshRendererComponent>().apply {
-        putAll(sceneData.layerRenderers)
-    }
+    private val _layerRenderers = HashMultimap.create<String, MeshRendererComponent>()
 
     private val _layerLights = HashMultimap.create<String, GameObjectComponent>().apply {
         putAll(sceneData.layerLights)
@@ -93,6 +92,9 @@ class ScriptedScene(
         val dt = prevTimestamp?.let { prevTimestamp -> (currentTimestamp - prevTimestamp) / NANOS_IN_SECOND } ?: 0f
         prevTimestamp = currentTimestamp
 
+        _layerRenderers.clear()
+        gatherLayerRenderers(rootGameObject)
+
         gesturesDispatcher.begin()
         touchEventsRepository.touchEvents.forEach { gesturesDispatcher.onTouchEvent(it) }
 
@@ -101,6 +103,14 @@ class ScriptedScene(
         soundScene.update()
         soundScene2d.update()
         scriptingEngine.update(dt)
+    }
+
+    fun gatherLayerRenderers(gameObject: GameObject) {
+        gameObject.getComponent(MeshRendererComponent::class.java)?.let { renderer ->
+            renderer.layerNames.forEach { layerName -> _layerRenderers.put(layerName, renderer) }
+        }
+
+        gameObject.children.forEach { gatherLayerRenderers(it) }
     }
 
     override fun deinit() {
