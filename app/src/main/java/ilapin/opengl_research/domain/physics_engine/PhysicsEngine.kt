@@ -23,16 +23,17 @@ class PhysicsEngine : DGeom.DNearCallback {
 
     private val tmpQuaternion = Quaternionf()
     private val tmpDQuaternion = DQuaternion()
+    private val tmpVector = Vector3f()
+    private val tmpColumn = DVector3()
+    private val tmpDVector = DVector3()
 
     private val contactGroup = OdeHelper.createJointGroup()
 
     private val characterCapsules = HashMap<String, DBody>()
     private val rigidBodies = HashMap<String, DBody>()
+    private val collisionShapes = HashMap<String, DGeom>()
     private val linearMotors = HashMap<String, DLMotorJoint>()
     private val angularMotors = HashMap<String, DAMotorJoint>()
-
-    private val tmpVector = Vector3f()
-    private val tmpColumn = DVector3()
 
     init {
         initODE()
@@ -42,12 +43,32 @@ class PhysicsEngine : DGeom.DNearCallback {
         world?.setGravity(gravity.toVector())
     }
 
+    fun setPosition(rigidBodyName: String, position: Vector3fc) {
+        position.toVector(tmpDVector)
+        getRigidBody(rigidBodyName).position = tmpDVector
+    }
+
+    fun setRotation(rigidBodyName: String, rotation: Quaternionfc) {
+        rotation.toQuaternion(tmpDQuaternion)
+        getRigidBody(rigidBodyName).quaternion = tmpDQuaternion
+    }
+
     fun addForce(rigidBodyName: String, force: Vector3fc) {
         (rigidBodies[rigidBodyName] ?: error("Rigid body $rigidBodyName not found")).addForce(
                 force.x().toDouble(),
                 force.y().toDouble(),
                 force.z().toDouble()
         )
+    }
+
+    fun addTorque(rigidBodyName: String, torque: Vector3fc) {
+        torque.toVector(tmpDVector)
+        getRigidBody(rigidBodyName).addTorque(tmpDVector)
+    }
+
+    fun setVelocityDirectly(rigidBodyName: String, velocity: Vector3fc) {
+        velocity.toVector(tmpDVector)
+        getRigidBody(rigidBodyName).linearVel = tmpDVector
     }
 
     fun setVelocityViaMotor(rigidBodyName: String, velocity: Vector3fc) {
@@ -62,6 +83,11 @@ class PhysicsEngine : DGeom.DNearCallback {
         motor.paramVel = velocity.x().toDouble()
         motor.paramVel2 = velocity.y().toDouble()
         motor.paramVel3 = velocity.z().toDouble()
+    }
+
+    fun setAngularVelocityDirectly(rigidBodyName: String, angularVelocity: Vector3fc) {
+        angularVelocity.toVector(tmpDVector)
+        getRigidBody(rigidBodyName).angularVel = tmpDVector
     }
 
     fun createCharacterCapsuleRigidBody(
@@ -165,6 +191,15 @@ class PhysicsEngine : DGeom.DNearCallback {
         rigidBody.quaternion = rotation.toQuaternion()
     }
 
+    fun removeRigidBody(rigidBodyName: String) {
+        linearMotors.getOrElse(rigidBodyName) { error("Linear motor for $rigidBodyName not found") }.destroy()
+        angularMotors.getOrElse(rigidBodyName) { error("Angular motor for $rigidBodyName not found") }.destroy()
+        space?.remove(collisionShapes[rigidBodyName] ?: error("Collision shape for $rigidBodyName not found"))
+        collisionShapes.remove(rigidBodyName)
+        characterCapsules.remove(rigidBodyName)
+        rigidBodies.remove(rigidBodyName) ?: error("Rigid body $rigidBodyName not found")
+    }
+
     fun update(dt: Float) {
         repeat(ceil(dt / SIMULATION_STEP_TIME).toInt()) {
             OdeHelper.spaceCollide(space, null, this)
@@ -232,6 +267,10 @@ class PhysicsEngine : DGeom.DNearCallback {
         OdeHelper.initODE2(0)
         world = OdeHelper.createWorld()
         space = OdeHelper.createHashSpace()
+    }
+
+    private fun getRigidBody(name: String): DBody {
+        return rigidBodies.getOrElse(name) { error("Rigid body $name not found") }
     }
 
     companion object {

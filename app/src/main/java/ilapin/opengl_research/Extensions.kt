@@ -216,6 +216,10 @@ fun Vector3fc.toVector(): DVector3 {
     return DVector3(x().toDouble(), y().toDouble(), z().toDouble())
 }
 
+fun Vector3fc.toVector(dest: DVector3) {
+    dest.set(x().toDouble(), y().toDouble(), z().toDouble())
+}
+
 fun DVector3C.toVector(): Vector3f {
     return Vector3f(get0().toFloat(), get1().toFloat(), get2().toFloat())
 }
@@ -230,6 +234,10 @@ fun Quaternionf.toQuaternion(): DQuaternion {
 
 fun Quaternionfc.toQuaternion(): DQuaternion {
     return DQuaternion(w().toDouble(), x().toDouble(), y().toDouble(), z().toDouble())
+}
+
+fun Quaternionfc.toQuaternion(dest: DQuaternion) {
+    dest.set(w().toDouble(), x().toDouble(), y().toDouble(), z().toDouble())
 }
 
 fun Quaternionf.toQuaternion(dest: DQuaternion) {

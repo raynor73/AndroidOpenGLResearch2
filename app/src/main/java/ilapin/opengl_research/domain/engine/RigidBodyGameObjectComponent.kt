@@ -3,10 +3,7 @@ package ilapin.opengl_research.domain.engine
 import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
-import org.joml.Matrix4x3f
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector3fc
+import org.joml.*
 
 /**
  * @author raynor on 08.02.20.
@@ -20,42 +17,36 @@ class RigidBodyGameObjectComponent(
     private val rotationQuaternion = Quaternionf()
     private val position = Vector3f()
 
-    fun setRotation() {
-
+    fun setRotation(rotation: Quaternionfc) {
+        physicsEngine.setRotation(rigidBodyName, rotation)
     }
 
-    fun setPosition() {
-
+    fun setPosition(position: Vector3fc) {
+        physicsEngine.setPosition(rigidBodyName, position)
     }
 
     fun setVelocityViaMotor(velocity: Vector3fc) {
-        physicsEngine.setVelocityViaMotor(
-            gameObject?.name ?: error("No game object"),
-            velocity
-        )
+        physicsEngine.setVelocityViaMotor(rigidBodyName, velocity)
     }
 
     fun setAngularVelocityViaMotor(velocity: Vector3fc) {
-        physicsEngine.setAngularVelocityViaMotor(
-            gameObject?.name ?: error("No game object"),
-            velocity
-        )
+        physicsEngine.setAngularVelocityViaMotor(rigidBodyName, velocity)
     }
 
-    fun setVelocityDirectly() {
-
+    fun setVelocityDirectly(velocity: Vector3fc) {
+        physicsEngine.setVelocityDirectly(rigidBodyName, velocity)
     }
 
-    fun setAngularVelocityDirectly() {
-
+    fun setAngularVelocityDirectly(angularVelocity: Vector3fc) {
+        physicsEngine.setAngularVelocityDirectly(rigidBodyName, angularVelocity)
     }
 
-    fun addForce() {
-
+    fun addForce(force: Vector3fc) {
+        physicsEngine.addForce(rigidBodyName, force)
     }
 
-    fun addTorque() {
-
+    fun addTorque(torque: Vector3fc) {
+        physicsEngine.addTorque(rigidBodyName, torque)
     }
 
     override fun update() {
@@ -70,5 +61,11 @@ class RigidBodyGameObjectComponent(
 
         transform.position = position
         transform.rotation = rotationQuaternion
+    }
+
+    override fun deinit() {
+        super.deinit()
+
+        physicsEngine.removeRigidBody(rigidBodyName)
     }
 }
