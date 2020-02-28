@@ -125,6 +125,7 @@ function update(dt) {
             soundScene2D.resume();
         }
 
+        buttonClickDetector.update();
         keyboardClickDetector.update();
         scrollController.update();
         leftJoystickController.update();
@@ -153,6 +154,7 @@ function update(dt) {
 
         rotateKeyboard(dt);
         movePlayer(dt);
+        performPlayerActions();
     } else {
         if (!soundScene.isPaused()) {
             soundScene.pause();
@@ -171,6 +173,12 @@ function rotateKeyboard(dt) {
     keyboardTransform.rotation = rotation;
 
     quaternionsPool.recycle(rotation);
+}
+
+function performPlayerActions() {
+    if (buttonClickDetector.isClickDetected) {
+        println("!@# Fire!!!");
+    }
 }
 
 function movePlayer(dt) {
@@ -210,6 +218,11 @@ function layoutUi() {
 function layoutButton() {
     var position = vectorsPool.obtain();
     var scale = vectorsPool.obtain();
+    var rightJoystickSize = vectorsPool.obtain();
+
+    rightJoystickSize.set(
+        scene.getTransformationComponent(findGameObject(rightJoystick, "right_joystick_background")).scale
+    );
 
     scale.set(buttonTransform.localScale);
     scale.mul(pixelDensityFactor);
@@ -217,16 +230,17 @@ function layoutButton() {
 
     position.set(buttonTransform.position);
     position.x += displayWidth - scale.x / 2;
-    position.y += displayHeight - scale.z / 2;
-    transform.position = position;
+    position.y += rightJoystickSize.z + scale.z / 2;
+    buttonTransform.position = position;
 
-    buttonGestureConsumer.left = 0;
-    buttonGestureConsumer.top = scale.z;
-    buttonGestureConsumer.right = scale.x;
-    buttonGestureConsumer.bottom = 0;
+    buttonGestureConsumer.left = displayWidth - scale.x;
+    buttonGestureConsumer.top = rightJoystickSize.z + scale.z;
+    buttonGestureConsumer.right = displayWidth;
+    buttonGestureConsumer.bottom = rightJoystickSize.z;
 
     vectorsPool.recycle(position);
     vectorsPool.recycle(scale);
+    vectorsPool.recycle(rightJoystickSize);
 }
 
 function layoutKeyboardGestureConsumer() {
