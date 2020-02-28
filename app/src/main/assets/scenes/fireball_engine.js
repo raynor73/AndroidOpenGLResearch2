@@ -44,8 +44,13 @@ function FireballEngine(prefab) {
         }
     };
 
-    this.castFireball = function(direction) {
-        var fireball = new Fireball(this.prefab.copy(null), direction);
+    this.castFireball = function(position, direction) {
+        var gameObject = this.prefab.copy(null);
+
+        var transform = scene.getTransformationComponent(gameObject);
+        transform.position = position;
+
+        var fireball = new Fireball(gameObject, direction);
         scene.rootGameObject.addChild(fireball.gameObject);
         this.fireballs.push(fireball);
     };

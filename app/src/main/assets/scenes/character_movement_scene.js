@@ -183,12 +183,21 @@ function rotateKeyboard(dt) {
 function performPlayerActions() {
     if (buttonClickDetector.isClickDetected) {
         var direction = vectorsPool.obtain();
+        var fireballStartPosition = vectorsPool.obtain();
 
         direction.set(INITIAL_FORWARD_VECTOR);
         direction.rotateY(playerYAngle);
-        fireballEngine.castFireball(direction);
+
+        fireballStartPosition.set(playerMeshTransform.position);
+        fireballStartPosition.y = 1.5;
+
+        fireballEngine.castFireball(
+            fireballStartPosition,
+            direction
+        );
 
         vectorsPool.recycle(direction);
+        vectorsPool.recycle(fireballStartPosition);
     }
 }
 
