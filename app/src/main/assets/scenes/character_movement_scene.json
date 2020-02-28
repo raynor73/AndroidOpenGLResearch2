@@ -10,7 +10,8 @@
     { "id": "blue", "color": [0, 0, 0.5, 1] },
     { "id": "joystick_background", "path": "textures/joystick_background.png" },
     { "id": "joystick_handle", "path": "textures/joystick_handle.png" },
-    { "id": "keyboard", "path": "textures/keyboard.png" }
+    { "id": "keyboard", "path": "textures/keyboard.png" },
+    { "id": "rect_button", "path": "textures/rect_button.png" }
   ],
   "materials": [
     { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
@@ -39,6 +40,15 @@
     {
       "id": "joystick_handle",
       "textureName": "joystick_handle",
+      "diffuseColor": [1, 1, 1, 1],
+      "isUnlit": true,
+      "isTranslucent": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
+    {
+      "id": "rect_button",
+      "textureName": "rect_button",
       "diffuseColor": [1, 1, 1, 1],
       "isUnlit": true,
       "isTranslucent": true,
@@ -313,6 +323,17 @@
         "scale": [70.0, 1.0, 70.0],
         "components": [
           { "type": "Mesh", "meshName": "quad", "materialName": "joystick_handle", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "button",
+        "parent": "root",
+        "position" : [0.0, 0.0, -10.0],
+        "rotation" : [90.0, 0.0, 0.0],
+        "scale": [64.0, 1.0, 64.0],
+        "components": [
+          { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 64, "right": 64, "bottom": 0 },
+          { "type": "Mesh", "meshName": "quad", "materialName": "rect_button", "layerNames": ["uiLayer"] }
         ]
       }
     ]

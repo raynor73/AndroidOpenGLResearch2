@@ -36,6 +36,10 @@ var rightJoystickHandleTransform;
 var rightJoystickGestureConsumer;
 var rightJoystickController;
 
+var buttonTransform;
+var buttonGestureConsumer;
+var buttonClickDetector;
+
 var scrollController;
 
 var pixelDensityFactor;
@@ -100,6 +104,11 @@ function start() {
     keyboardGestureConsumer = scene.getGestureConsumerComponent(keyboard);
     keyboardClickDetector = new ClickDetector(keyboardGestureConsumer);
     keyboardClickSoundPlayer = scene.getSoundPlayer2DComponent(keyboard);
+
+    var button = findGameObject(scene.rootGameObject, "button");
+    buttonTransform = scene.getTransformationComponent(button);
+    buttonGestureConsumer = scene.getGestureConsumerComponent(button);
+    buttonClickDetector = new ClickDetector(buttonGestureConsumer);
 
     layoutUi()
 }
@@ -188,31 +197,6 @@ function movePlayer(dt) {
     vectorsPool.recycle(movingVelocity);
     vectorsPool.recycle(strafingVelocity);
     quaternionsPool.recycle(playerRotation);
-
-    /*var playerPosition = vectorsPool.obtain();
-    var movingDirection = vectorsPool.obtain();
-    var strafingDirection = vectorsPool.obtain();
-
-    movingDirection.set(INITIAL_FORWARD_VECTOR);
-    movingDirection.rotate(playerTransform.rotation);
-    strafingDirection.set(INITIAL_RIGHT_VECTOR);
-    strafingDirection.rotate(playerTransform.rotation);
-
-    playerPosition.set(playerTransform.position);
-    playerPosition.add(movingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.movingFraction).mul(dt));
-    playerPosition.add(strafingDirection.mul(PLAYER_MOVEMENT_SPEED).mul(playerController.strafingFraction).mul(dt));
-    playerTransform.position = playerPosition;
-
-    var playerRotation = quaternionsPool.obtain();
-    playerYAngle += playerController.horizontalSteeringFraction * PLAYER_STEERING_SPEED * dt;
-    playerRotation.identity().rotateY(playerYAngle);
-    playerTransform.rotation = playerRotation;
-
-    vectorsPool.recycle(playerPosition);
-    vectorsPool.recycle(movingDirection);
-    vectorsPool.recycle(strafingDirection);
-
-    quaternionsPool.recycle(playerRotation);*/
 }
 
 function layoutUi() {
@@ -220,6 +204,29 @@ function layoutUi() {
     layoutRightJoystick();
     layoutRootGestureConsumer();
     layoutKeyboardGestureConsumer();
+    layoutButton();
+}
+
+function layoutButton() {
+    var position = vectorsPool.obtain();
+    var scale = vectorsPool.obtain();
+
+    scale.set(buttonTransform.localScale);
+    scale.mul(pixelDensityFactor);
+    buttonTransform.scale = scale
+
+    position.set(buttonTransform.position);
+    position.x += displayWidth - scale.x / 2;
+    position.y += displayHeight - scale.z / 2;
+    transform.position = position;
+
+    buttonGestureConsumer.left = 0;
+    buttonGestureConsumer.top = scale.z;
+    buttonGestureConsumer.right = scale.x;
+    buttonGestureConsumer.bottom = 0;
+
+    vectorsPool.recycle(position);
+    vectorsPool.recycle(scale);
 }
 
 function layoutKeyboardGestureConsumer() {
