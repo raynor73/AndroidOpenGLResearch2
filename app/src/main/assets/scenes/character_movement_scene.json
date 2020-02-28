@@ -69,7 +69,7 @@
   "meshes": [
     { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
     { "id": "female", "path": "meshes/female.obj" },
-    { "id": "fountain", "path": "meshes/fountain.obj" },
+    { "id": "fountain", "path": "meshes/fountain.obj", "keepInStorage": true },
     { "id": "capsule", "path": "meshes/capsule.obj" },
     { "id": "cowboy", "path": "meshes/cowboy.dae" },
     { "id": "keyboard", "path": "meshes/keyboard.obj" },
@@ -152,7 +152,14 @@
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "Mesh", "meshName": "fountain", "materialName": "fountain", "layerNames": ["defaultLayer"] }
+          { "type": "Mesh", "meshName": "fountain", "materialName": "fountain", "layerNames": ["defaultLayer"] },
+          {
+            "type": "TriMeshRigidBody",
+            "meshName": "fountain",
+            "meshPosition": [0, 0, 0],
+            "meshRotation": [0, 0, 0],
+            "meshScale": [1, 1, 1]
+          }
         ]
       },
       {
@@ -366,7 +373,7 @@
         ]
       },
       {
-        "name": "fireball",
+        "name": "fireball_prefab",
         "parent": "root",
         "position" : [3.0, 1.5, -3.0],
         "rotation" : [0.0, 0.0, 0.0],
