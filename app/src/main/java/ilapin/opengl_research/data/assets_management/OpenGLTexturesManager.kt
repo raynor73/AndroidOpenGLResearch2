@@ -10,6 +10,7 @@ import ilapin.opengl_research.BYTES_IN_INT
 import ilapin.opengl_research.OpenGLErrorDetector
 import ilapin.opengl_research.TextureInfo
 import ilapin.opengl_research.domain.assets_management.TexturesManager
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -176,6 +177,30 @@ class OpenGLTexturesManager(
             GLES20.GL_RGBA,
             GLES20.GL_UNSIGNED_BYTE,
             pixelBuffer
+        )
+
+        if (generateMipmap) {
+            GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+        }
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+    }
+
+    override fun copyDataToTexture(name: String, data: Buffer, generateMipmap: Boolean) {
+        val textureInfo = textures[name] ?: error("Texture $name not found")
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureInfo.texture)
+
+        GLES20.glTexImage2D(
+            GLES20.GL_TEXTURE_2D,
+            0,
+            GLES20.GL_RGBA,
+            textureInfo.width,
+            textureInfo.height,
+            0,
+            GLES20.GL_RGBA,
+            GLES20.GL_UNSIGNED_BYTE,
+            data
         )
 
         if (generateMipmap) {
