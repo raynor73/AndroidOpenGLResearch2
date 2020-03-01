@@ -475,26 +475,37 @@ class GLSurfaceViewRenderer(
         val modelMatrix = matrixPool.obtain()
         val viewMatrix = matrixPool.obtain()
         val projectionMatrix = matrixPool.obtain()
+        val position = vectorsPool.obtain()
 
         val shaderProgram = shadersManager
             .findShaderProgram("unlit_shader_program") as ShaderProgramInfo.UnlitShaderProgram
 
         GLES20.glUseProgram(shaderProgram.shaderProgram)
 
-        scene.layerRenderers[layerName].forEach { renderer ->
+        when (camera) {
+            is PerspectiveCameraComponent -> {
+                camera.calculateViewMatrix(viewMatrix)
+                camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
+            }
+
+            is OrthoCameraComponent -> {
+                camera.calculateViewMatrix(viewMatrix)
+                camera.calculateProjectionMatrix(projectionMatrix)
+            }
+        }
+        val renderers = if (isTranslucentRendering) {
+            scene.layerRenderers[layerName].sortedBy {
+                val gameObject = (it.gameObject ?: error("No game object"))
+                val transform = gameObject.getComponent(TransformationComponent::class.java) ?: error("No transform")
+                transform.position.mulPosition(viewMatrix, position)
+                position.z
+            }
+        } else {
+            scene.layerRenderers[layerName]
+        }
+        renderers.forEach { renderer ->
             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
                 ?: error("Not transform found for game object ${renderer.gameObject?.name}")
-            when (camera) {
-                is PerspectiveCameraComponent -> {
-                    camera.calculateViewMatrix(viewMatrix)
-                    camera.calculateProjectionMatrix(viewportAspect, projectionMatrix)
-                }
-
-                is OrthoCameraComponent -> {
-                    camera.calculateViewMatrix(viewMatrix)
-                    camera.calculateProjectionMatrix(projectionMatrix)
-                }
-            }
             renderer.render(
                 shaderProgram,
                 isTranslucentRendering,
@@ -508,6 +519,7 @@ class GLSurfaceViewRenderer(
             )
         }
 
+        vectorsPool.recycle(position)
         matrixPool.recycle(modelMatrix)
         matrixPool.recycle(viewMatrix)
         matrixPool.recycle(projectionMatrix)
