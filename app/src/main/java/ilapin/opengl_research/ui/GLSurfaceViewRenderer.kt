@@ -21,6 +21,7 @@ import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
 import ilapin.opengl_research.domain.sound_2d.SoundScene2D
+import ilapin.opengl_research.domain.text.TextRenderer
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -51,7 +52,8 @@ class GLSurfaceViewRenderer(
     private val soundScene: SoundScene,
     private val soundScene2D: SoundScene2D,
     private val soundClipsRepository: SoundClipsRepository,
-    private val physicsEngine: PhysicsEngine
+    private val physicsEngine: PhysicsEngine,
+    private val textRenderer: TextRenderer
 ) : GLSurfaceView.Renderer, SceneManager, AppPriorityReporter {
 
     private val messageQueueSubscription: Disposable
@@ -164,7 +166,8 @@ class GLSurfaceViewRenderer(
             soundScene,
             soundScene2D,
             soundClipsRepository,
-            physicsEngine
+            physicsEngine,
+            textRenderer
         )
 
         safeLet(displayWidth, displayHeight) { width, height ->

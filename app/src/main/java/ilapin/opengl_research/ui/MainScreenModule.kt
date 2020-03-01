@@ -24,6 +24,7 @@ import ilapin.opengl_research.data.scene_loader.ComponentDeserializer
 import ilapin.opengl_research.data.scene_loader.ComponentDto
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.data.sound.SoundPoolSoundClipsRepository
+import ilapin.opengl_research.data.text.AndroidTextRenderer
 import ilapin.opengl_research.domain.engine.GesturesDispatcher
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.TouchEventsRepository
@@ -32,6 +33,7 @@ import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
 import ilapin.opengl_research.domain.sound_2d.SoundScene2D
+import ilapin.opengl_research.domain.text.TextRenderer
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import javax.inject.Named
@@ -186,6 +188,12 @@ class MainScreenModule(private val activity: MainActivity) {
 
     @Provides
     @ActivityScope
+    fun provideTextRenderer(@Named("Activity") context: Context): TextRenderer {
+        return AndroidTextRenderer(context)
+    }
+
+    @Provides
+    @ActivityScope
     fun provideSceneLoader(
         @Named("Activity") context: Context,
         gson: Gson,
@@ -200,7 +208,8 @@ class MainScreenModule(private val activity: MainActivity) {
         soundClipsRepository: SoundClipsRepository,
         soundScene: SoundScene,
         soundScene2D: SoundScene2D,
-        physicsEngine: PhysicsEngine
+        physicsEngine: PhysicsEngine,
+        textRenderer: TextRenderer
     ): SceneLoader {
         return AndroidAssetsSceneLoader(
             context,
@@ -216,7 +225,8 @@ class MainScreenModule(private val activity: MainActivity) {
             soundClipsRepository,
             soundScene,
             soundScene2D,
-            physicsEngine
+            physicsEngine,
+            textRenderer
         )
     }
 
@@ -242,7 +252,8 @@ class MainScreenModule(private val activity: MainActivity) {
         soundScene: SoundScene,
         soundScene2D: SoundScene2D,
         soundClipsRepository: SoundClipsRepository,
-        physicsEngine: PhysicsEngine
+        physicsEngine: PhysicsEngine,
+        textRenderer: TextRenderer
     ): GLSurfaceViewRenderer? {
         return if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             GLSurfaceViewRenderer(
@@ -265,7 +276,8 @@ class MainScreenModule(private val activity: MainActivity) {
                 soundScene,
                 soundScene2D,
                 soundClipsRepository,
-                physicsEngine
+                physicsEngine,
+                textRenderer
             )
         } else {
             null

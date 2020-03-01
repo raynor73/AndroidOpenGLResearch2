@@ -9,4 +9,6 @@ import java.nio.Buffer
 interface TextRenderer {
 
     fun drawText(text: String, textSize: Float, imageWidth: Int, imageHeight: Int, color: Vector4fc, buffer: Buffer)
+
+    fun clear()
 }

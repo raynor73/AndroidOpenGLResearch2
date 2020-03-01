@@ -21,6 +21,7 @@ import ilapin.opengl_research.domain.scene_loader.SceneLoader
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
 import ilapin.opengl_research.domain.sound_2d.SoundScene2D
+import ilapin.opengl_research.domain.text.TextRenderer
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector3fc
@@ -45,7 +46,8 @@ class AndroidAssetsSceneLoader(
     private val soundClipsRepository: SoundClipsRepository,
     private val soundScene: SoundScene,
     private val soundScene2D: SoundScene2D,
-    private val physicsEngine: PhysicsEngine
+    private val physicsEngine: PhysicsEngine,
+    private val textRenderer: TextRenderer
 ) : SceneLoader {
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
@@ -325,6 +327,18 @@ class AndroidAssetsSceneLoader(
                             transform.position,
                             transform.rotation
                         )
+                    }
+
+                    is ComponentDto.TextDto -> {
+                        gameObject.addComponent(TextComponent(
+                            it.text ?: "",
+                            it.textSize ?: error("No text size"),
+                            Vector4f().apply { it.color?.toRgba(this) },
+                            it.imageWidth ?: error("No image width"),
+                            it.imageHeight ?: error("No image height"),
+                            texturesManager,
+                            textRenderer
+                        ))
                     }
                 }
             }

@@ -1,10 +1,7 @@
 package ilapin.opengl_research.data.text
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Typeface
+import android.graphics.*
 import ilapin.opengl_research.domain.text.TextRenderer
 import ilapin.opengl_research.toArgb
 import org.joml.Vector4fc
@@ -26,22 +23,37 @@ class AndroidTextRenderer(private val context: Context) : TextRenderer {
         buffer: Buffer
     ) {
         val requisite = acquireRequisite(imageWidth, imageHeight)
+
         requisite.paint.apply {
             this.textSize = textSize
             this.color = color.toArgb()
         }
-        requisite.canvas.drawColor(0)
+
+        requisite.canvas.drawColor(0xffffffff.toInt(), PorterDuff.Mode.CLEAR)
         requisite.canvas.drawText(
-            text, 0f, 0f, requisite.paint
+            text, 0f, textSize, requisite.paint
         )
-        requisite.bitmap.copyPixelsToBuffer(buffer)
+
+        requisite.flippedBitmapCanvas.drawColor(0xffffffff.toInt(), PorterDuff.Mode.CLEAR)
+        requisite.flippedBitmapCanvas.drawBitmap(requisite.bitmap, requisite.flipVerticallyMatrix, null)
+
+        requisite.flippedBitmap.copyPixelsToBuffer(buffer)
+    }
+
+    override fun clear() {
+        preAllocatedRequisites.clear()
     }
 
     private fun acquireRequisite(width: Int, height: Int): TextRenderingRequisite {
         val key = "${width}x${height}"
         return preAllocatedRequisites[key] ?: run {
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val flippedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val flipVerticallyMatrix = Matrix().apply {
+                postScale(1f, -1f, width / 2f, height / 2f)
+            }
             val canvas = Canvas(bitmap)
+            val flippedBitmapCanvas = Canvas(flippedBitmap)
             val typeface = Typeface.createFromAsset(context.assets, "fonts/roboto/Roboto-Regular.ttf")
             val paint = Paint().apply {
                 isAntiAlias = true
@@ -49,7 +61,14 @@ class AndroidTextRenderer(private val context: Context) : TextRenderer {
                 textAlign = Paint.Align.LEFT
                 setTypeface(typeface)
             }
-            val requisite = TextRenderingRequisite(bitmap, canvas, paint)
+            val requisite = TextRenderingRequisite(
+                bitmap,
+                flippedBitmap,
+                flipVerticallyMatrix,
+                canvas,
+                flippedBitmapCanvas,
+                paint
+            )
             preAllocatedRequisites[key] = requisite
             requisite
         }
@@ -57,7 +76,10 @@ class AndroidTextRenderer(private val context: Context) : TextRenderer {
 
     private class TextRenderingRequisite(
         val bitmap: Bitmap,
+        val flippedBitmap: Bitmap,
+        val flipVerticallyMatrix: Matrix,
         val canvas: Canvas,
+        val flippedBitmapCanvas: Canvas,
         val paint: Paint
     )
 }

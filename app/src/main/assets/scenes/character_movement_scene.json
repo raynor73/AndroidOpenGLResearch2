@@ -13,7 +13,7 @@
     { "id": "keyboard", "path": "textures/keyboard.png" },
     { "id": "rect_button", "path": "textures/rect_button.png" },
     { "id": "house_diffuse", "path": "textures/house_diffuse.png" },
-    { "id": "fps_text", "width": 256, "height": 64 }
+    { "id": "fps_text", "width": 128, "height": 32 }
   ],
   "materials": [
     { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
@@ -95,6 +95,7 @@
       "scenes/player_controller.js",
       "scenes/click_detector.js",
       "scenes/fireball_engine.js",
+      "scenes/fps_calculator.js",
       "scenes/character_movement_scene.js"
     ],
     "activeCameras": ["player_camera", "ui_camera", "keyboard_camera"],
@@ -365,6 +366,24 @@
         "components": [
           { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 64, "right": 64, "bottom": 0 },
           { "type": "Mesh", "meshName": "quad", "materialName": "rect_button", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "fps_text",
+        "parent": "root",
+        "position" : [0.0, 0.0, -10.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [128.0, 32.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "vertical_plane", "materialName": "fps_text", "layerNames": ["uiLayer"] },
+          {
+            "type": "Text",
+            "text": "FPS: N/A",
+            "textSize": 30,
+            "color": [0, 0.5, 0, 1],
+            "imageWidth": 128,
+            "imageHeight": 32
+          }
         ]
       },
       {

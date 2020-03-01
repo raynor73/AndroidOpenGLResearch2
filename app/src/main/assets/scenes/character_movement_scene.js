@@ -58,6 +58,10 @@ var KEYBOARD_ROTATION_SPEED = Math.PI; // rad/sec
 
 var fireballEngine;
 
+var fpsText;
+var fpsTextTransform;
+var fpsCalculator;
+
 function start() {
     rootGestureConsumer = scene.getGestureConsumerComponent(scene.rootGameObject);
 
@@ -114,7 +118,12 @@ function start() {
 
     fireballEngine = new FireballEngine(findGameObject(scene.rootGameObject, "fireball_prefab"));
 
-    layoutUi()
+    var fpsTextGameObject = findGameObject(scene.rootGameObject, "fps_text");
+    fpsTextTransform = scene.getTransformationComponent(fpsTextGameObject);
+    fpsText = scene.getTextComponent(fpsTextGameObject);
+    fpsCalculator = new FpsCalculator();
+
+    layoutUi();
 }
 
 function update(dt) {
@@ -160,6 +169,7 @@ function update(dt) {
         rotateKeyboard(dt);
         movePlayer(dt);
         performPlayerActions();
+        updateFps(dt);
     } else {
         if (!soundScene.isPaused()) {
             soundScene.pause();
@@ -233,6 +243,30 @@ function layoutUi() {
     layoutRootGestureConsumer();
     layoutKeyboardGestureConsumer();
     layoutButton();
+    layoutFpsText();
+}
+
+function updateFps(dt) {
+    fpsCalculator.update(dt);
+    fpsText.text = "FPS: " + fpsCalculator.fps;
+}
+
+function layoutFpsText() {
+    var scale = vectorsPool.obtain();
+    var position = vectorsPool.obtain();
+
+    scale.set(fpsTextTransform.scale);
+    scale.mul(pixelDensityFactor);
+    scale.z = 1;
+    fpsTextTransform.scale = scale;
+
+    position.set(fpsTextTransform.position);
+    position.x = scale.x / 2;
+    position.y = displayHeight - scale.y / 2;
+    fpsTextTransform.position = position;
+
+    vectorsPool.recycle(position);
+    vectorsPool.recycle(scale);
 }
 
 function layoutButton() {

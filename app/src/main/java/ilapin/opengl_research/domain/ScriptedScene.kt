@@ -20,6 +20,7 @@ import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
 import ilapin.opengl_research.domain.sound_2d.SoundScene2D
+import ilapin.opengl_research.domain.text.TextRenderer
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector3fc
@@ -44,7 +45,8 @@ class ScriptedScene(
     private val soundScene: SoundScene,
     private val soundScene2d: SoundScene2D,
     private val soundClipsRepository: SoundClipsRepository,
-    private val physicsEngine: PhysicsEngine
+    private val physicsEngine: PhysicsEngine,
+    private val textRenderer: TextRenderer
 ) : Scene2 {
 
     private val _activeCameras = ArrayList<CameraComponent>().apply { addAll(sceneData.activeCameras) }
@@ -122,6 +124,7 @@ class ScriptedScene(
         soundScene2d.clear()
         soundClipsRepository.clear()
         physicsEngine.clear()
+        textRenderer.clear()
     }
 
     @Suppress("unused")
@@ -157,5 +160,10 @@ class ScriptedScene(
     @Suppress("unused")
     fun getRigidBodyComponent(gameObject: GameObject): RigidBodyGameObjectComponent? {
         return gameObject.getComponent(RigidBodyGameObjectComponent::class.java)
+    }
+
+    @Suppress("unused")
+    fun getTextComponent(gameObject: GameObject): TextComponent? {
+        return gameObject.getComponent(TextComponent::class.java)
     }
 }

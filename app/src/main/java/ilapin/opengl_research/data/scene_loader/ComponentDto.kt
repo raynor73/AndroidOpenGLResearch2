@@ -85,7 +85,8 @@ sealed class ComponentDto {
     class TextDto(
         val text: String?,
         val textSize: Float?,
-        val color: List<Float>?,
-
+        val color: FloatArray?,
+        val imageWidth: Int?,
+        val imageHeight: Int?
     ) : ComponentDto()
 }

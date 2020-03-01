@@ -16,6 +16,8 @@ class TextComponent(
     var text: String,
     var textSize: Float,
     color: Vector4fc,
+    private val imageWidth: Int,
+    private val imageHeight:Int,
     private val texturesManager: TexturesManager,
     private val textRenderer: TextRenderer
 ) : GameObjectComponent() {
@@ -33,7 +35,9 @@ class TextComponent(
             ?: error("Can't determine texture name")
 
         textRenderer.drawText(text, textSize, imageWidth, imageHeight, color, buffer)
+        buffer.position(0)
         texturesManager.copyDataToTexture(textureName, buffer, false)
+        buffer.position(0)
     }
 
     override fun copy(): GameObjectComponent {
