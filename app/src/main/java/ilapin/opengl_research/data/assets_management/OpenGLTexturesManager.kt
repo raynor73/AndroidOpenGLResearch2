@@ -6,9 +6,12 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.opengl.GLES20
 import android.opengl.GLUtils
+import ilapin.opengl_research.BYTES_IN_INT
 import ilapin.opengl_research.OpenGLErrorDetector
 import ilapin.opengl_research.TextureInfo
 import ilapin.opengl_research.domain.assets_management.TexturesManager
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
  * @author raynor on 18.02.20.
@@ -44,6 +47,7 @@ class OpenGLTexturesManager(
                     params.height,
                     params.data
                 )
+                is TextureCreationParams.Empty -> createTexture(params.name, params.width, params.height)
             }
         }
     }
@@ -127,7 +131,58 @@ class OpenGLTexturesManager(
     }
 
     override fun createTexture(name: String, width: Int, height: Int) {
-        TODO("not implemented")
+        if (textures.containsKey(name)) {
+            throw IllegalArgumentException("Texture $name already exists")
+        }
+
+        texturesCreationParams += TextureCreationParams.Empty(name, width, height)
+
+        GLES20.glGenTextures(1, tmpIntArray, 0)
+        val texture = tmpIntArray[0]
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
+
+        textures[name] = TextureInfo(texture, width, height)
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+
+        openGLErrorDetector.dispatchOpenGLErrors("createTexture with no data")
+    }
+
+    override fun copyDataToTexture(name: String, data: IntArray, generateMipmap: Boolean) {
+        val textureInfo = textures[name] ?: error("Texture $name not found")
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureInfo.texture)
+
+        val pixelBuffer = ByteBuffer.allocateDirect(data.size * BYTES_IN_INT).apply {
+            order(ByteOrder.nativeOrder())
+            asIntBuffer().apply {
+                put(data)
+                position(0)
+            }
+        }
+
+        GLES20.glTexImage2D(
+            GLES20.GL_TEXTURE_2D,
+            0,
+            GLES20.GL_RGBA,
+            textureInfo.width,
+            textureInfo.height,
+            0,
+            GLES20.GL_RGBA,
+            GLES20.GL_UNSIGNED_INT,
+            pixelBuffer
+        )
+
+        if (generateMipmap) {
+            GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+        }
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
     }
 
     override fun removeTexture(name: String) {
@@ -144,5 +199,6 @@ class OpenGLTexturesManager(
     private sealed class TextureCreationParams(val name: String) {
         class FromPath(name: String, val path: String) : TextureCreationParams(name)
         class FromData(name: String, val width: Int, val height: Int, val data: IntArray) : TextureCreationParams(name)
+        class Empty(name: String, val width: Int, val height: Int) : TextureCreationParams(name)
     }
 }

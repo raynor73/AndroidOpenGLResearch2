@@ -1,1 +1,102 @@
 7791 - water_flow.wav
+157 - keyboard_click.wav
+
+OpenGL Research
+On/Off 3D sounds dynamically(?)(triage, now possible with setting volume to zero, possibly will be implemented in #enable_disable_logic)
+Support 3D sounds volume
+Support playing sound clips w/ desired volume
+ЗавтраImplement scene loading
+Support sphere rigid bodies
+kinematic
+dynamic
+Support box rigid bodies
+kinematic
+dynamic
+Support plane rigid bodies
+kinematic
+dynamic
+Support capsule rigid bodies
+kinematic
+dynamic
+Support player capsule rigid bodies
+Support trimesh rigid bodies
+kinematic
+dynamic
+Support sounds loading
+Support animations loading
+Implement sound player w/ Sound Scene features for non-spatial sounds
+Implement collisions w/o reaction check
+Support sphere colliders
+Support box colliders
+Support plane colliders
+Support capsule colliders
+Support trimesh colliders
+Implement initial scripting support
+Implement desired scripting support
+Fix OpenGL surface recreation crash issue
+Make shadow map square
+Support multitouch events
+Implement text output
+with scroll support
+Implement debug joysticks with engine features
+Implement translucent objects support
+Implement omni-light w/o shadows
+Implement omni-light shadows(triage, too complex because of cube-maps)
+Implement spot-light
+Implement tessellation(triage, not supported by OpenGL ES 2.0)
+Implement normal map support
+Implement specular map support
+Implement displacement parallax map support
+Implement occlusion map support
+Implement rag-doll support(triage, too complex)
+Implement collision callbacks
+Choose params for collisions of ODE to be tunable form scripts
+Implement 2D sprites (including translucent ones)
+Support FS abstraction
+Implement music playback support
+Implement animated 2D sprites
+Implement animated textures(?)
+Implement fullscreen video playback(?)
+Implement GPU particles(triage, too complex)
+Implement sky /w cube-mapping(triage, too complex)
+Make use of Dagger
+Refactor codebase to follow Clean Architecture concepts(triage, partially done, will be don in steps, it will take unacceptably much time to do it in first release)
+Rename Collada Parser module
+Implement deinitialization
+Support display size change(triage, occurs rarely)
+Implement pause support
+Implement render to target
+Support multiple animations for single object
+Test animations switching
+Extract rendering engine from GL Surface Renderer(triage, not absolutely necessary for first release)
+Support resources for different display pixel densities(?)
+Make possible to load multiple scene scripts
+Finish all TODOs(triage, #toomuchtimeforfirstrelease)
+Support pausing individual sound players
+LOD
+Camera viewport settings support(triage, #toomuchtimeforfirstrelease)
+Declarative layout(triage, #toomuchtimeforfirstrelease)
+Support DP(triage, #toomuchtimeforfirstrelease)
+Components deinitialization after removing
+Game objects deinitialization after removing
+Develop enable/disable logic for game objects and components(triage, #toomuchtimeforfirstrelease) #enable_disable_logic
+Lights should consider layers
+Investigate why shadow map info is always in red channel
+Improve shadows(triage, #toomuchtimeforfirstrelease)
+Implement ValueAnimator
+Implement AccelerateDecelerateInterpolator
+Implement AccelerateInterpolator
+Implement AnticipateInterpolator
+Implement AnticipateOvershootInterpolator
+Implement BounceInterpolator
+Implement CycleInterpolator
+Implement DecelerateInterpolator
+Implement LinearInterpolator
+Implement OvershootInterpolator
+Implement support of device camera texture for AR(triage, #toomuchtimeforfirstrelease)
+Implement handling scene parsing errors(triage, #toomuchtimeforfirstrelease)
+Implement handling scene script errors(triage, #toomuchtimeforfirstrelease)
+Material instancing
+Check what features of engine can be used programmatically(from scene script)
+Make optimizations
+Traverse game objects tree only once(possible solution: make use of callback)

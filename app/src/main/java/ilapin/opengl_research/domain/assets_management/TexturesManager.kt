@@ -11,6 +11,8 @@ interface TexturesManager {
 
     fun createTexture(name: String, width: Int, height: Int)
 
+    fun copyDataToTexture(name: String, data: IntArray, generateMipmap: Boolean)
+
     fun removeTexture(name: String)
 
     fun removeAllTextures()
