@@ -174,7 +174,7 @@ class OpenGLTexturesManager(
             textureInfo.height,
             0,
             GLES20.GL_RGBA,
-            GLES20.GL_UNSIGNED_INT,
+            GLES20.GL_UNSIGNED_BYTE,
             pixelBuffer
         )
 
