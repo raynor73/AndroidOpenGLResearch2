@@ -81,4 +81,11 @@ sealed class ComponentDto {
         val meshScale: List<Float>?,
         val mass: Float?
     ) : ComponentDto()
+
+    class TextDto(
+        val text: String?,
+        val textSize: Float?,
+        val color: List<Float>?,
+
+    ) : ComponentDto()
 }

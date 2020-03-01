@@ -13,6 +13,13 @@ import org.ode4j.math.DQuaternionC
 import org.ode4j.math.DVector3
 import org.ode4j.math.DVector3C
 
+fun Vector4fc.toArgb(): Int {
+    return ((get(3) * 255).toInt() shl 24) or
+            ((get(0) * 255).toInt() shl 16) or
+            ((get(1) * 255).toInt() shl 8) or
+            (get(2) * 255).toInt()
+}
+
 fun FloatArray.toArgb(): Int {
     return ((get(3) * 255).toInt() shl 24) or
             ((get(0) * 255).toInt() shl 16) or

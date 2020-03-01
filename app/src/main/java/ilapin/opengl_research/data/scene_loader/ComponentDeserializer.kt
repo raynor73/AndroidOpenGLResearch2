@@ -26,6 +26,7 @@ class ComponentDeserializer : JsonDeserializer<ComponentDto> {
                     "SoundListener" -> ComponentDto.SoundListenerDto::class.java
                     "PlayerCapsuleRigidBody" -> ComponentDto.PlayerCapsuleRigidBodyDto::class.java
                     "TriMeshRigidBody" -> ComponentDto.TriMeshRigidBodyDto::class.java
+                    "Text" -> ComponentDto.TriMeshRigidBodyDto::class.java
                     else -> null
                 }
             )
