@@ -1,4 +1,4 @@
-package ilapin.opengl_research.domain
+package ilapin.opengl_research.domain.animation
 
 import ilapin.common.android.log.L
 import ilapin.common.math.lerp
@@ -14,7 +14,8 @@ class ValueAnimator(
     val duration: Float,
     val repeatCount: Int
 ) {
-    private var _state: State = State.NOT_RUNNING
+    private var _state: State =
+        State.NOT_RUNNING
 
     private var _isEnded = false
     private var _isCancelled = false
@@ -102,13 +103,21 @@ class ValueAnimator(
 
         val newTime = currentTime + dt
         if (newTime > duration) {
-            if (currentCount >= repeatCount - 1) {
-                currentTime = duration
-                _isEnded = true
-                _state = State.NOT_RUNNING
-            } else {
-                currentCount++
-                currentTime = newTime % duration
+            when {
+                repeatCount <= 0 -> {
+                    currentTime = newTime % duration
+                }
+
+                currentCount >= repeatCount - 1 -> {
+                    currentTime = duration
+                    _isEnded = true
+                    _state = State.NOT_RUNNING
+                }
+
+                else -> {
+                    currentCount++
+                    currentTime = newTime % duration
+                }
             }
         } else {
             currentTime = newTime
