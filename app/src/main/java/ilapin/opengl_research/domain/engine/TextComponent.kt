@@ -22,6 +22,8 @@ class TextComponent(
     private val textRenderer: TextRenderer
 ) : GameObjectComponent() {
 
+    private var renderedText: String? = null
+
     private val buffer = ByteBuffer.allocateDirect(imageWidth * imageHeight * BYTES_IN_INT).apply {
         order(ByteOrder.nativeOrder())
     }
@@ -30,6 +32,11 @@ class TextComponent(
 
     override fun update() {
         super.update()
+
+        if (text == renderedText) {
+            return
+        }
+        renderedText = text
 
         val textureName = gameObject?.getComponent(MaterialComponent::class.java)?.textureName
             ?: error("Can't determine texture name")

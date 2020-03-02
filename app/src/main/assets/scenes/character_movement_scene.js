@@ -248,7 +248,7 @@ function layoutUi() {
 
 function updateFps(dt) {
     fpsCalculator.update(dt);
-    fpsText.text = "FPS: " + fpsCalculator.fps;
+    fpsText.text = ("FPS: " + fpsCalculator.fps).substring(0, 10);
 }
 
 function layoutFpsText() {
