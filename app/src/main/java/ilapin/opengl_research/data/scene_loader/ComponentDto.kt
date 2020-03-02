@@ -82,6 +82,17 @@ sealed class ComponentDto {
         val mass: Float?
     ) : ComponentDto()
 
+    class BoxRigidBodyDto(
+        val mass: Float?,
+        val size: List<Float>?,
+        val maxForceX: Float?,
+        val maxForceY: Float?,
+        val maxForceZ: Float?,
+        val maxTorqueX: Float?,
+        val maxTorqueY: Float?,
+        val maxTorqueZ: Float?
+    ) : ComponentDto()
+
     class TextDto(
         val text: String?,
         val textSize: Float?,

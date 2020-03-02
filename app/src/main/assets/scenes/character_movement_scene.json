@@ -13,7 +13,8 @@
     { "id": "keyboard", "path": "textures/keyboard.png" },
     { "id": "rect_button", "path": "textures/rect_button.png" },
     { "id": "house_diffuse", "path": "textures/house_diffuse.png" },
-    { "id": "fps_text", "width": 128, "height": 32 }
+    { "id": "fps_text", "width": 128, "height": 32 },
+    { "id": "wood_box_side", "path": "textures/wood_box_side.jpg" }
   ],
   "materials": [
     { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
@@ -74,7 +75,8 @@
       "isTranslucent": true,
       "castShadows": false,
       "receiveShadows": false
-    }
+    },
+    { "id": "wood_box", "textureName": "wood_box_side", "diffuseColor": [1, 1, 1, 1] }
   ],
   "meshes": [
     { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
@@ -85,7 +87,8 @@
     { "id": "keyboard", "path": "meshes/keyboard.obj" },
     { "id": "sphere", "path": "meshes/sphere.obj" },
     { "id": "house", "path": "meshes/house.obj", "keepInStorage": true },
-    { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" }
+    { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" },
+    { "id": "box", "path": "meshes/box.obj" }
   ],
   "scene": {
     "scriptPaths": [
@@ -411,6 +414,36 @@
         "scale": [0.2, 0.2, 0.2],
         "components": [
           { "type": "Mesh", "meshName": "sphere", "materialName": "fireball", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "wood_box",
+        "parent": "root",
+        "position" : [-5.0, 0.51, 0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "box", "materialName": "wood_box", "layerNames": ["defaultLayer"] },
+          {
+            "type": "BoxRigidBody",
+            "mass": 1,
+            "size": [1, 1, 1]
+          }
+        ]
+      },
+      {
+        "name": "wood_box1",
+        "parent": "root",
+        "position" : [-5.0, 1.52, 0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "box", "materialName": "wood_box", "layerNames": ["defaultLayer"] },
+          {
+            "type": "BoxRigidBody",
+            "mass": 10,
+            "size": [1, 1, 1]
+          }
         ]
       }
     ]
