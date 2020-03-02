@@ -350,6 +350,27 @@ class AndroidAssetsSceneLoader(
                         gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine, gameObjectName))
                     }
 
+                    is ComponentDto.SphereRigidBodyDto -> {
+                        val transform =
+                            gameObject.getComponent(TransformationComponent::class.java) ?: error("No transform")
+                        it.mass ?: error("No mass")
+                        it.radius ?: error("No radius")
+                        physicsEngine.createSphereRigidBody(
+                            gameObjectName,
+                            it.mass,
+                            it.radius,
+                            transform.position,
+                            transform.rotation,
+                            it.maxForceX ?: 0f,
+                            it.maxForceY ?: 0f,
+                            it.maxForceZ ?: 0f,
+                            it.maxTorqueX ?: 0f,
+                            it.maxTorqueY ?: 0f,
+                            it.maxTorqueZ ?: 0f
+                        )
+                        gameObject.addComponent(RigidBodyGameObjectComponent(physicsEngine, gameObjectName))
+                    }
+
                     is ComponentDto.TextDto -> {
                         gameObject.addComponent(TextComponent(
                             it.text ?: "",

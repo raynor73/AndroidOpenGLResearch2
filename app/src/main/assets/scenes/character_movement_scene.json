@@ -14,7 +14,8 @@
     { "id": "rect_button", "path": "textures/rect_button.png" },
     { "id": "house_diffuse", "path": "textures/house_diffuse.png" },
     { "id": "fps_text", "width": 128, "height": 32 },
-    { "id": "wood_box_side", "path": "textures/wood_box_side.jpg" }
+    { "id": "wood_box_side", "path": "textures/wood_box_side.jpg" },
+    { "id": "earth_diffuse", "path": "textures/2k_earth_daymap.jpg" }
   ],
   "materials": [
     { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
@@ -76,7 +77,8 @@
       "castShadows": false,
       "receiveShadows": false
     },
-    { "id": "wood_box", "textureName": "wood_box_side", "diffuseColor": [1, 1, 1, 1] }
+    { "id": "wood_box", "textureName": "wood_box_side", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "earth_ball", "textureName": "earth_diffuse", "diffuseColor": [1, 1, 1, 1] }
   ],
   "meshes": [
     { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
@@ -88,7 +90,8 @@
     { "id": "sphere", "path": "meshes/sphere.obj" },
     { "id": "house", "path": "meshes/house.obj", "keepInStorage": true },
     { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" },
-    { "id": "box", "path": "meshes/box.obj" }
+    { "id": "box", "path": "meshes/box.obj" },
+    { "id": "sphereUV", "path": "meshes/earth.obj"}
   ],
   "scene": {
     "scriptPaths": [
@@ -443,6 +446,36 @@
             "type": "BoxRigidBody",
             "mass": 10,
             "size": [1, 1, 1]
+          }
+        ]
+      },
+      {
+        "name": "earth_ball",
+        "parent": "root",
+        "position" : [-5.0, 3.03, 0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "sphereUV", "materialName": "earth_ball", "layerNames": ["defaultLayer"] },
+          {
+            "type": "SphereRigidBody",
+            "mass": 1,
+            "radius": 1
+          }
+        ]
+      },
+      {
+        "name": "earth_ball1",
+        "parent": "root",
+        "position" : [-5.0, 1.01, -2],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "sphereUV", "materialName": "earth_ball", "layerNames": ["defaultLayer"] },
+          {
+            "type": "SphereRigidBody",
+            "mass": 1,
+            "radius": 1
           }
         ]
       }

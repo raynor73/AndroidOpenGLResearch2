@@ -93,6 +93,17 @@ sealed class ComponentDto {
         val maxTorqueZ: Float?
     ) : ComponentDto()
 
+    class SphereRigidBodyDto(
+        val mass: Float?,
+        val radius: Float?,
+        val maxForceX: Float?,
+        val maxForceY: Float?,
+        val maxForceZ: Float?,
+        val maxTorqueX: Float?,
+        val maxTorqueY: Float?,
+        val maxTorqueZ: Float?
+    ) : ComponentDto()
+
     class TextDto(
         val text: String?,
         val textSize: Float?,

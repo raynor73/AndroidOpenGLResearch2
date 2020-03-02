@@ -90,6 +90,71 @@ class PhysicsEngine : DGeom.DNearCallback {
         getRigidBody(rigidBodyName).angularVel = tmpDVector
     }
 
+    fun createSphereRigidBody(
+        name: String,
+        massValue: Float,
+        radius: Float,
+        position: Vector3fc,
+        rotation: Quaternionfc,
+        maxMotorForceX: Float,
+        maxMotorForceY: Float,
+        maxMotorForceZ: Float,
+        maxMotorTorqueX: Float,
+        maxMotorTorqueY: Float,
+        maxMotorTorqueZ: Float
+    ) {
+        if (rigidBodies.containsKey(name)) {
+            error("Already has $name rigid body")
+        }
+
+        val mass = OdeHelper.createMass()
+
+        val rigidBody = OdeHelper.createBody(world)
+        rigidBodies[name] = rigidBody
+
+        mass.setSphereTotal(massValue.toDouble(), radius.toDouble())
+        rigidBody.mass = mass
+
+        val collisionShape = OdeHelper.createSphere(null, radius.toDouble())
+        collisionShapes[name] = collisionShape
+        collisionShape.body = rigidBody
+
+        rigidBody.position = position.toVector()
+        rigidBody.quaternion = rotation.toQuaternion()
+
+        space?.add(collisionShape)
+
+        val motor = OdeHelper.createLMotorJoint(world, null)
+        motor.numAxes = 3
+        motor.setAxis(0, 0, 1.0, 0.0, 0.0)
+        motor.setAxis(1, 0, 0.0, 1.0, 0.0)
+        motor.setAxis(2, 0, 0.0, 0.0, 1.0)
+        motor.paramFMax = maxMotorForceX.toDouble()
+        motor.paramFMax2 = maxMotorForceY.toDouble()
+        motor.paramFMax3 = maxMotorForceZ.toDouble()
+        motor.paramVel = 0.0
+        motor.paramVel2 = 0.0
+        motor.paramVel3 = 0.0
+
+        motor.attach(rigidBody, null)
+        linearMotors[name] = motor
+
+        val angularMotor = OdeHelper.createAMotorJoint(world, null)
+        angularMotor.numAxes = 3
+        angularMotor.setAxis(0, 0, 1.0, 0.0, 0.0)
+        angularMotor.setAxis(1, 0, 0.0, 1.0, 0.0)
+        angularMotor.setAxis(2, 0, 0.0, 0.0, 1.0)
+        angularMotor.paramFMax = maxMotorTorqueX.toDouble()
+        angularMotor.paramFMax2 = maxMotorTorqueY.toDouble()
+        angularMotor.paramFMax3 = maxMotorTorqueZ.toDouble()
+        angularMotor.paramVel = 0.0
+        angularMotor.paramVel2 = 0.0
+        angularMotor.paramVel3 = 0.0
+
+        angularMotor.attach(rigidBody, null)
+        angularMotors[name] = angularMotor
+    }
+
     fun createBoxRigidBody(
         name: String,
         massValue: Float,
