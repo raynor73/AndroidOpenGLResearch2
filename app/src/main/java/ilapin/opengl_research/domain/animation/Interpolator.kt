@@ -5,5 +5,5 @@ package ilapin.opengl_research.domain.animation
  */
 interface Interpolator {
 
-    fun interpolate(progress: Float): Float
+    fun interpolate(input: Float): Float
 }
