@@ -20,6 +20,7 @@
   "materials": [
     { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
     { "id": "blue", "textureName": "blue", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "white", "diffuseColor": [1, 1, 1, 1] },
     { "id": "female", "textureName": "female", "diffuseColor": [1, 1, 1, 1] },
     { "id": "fountain", "textureName": "fountain", "diffuseColor": [1, 1, 1, 1] },
     { "id": "keyboard", "textureName": "keyboard", "diffuseColor": [1, 1, 1, 1], "isDoubleSided": true },
@@ -436,21 +437,6 @@
         ]
       },
       {
-        "name": "wood_box1",
-        "parent": "root",
-        "position" : [-5.0, 1.52, 0],
-        "rotation" : [0.0, 0.0, 0.0],
-        "scale": [1.0, 1.0, 1.0],
-        "components": [
-          { "type": "Mesh", "meshName": "box", "materialName": "wood_box", "layerNames": ["defaultLayer"] },
-          {
-            "type": "BoxRigidBody",
-            "mass": 10,
-            "size": [1, 1, 1]
-          }
-        ]
-      },
-      {
         "name": "earth_ball1",
         "parent": "root",
         "position" : [-5.0, 1.01, -2],
@@ -478,6 +464,21 @@
             "mass": 1,
             "radius": 1,
             "length": 1
+          }
+        ]
+      },
+      {
+        "name": "platform",
+        "parent": "root",
+        "position" : [27.5, 0.0, 0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [5.0, 0.1, 5.0],
+        "components": [
+          { "type": "Mesh", "meshName": "box", "materialName": "white", "layerNames": ["defaultLayer"] },
+          {
+            "type": "BoxRigidBody",
+            "radius": 1,
+            "size": [5, 0.1, 5]
           }
         ]
       }

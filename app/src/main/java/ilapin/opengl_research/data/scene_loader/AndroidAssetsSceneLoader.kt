@@ -332,7 +332,6 @@ class AndroidAssetsSceneLoader(
                     is ComponentDto.BoxRigidBodyDto -> {
                         val transform =
                             gameObject.getComponent(TransformationComponent::class.java) ?: error("No transform")
-                        it.mass ?: error("No mass")
                         it.size?.takeIf { sizeComponents -> sizeComponents.size == 3 } ?: error("No size")
                         physicsEngine.createBoxRigidBody(
                             gameObjectName,
@@ -353,7 +352,6 @@ class AndroidAssetsSceneLoader(
                     is ComponentDto.SphereRigidBodyDto -> {
                         val transform =
                             gameObject.getComponent(TransformationComponent::class.java) ?: error("No transform")
-                        it.mass ?: error("No mass")
                         it.radius ?: error("No radius")
                         physicsEngine.createSphereRigidBody(
                             gameObjectName,
@@ -374,7 +372,6 @@ class AndroidAssetsSceneLoader(
                     is ComponentDto.CylinderRigidBodyDto -> {
                         val transform =
                             gameObject.getComponent(TransformationComponent::class.java) ?: error("No transform")
-                        it.mass ?: error("No mass")
                         it.radius ?: error("No radius")
                         it.length ?: error("No length")
                         physicsEngine.createCylinderRigidBody(

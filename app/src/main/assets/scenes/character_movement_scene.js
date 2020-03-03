@@ -62,6 +62,10 @@ var fpsText;
 var fpsTextTransform;
 var fpsCalculator;
 
+var platformAnimator;
+var platformRigidBody;
+var platformTransform;
+
 function start() {
     rootGestureConsumer = scene.getGestureConsumerComponent(scene.rootGameObject);
 
@@ -123,6 +127,18 @@ function start() {
     fpsText = scene.getTextComponent(fpsTextGameObject);
     fpsCalculator = new FpsCalculator();
 
+    var platformGameObject = findGameObject(scene.rootGameObject, "platform");
+    platformTransform = scene.getTransformationComponent(platformGameObject);
+    platformRigidBody = scene.getRigidBodyComponent(platformGameObject);
+    platformAnimator = new Packages.ilapin.opengl_research.domain.animation.ValueAnimator(
+        new Packages.ilapin.opengl_research.domain.animation.CycleInterpolator(1),
+        0,
+        10,
+        15,
+        0
+    );
+    platformAnimator.start();
+
     layoutUi();
 }
 
@@ -170,6 +186,7 @@ function update(dt) {
         movePlayer(dt);
         performPlayerActions();
         updateFps(dt);
+        updatePlatform(dt);
     } else {
         if (!soundScene.isPaused()) {
             soundScene.pause();
@@ -178,6 +195,18 @@ function update(dt) {
             soundScene2D.pause();
         }
     }
+}
+
+function updatePlatform(dt) {
+    var position = vectorsPool.obtain();
+
+    platformAnimator.update(dt);
+
+    position.set(platformTransform.position);
+    position.y = platformAnimator.value;
+    platformRigidBody.setPosition(position);
+
+    vectorsPool.recycle(position);
 }
 
 function rotateKeyboard(dt) {

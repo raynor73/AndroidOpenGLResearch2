@@ -93,7 +93,7 @@ class PhysicsEngine : DGeom.DNearCallback {
 
     fun createCylinderRigidBody(
         name: String,
-        massValue: Float,
+        massValue: Float?,
         radius: Float,
         length: Float,
         position: Vector3fc,
@@ -114,8 +114,12 @@ class PhysicsEngine : DGeom.DNearCallback {
         val rigidBody = OdeHelper.createBody(world)
         rigidBodies[name] = rigidBody
 
-        mass.setCylinderTotal(massValue.toDouble(), 2, radius.toDouble(), length.toDouble())
-        rigidBody.mass = mass
+        if (massValue != null) {
+            mass.setCylinderTotal(massValue.toDouble(), 2, radius.toDouble(), length.toDouble())
+            rigidBody.mass = mass
+        } else {
+            rigidBody.setKinematic()
+        }
 
         val collisionShape = OdeHelper.createCylinder(null, radius.toDouble(), length.toDouble())
         collisionShapes[name] = collisionShape
@@ -159,7 +163,7 @@ class PhysicsEngine : DGeom.DNearCallback {
 
     fun createSphereRigidBody(
         name: String,
-        massValue: Float,
+        massValue: Float?,
         radius: Float,
         position: Vector3fc,
         rotation: Quaternionfc,
@@ -179,8 +183,12 @@ class PhysicsEngine : DGeom.DNearCallback {
         val rigidBody = OdeHelper.createBody(world)
         rigidBodies[name] = rigidBody
 
-        mass.setSphereTotal(massValue.toDouble(), radius.toDouble())
-        rigidBody.mass = mass
+        if (massValue != null) {
+            mass.setSphereTotal(massValue.toDouble(), radius.toDouble())
+            rigidBody.mass = mass
+        } else {
+            rigidBody.setKinematic()
+        }
 
         val collisionShape = OdeHelper.createSphere(null, radius.toDouble())
         collisionShapes[name] = collisionShape
@@ -224,7 +232,7 @@ class PhysicsEngine : DGeom.DNearCallback {
 
     fun createBoxRigidBody(
         name: String,
-        massValue: Float,
+        massValue: Float?,
         size: Vector3fc,
         position: Vector3fc,
         rotation: Quaternionfc,
@@ -244,8 +252,12 @@ class PhysicsEngine : DGeom.DNearCallback {
         val rigidBody = OdeHelper.createBody(world)
         rigidBodies[name] = rigidBody
 
-        mass.setBoxTotal(massValue.toDouble(), size.x().toDouble(), size.y().toDouble(), size.z().toDouble())
-        rigidBody.mass = mass
+        if (massValue != null) {
+            mass.setBoxTotal(massValue.toDouble(), size.x().toDouble(), size.y().toDouble(), size.z().toDouble())
+            rigidBody.mass = mass
+        } else {
+            rigidBody.setKinematic()
+        }
 
         size.toVector(tmpDVector)
         val collisionShape = OdeHelper.createBox(null, tmpDVector)
