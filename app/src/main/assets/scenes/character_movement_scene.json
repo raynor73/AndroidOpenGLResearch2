@@ -91,7 +91,8 @@
     { "id": "house", "path": "meshes/house.obj", "keepInStorage": true },
     { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" },
     { "id": "box", "path": "meshes/box.obj" },
-    { "id": "sphereUV", "path": "meshes/earth.obj"}
+    { "id": "sphereUV", "path": "meshes/earth.obj"},
+    { "id": "cylinder", "path": "meshes/cylinder.obj"}
   ],
   "scene": {
     "scriptPaths": [
@@ -450,9 +451,9 @@
         ]
       },
       {
-        "name": "earth_ball",
+        "name": "earth_ball1",
         "parent": "root",
-        "position" : [-5.0, 3.03, 0],
+        "position" : [-5.0, 1.01, -2],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
@@ -465,17 +466,18 @@
         ]
       },
       {
-        "name": "earth_ball1",
+        "name": "cylinder",
         "parent": "root",
-        "position" : [-5.0, 1.01, -2],
+        "position" : [-5.0, 0.51, -6],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "Mesh", "meshName": "sphereUV", "materialName": "earth_ball", "layerNames": ["defaultLayer"] },
+          { "type": "Mesh", "meshName": "cylinder", "materialName": "blue", "layerNames": ["defaultLayer"] },
           {
-            "type": "SphereRigidBody",
+            "type": "CylinderRigidBody",
             "mass": 1,
-            "radius": 1
+            "radius": 1,
+            "length": 1
           }
         ]
       }
