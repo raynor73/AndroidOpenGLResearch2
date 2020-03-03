@@ -12,6 +12,7 @@ import org.ode4j.ode.OdeConstants.dContactBounce
 import org.ode4j.ode.OdeConstants.dContactSoftCFM
 import kotlin.math.PI
 import kotlin.math.ceil
+import kotlin.math.min
 
 /**
  * @author raynor on 08.02.20.
@@ -386,7 +387,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     }
 
     fun update(dt: Float) {
-        repeat(ceil(dt / SIMULATION_STEP_TIME).toInt()) {
+        repeat(min(ceil(dt / SIMULATION_STEP_TIME).toInt(), MAX_SIMULATION_STEPS)) {
             OdeHelper.spaceCollide(space, null, this)
             world?.step(SIMULATION_STEP_TIME)
             characterCapsules.values.forEach {
@@ -461,6 +462,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     companion object {
 
         private const val SIMULATION_STEP_TIME = 0.01 // second
+        private const val MAX_SIMULATION_STEPS = 10
         private const val MAX_CONTACTS = 64
     }
 }
