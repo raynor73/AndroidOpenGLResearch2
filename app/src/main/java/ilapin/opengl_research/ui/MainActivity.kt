@@ -84,7 +84,9 @@ class MainActivity : AppCompatActivity() {
 
             subscriptions += renderer.isLoading.subscribe { isLoading -> progressBar.setVisible(isLoading) }
 
-            renderer.putMessage(GLSurfaceViewRenderer.LoadAndStartSceneMessage("scenes/character_movement_scene.json"))
+            renderer.putMessage(
+                GLSurfaceViewRenderer.LoadAndStartSceneMessage("scenes/character_animation_scene/scene.json")
+            )
         }
     }
 

@@ -1,0 +1,158 @@
+{
+  "soundClips": [],
+  "textures": [
+    { "id": "female", "path": "textures/female.png" },
+    { "id": "fps_text", "width": 128, "height": 32 }
+  ],
+  "materials": [
+    { "id": "green", "diffuseColor": [0, 0.5, 0, 1] },
+    { "id": "female", "textureName": "female", "diffuseColor": [1, 1, 1, 1] },
+    {
+      "id": "capsule",
+      "diffuseColor": [0.5, 0.5, 0, 1],
+      "isWireframe": true,
+      "isUnlit": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
+    {
+      "id": "fps_text",
+      "textureName": "fps_text",
+      "diffuseColor": [1, 1, 1, 1],
+      "isUnlit": true,
+      "isTranslucent": true,
+      "castShadows": false,
+      "receiveShadows": false
+    }
+  ],
+  "meshes": [
+    { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
+    { "id": "female", "path": "meshes/female.obj" },
+    { "id": "capsule", "path": "meshes/capsule.obj" },
+    { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" }
+  ],
+  "scene": {
+    "scriptPaths": [
+      "scenes/utils.js",
+      "scenes/fps_calculator.js",
+      "scenes/character_animation_scene/scene.js"
+    ],
+    "activeCameras": ["player_camera", "ui_camera"],
+    "renderTargets": [],
+    "gravity": [0.0, -9.81, 0.0],
+    "gameObjects": [
+      {
+        "name": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": []
+      },
+      {
+        "name": "ground_plane",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [50.0, 1.0, 50.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "green", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "player",
+        "parent": "root",
+        "position" : [0.0, 4, 0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          {
+            "type": "PlayerCapsuleRigidBody",
+            "mass": 1,
+            "radius": 0.5,
+            "length": 1,
+            "maxForceX": 100,
+            "maxForceY": 0,
+            "maxForceZ": 100
+          }
+        ]
+      },
+      {
+        "name": "player_capsule",
+        "parent": "player",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [0.5, 0.5, 0.5],
+        "components": [
+          { "type": "Mesh", "meshName": "capsule", "materialName": "capsule", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "player_mesh",
+        "parent": "player",
+        "position" : [0.0, 0.0, -1],
+        "rotation" : [90.0, 0.0, 0.0],
+        "scale": [1, 1, 1],
+        "components": [
+          { "type": "SoundListener" },
+          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "player_camera",
+        "parent": "player_mesh",
+        "position" : [0.0, 1.0, 3.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "PerspectiveCamera", "fov": 45, "layerNames": ["defaultLayer"], "ambientLight": [0.5, 0.5, 0.5] }
+        ]
+      },
+      {
+        "name": "directional_light",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [-90.0, 45.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "DirectionalLight", "color": [0.7, 0.7, 0.7], "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "ui_camera",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          {
+            "type": "OrthoCamera",
+            "left": 0,
+            "right": 1024,
+            "bottom": 0,
+            "top": 768,
+            "layerNames": ["uiLayer"],
+            "ambientLight": [0.5, 0.5, 0.5]
+          }
+        ]
+      },
+      {
+        "name": "fps_text",
+        "parent": "root",
+        "position" : [0.0, 0.0, -10.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [128.0, 32.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "vertical_plane", "materialName": "fps_text", "layerNames": ["uiLayer"] },
+          {
+            "type": "Text",
+            "text": "FPS: N/A",
+            "textSize": 30,
+            "color": [0, 0.5, 0, 1],
+            "imageWidth": 128,
+            "imageHeight": 32
+          }
+        ]
+      }
+    ]
+  }
+}
