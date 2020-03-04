@@ -27,9 +27,12 @@
   ],
   "meshes": [
     { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
-    { "id": "female", "path": "meshes/female.obj" },
+    { "id": "female", "path": "meshes/female_idle.dae" },
     { "id": "capsule", "path": "meshes/capsule.obj" },
     { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" }
+  ],
+  "skeletalAnimations": [
+    { "name": "female_idle", "path": "meshes/female_idle.dae" }
   ],
   "scene": {
     "scriptPaths": [
@@ -61,45 +64,18 @@
       {
         "name": "player",
         "parent": "root",
-        "position" : [0.0, 4, 0],
+        "position" : [0, 0, 0],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          {
-            "type": "PlayerCapsuleRigidBody",
-            "mass": 1,
-            "radius": 0.5,
-            "length": 1,
-            "maxForceX": 100,
-            "maxForceY": 0,
-            "maxForceZ": 100
-          }
-        ]
-      },
-      {
-        "name": "player_capsule",
-        "parent": "player",
-        "position" : [0.0, 0.0, 0.0],
-        "rotation" : [0.0, 0.0, 0.0],
-        "scale": [0.5, 0.5, 0.5],
-        "components": [
-          { "type": "Mesh", "meshName": "capsule", "materialName": "capsule", "layerNames": ["defaultLayer"] }
-        ]
-      },
-      {
-        "name": "player_mesh",
-        "parent": "player",
-        "position" : [0.0, 0.0, -1],
-        "rotation" : [90.0, 0.0, 0.0],
-        "scale": [1, 1, 1],
-        "components": [
-          { "type": "SoundListener" },
-          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] }
+          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] },
+          { "type": "SkeletalAnimator" },
+          { "type": "SkeletalAnimations", "animationNames": ["female_idle"] }
         ]
       },
       {
         "name": "player_camera",
-        "parent": "player_mesh",
+        "parent": "player",
         "position" : [0.0, 1.0, 3.0],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],

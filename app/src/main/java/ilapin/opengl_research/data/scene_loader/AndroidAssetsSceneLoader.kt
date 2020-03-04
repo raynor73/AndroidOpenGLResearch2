@@ -3,7 +3,9 @@ package ilapin.opengl_research.data.scene_loader
 import android.content.Context
 import com.google.common.collect.HashMultimap
 import com.google.gson.Gson
+import ilapin.collada_parser.collada_loader.ColladaLoader
 import ilapin.common.kotlin.safeLet
+import ilapin.common.time.TimeRepository
 import ilapin.engine3d.GameObject
 import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
@@ -18,15 +20,14 @@ import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
 import ilapin.opengl_research.domain.sound_2d.SoundScene2D
 import ilapin.opengl_research.domain.text.TextRenderer
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector3fc
-import org.joml.Vector4f
+import org.joml.*
 import java.io.BufferedReader
+import java.lang.Math
 import kotlin.collections.set
 
 /**
@@ -47,7 +48,10 @@ class AndroidAssetsSceneLoader(
     private val soundScene: SoundScene,
     private val soundScene2D: SoundScene2D,
     private val physicsEngine: PhysicsEngine,
-    private val textRenderer: TextRenderer
+    private val textRenderer: TextRenderer,
+    private val quaternionsPool: ObjectsPool<Quaternionf>,
+    private val matrixPool: ObjectsPool<Matrix4f>,
+    private val timeRepository: TimeRepository
 ) : SceneLoader {
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
@@ -110,7 +114,15 @@ class AndroidAssetsSceneLoader(
 
         sceneInfoDto.meshes?.forEach {
             safeLet(it.id, it.path) { id, path ->
-                val mesh = meshLoadingRepository.loadMesh(path).toMesh()
+                val mesh = if (path.endsWith(COLLADA_FILE_EXTENSION, true)) {
+                    // TODO Make use Collada loader through repository etc
+                    ColladaLoader.loadColladaModel(
+                        context.assets.open(path),
+                        NUMBER_OF_JOINT_WEIGHTS
+                    ).meshData.toMesh()
+                } else {
+                    meshLoadingRepository.loadMesh(path).toMesh()
+                }
                 geometryManager.createStaticVertexBuffer(id, mesh.verticesAsArray())
                 geometryManager.createStaticIndexBuffer(id, mesh.indices.toShortArray())
                 if (it.keepInStorage == true) {
@@ -402,6 +414,15 @@ class AndroidAssetsSceneLoader(
                             textRenderer
                         ))
                     }
+
+                    is ComponentDto.SkeletalAnimatorDto -> {
+                        gameObject.addComponent(SkeletalAnimatorComponent(
+                            vectorsPool,
+                            quaternionsPool,
+                            matrixPool,
+                            timeRepository
+                        ))
+                    }
                 }
             }
 
@@ -439,5 +460,6 @@ class AndroidAssetsSceneLoader(
     companion object {
 
         private const val ROOT_GAME_OBJECT_NAME = "root"
+        private const val COLLADA_FILE_EXTENSION= ".dae"
     }
 }

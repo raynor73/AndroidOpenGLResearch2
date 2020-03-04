@@ -34,6 +34,7 @@ import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
 import ilapin.opengl_research.domain.sound_2d.SoundScene2D
 import ilapin.opengl_research.domain.text.TextRenderer
+import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import javax.inject.Named
@@ -209,7 +210,10 @@ class MainScreenModule(private val activity: MainActivity) {
         soundScene: SoundScene,
         soundScene2D: SoundScene2D,
         physicsEngine: PhysicsEngine,
-        textRenderer: TextRenderer
+        textRenderer: TextRenderer,
+        quaternionsPool: ObjectsPool<Quaternionf>,
+        matrixPool: ObjectsPool<Matrix4f>,
+        timeRepository: TimeRepository
     ): SceneLoader {
         return AndroidAssetsSceneLoader(
             context,
@@ -226,7 +230,10 @@ class MainScreenModule(private val activity: MainActivity) {
             soundScene,
             soundScene2D,
             physicsEngine,
-            textRenderer
+            textRenderer,
+            quaternionsPool,
+            matrixPool,
+            timeRepository
         )
     }
 

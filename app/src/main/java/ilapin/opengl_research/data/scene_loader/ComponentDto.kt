@@ -123,4 +123,11 @@ sealed class ComponentDto {
         val imageWidth: Int?,
         val imageHeight: Int?
     ) : ComponentDto()
+
+    @Suppress("CanSealedSubClassBeObject")
+    class SkeletalAnimatorDto : ComponentDto()
+
+    class SkeletalAnimationsDto(
+        val animations: List<String>?
+    ) : ComponentDto()
 }

@@ -7,15 +7,24 @@ import org.joml.Matrix4f
  * @author ilapin on 14.02.20.
  */
 class SkeletalAnimationComponent(
-    val rootJoint: Joint,
-    val animation: SkeletalAnimation
+    animations: List<SkeletalAnimationData>
 ) : GameObjectComponent() {
 
-    init {
-        rootJoint.calculateInvertedBindTransform(Matrix4f())
+    private val animations = ArrayList<SkeletalAnimationData>().apply { addAll(animations) }
+
+    private var currentAnimation: SkeletalAnimationData = this.animations[0]
+
+    val rootJoint: Joint
+        get() = currentAnimation.rootJoint
+
+    val animation: SkeletalAnimation
+        get()= currentAnimation.animation
+
+    fun selectAnimation(index: Int) {
+        currentAnimation = animations[index]
     }
 
     override fun copy(): GameObjectComponent {
-        TODO("Not implemented")
+        return SkeletalAnimationComponent(animations)
     }
 }
