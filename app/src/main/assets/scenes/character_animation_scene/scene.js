@@ -10,6 +10,7 @@
 // var vectorsPool = ...
 
 function start() {
+    scene.getSkeletalAnimatorComponent(findGameObject(scene.rootGameObject, "player")).start();
 }
 
 function update(dt) {

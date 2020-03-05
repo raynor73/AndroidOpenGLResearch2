@@ -17,6 +17,8 @@ import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
 import ilapin.opengl_research.domain.sound_2d.SoundScene2D
@@ -165,5 +167,15 @@ class ScriptedScene(
     @Suppress("unused")
     fun getTextComponent(gameObject: GameObject): TextComponent? {
         return gameObject.getComponent(TextComponent::class.java)
+    }
+
+    @Suppress("unused")
+    fun getSkeletalAnimatorComponent(gameObject: GameObject): SkeletalAnimatorComponent? {
+        return gameObject.getComponent(SkeletalAnimatorComponent::class.java)
+    }
+
+    @Suppress("unused")
+    fun getSkeletalAnimationComponent(gameObject: GameObject): SkeletalAnimationComponent? {
+        return gameObject.getComponent(SkeletalAnimationComponent::class.java)
     }
 }

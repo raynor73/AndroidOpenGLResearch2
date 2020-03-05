@@ -114,8 +114,8 @@
       {
         "name": "fps_text",
         "parent": "root",
-        "position" : [0.0, 0.0, -10.0],
         "rotation" : [0.0, 0.0, 0.0],
+        "position" : [0.0, 0.0, -10.0],
         "scale": [128.0, 32.0, 1.0],
         "components": [
           { "type": "Mesh", "meshName": "vertical_plane", "materialName": "fps_text", "layerNames": ["uiLayer"] },
