@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.common.collect.HashMultimap
 import com.google.gson.Gson
 import ilapin.collada_parser.collada_loader.ColladaLoader
+import ilapin.collada_parser.data_structures.AnimatedModelData
 import ilapin.common.kotlin.safeLet
 import ilapin.common.time.TimeRepository
 import ilapin.engine3d.GameObject
@@ -20,6 +21,9 @@ import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimation
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
+import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationData
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
 import ilapin.opengl_research.domain.sound.SoundClipsRepository
 import ilapin.opengl_research.domain.sound.SoundScene
@@ -65,17 +69,22 @@ class AndroidAssetsSceneLoader(
         val layerLights = HashMultimap.create<String, GameObjectComponent>()
         val camerasMap = HashMap<String, CameraComponent>()
         val cameraAmbientLights = HashMap<CameraComponent, Vector3fc>()
+        val skeletalAnimations = HashMap<String, SkeletalAnimationData>()
 
+        val sceneReader = context.assets.open(path).bufferedReader()
         val sceneInfoDto = gson.fromJson(
-            context.assets.open(path).bufferedReader().use(BufferedReader::readText),
+            sceneReader.use(BufferedReader::readText),
             SceneInfoDto::class.java
         )
+        sceneReader.close()
         val sceneScripts = (sceneInfoDto.scene?.scriptPaths ?: error("No script paths found")).map { scriptPath ->
-            context
+            val scriptReader = context
                 .assets
                 .open(scriptPath)
                 .bufferedReader()
-                .use(BufferedReader::readText)
+            val script = scriptReader.use(BufferedReader::readText)
+            sceneReader.close()
+            script
         }
 
         sceneInfoDto.soundClips?.forEach { soundClip ->
@@ -116,10 +125,13 @@ class AndroidAssetsSceneLoader(
             safeLet(it.id, it.path) { id, path ->
                 val mesh = if (path.endsWith(COLLADA_FILE_EXTENSION, true)) {
                     // TODO Make use Collada loader through repository etc
-                    ColladaLoader.loadColladaModel(
-                        context.assets.open(path),
+                    val modelInputStream = context.assets.open(path)
+                    val mesh = ColladaLoader.loadColladaModel(
+                        modelInputStream,
                         NUMBER_OF_JOINT_WEIGHTS
                     ).meshData.toMesh()
+                    modelInputStream.close()
+                    mesh
                 } else {
                     meshLoadingRepository.loadMesh(path).toMesh()
                 }
@@ -129,6 +141,27 @@ class AndroidAssetsSceneLoader(
                     meshStorage.putMesh(id, mesh)
                 }
             }
+        }
+
+        sceneInfoDto.skeletalAnimations?.forEach { dto ->
+            dto.name ?: error("No animation name")
+            dto.path ?: error("No path for ${dto.name} animation")
+
+            val model: AnimatedModelData
+            context.assets.open(dto.path).run {
+                model = ColladaLoader.loadColladaModel(this, NUMBER_OF_JOINT_WEIGHTS)
+                close()
+            }
+
+            val animation: SkeletalAnimation
+            context.assets.open(dto.path).run {
+                animation = ColladaLoader.loadColladaAnimation(this).toSkeletalAnimation()
+                close()
+            }
+
+            val rootJoint = model.jointsData.headJoint.toJoint()
+
+            skeletalAnimations[dto.name] = SkeletalAnimationData(rootJoint, animation)
         }
 
         val gravity = sceneInfoDto.scene.gravity
@@ -422,6 +455,16 @@ class AndroidAssetsSceneLoader(
                             matrixPool,
                             timeRepository
                         ))
+                    }
+
+                    is ComponentDto.SkeletalAnimationsDto -> {
+                        it.animationNames?.let { animationNames ->
+                            gameObject.addComponent(
+                                SkeletalAnimationComponent(animationNames.map { animationName ->
+                                    skeletalAnimations[animationName] ?: error("Animation $animationName not found")
+                                })
+                            )
+                        }
                     }
                 }
             }

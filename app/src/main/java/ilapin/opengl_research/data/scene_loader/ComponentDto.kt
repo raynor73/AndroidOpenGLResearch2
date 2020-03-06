@@ -128,6 +128,6 @@ sealed class ComponentDto {
     class SkeletalAnimatorDto : ComponentDto()
 
     class SkeletalAnimationsDto(
-        val animations: List<String>?
+        val animationNames: List<String>?
     ) : ComponentDto()
 }

@@ -8,5 +8,6 @@ class SceneInfoDto(
     val textures: List<TextureDto>?,
     val materials: List<MaterialDto>?,
     val meshes: List<MeshDto>?,
+    val skeletalAnimations: List<SkeletalAnimationDataDto>?,
     val scene: SceneDto?
 )

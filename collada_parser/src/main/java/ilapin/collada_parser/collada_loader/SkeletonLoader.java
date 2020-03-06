@@ -35,7 +35,10 @@ public class SkeletonLoader {
 	private JointData loadJointData(XmlNode jointNode, boolean isRoot){
 		JointData joint = extractMainJointData(jointNode, isRoot);
 		for(XmlNode childNode : jointNode.getChildren("node")){
-			joint.addChild(loadJointData(childNode, false));
+			final JointData childJoint = loadJointData(childNode, false);
+			if (childJoint != null) {
+				joint.addChild(childJoint);
+			}
 		}
 		return joint;
 	}
@@ -43,6 +46,9 @@ public class SkeletonLoader {
 	private JointData extractMainJointData(XmlNode jointNode, boolean isRoot){
 		String nameId = jointNode.getAttribute("id");
 		int index = boneOrder.indexOf(nameId);
+		if (index < 0) {
+			return null;
+		}
 		String[] matrixData = jointNode.getChild("matrix").getData().split(" ");
 		Matrix4f matrix = new Matrix4f();
 		matrix.set(convertData(matrixData));
