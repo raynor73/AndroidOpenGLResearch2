@@ -52,16 +52,6 @@
         "components": []
       },
       {
-        "name": "ground_plane",
-        "parent": "root",
-        "position" : [0.0, 0.0, 0.0],
-        "rotation" : [0.0, 0.0, 0.0],
-        "scale": [50.0, 1.0, 50.0],
-        "components": [
-          { "type": "Mesh", "meshName": "quad", "materialName": "green", "layerNames": ["defaultLayer"] }
-        ]
-      },
-      {
         "name": "player",
         "parent": "root",
         "position" : [0, 0, 0],
