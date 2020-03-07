@@ -31,9 +31,7 @@
     { "id": "capsule", "path": "meshes/capsule.obj" },
     { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" }
   ],
-  "skeletalAnimations": [
-    { "name": "female_idle", "path": "meshes/female_idle.dae" }
-  ],
+  "skeletalAnimations": [],
   "scene": {
     "scriptPaths": [
       "scenes/utils.js",
@@ -58,9 +56,7 @@
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
-          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] },
-          { "type": "SkeletalAnimator" },
-          { "type": "SkeletalAnimations", "animationNames": ["female_idle"] }
+          { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] }
         ]
       },
       {
