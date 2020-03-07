@@ -28,7 +28,11 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         val textureCoordinates = parseTextureCoordinates(path)
         val weights = parseWeights(path)
 
+        //val vertexSkinData =
+
         //"/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/v[1]"
+        //EffectiveJointsCounts
+        //"/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/vcount[1]"
 
         return Mesh(emptyList(), emptyList())
         /*val positionsId = mesh.getChild("vertices").getChild("input").getAttribute("source").substring(1)
