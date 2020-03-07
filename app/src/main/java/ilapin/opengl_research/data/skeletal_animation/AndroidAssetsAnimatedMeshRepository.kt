@@ -12,6 +12,7 @@ import org.joml.Vector2fc
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.xml.sax.InputSource
+import java.io.BufferedInputStream
 import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathFactory
 
@@ -27,12 +28,7 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         val normals = parseNormals(path)
         val textureCoordinates = parseTextureCoordinates(path)
         val weights = parseWeights(path)
-
-        //val vertexSkinData =
-
-        //"/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/v[1]"
-        //EffectiveJointsCounts
-        //"/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/vcount[1]"
+        val vertexSkinData = parseVertexSkinData(path, parseEffectiveJointCounts(path))
 
         return Mesh(emptyList(), emptyList())
         /*val positionsId = mesh.getChild("vertices").getChild("input").getAttribute("source").substring(1)
@@ -53,6 +49,60 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
                 )
             )
         }*/
+    }
+
+    private fun parseEffectiveJointCounts(path: String): List<Int> {
+        val jointCountsData = xPath
+            .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/vcount[1]")
+            .evaluateWithFile(path)
+            .split(" ")
+        return jointCountsData.map { it.toInt() }
+        /*val rawData =
+            weightsDataNode.getChild("vcount").data.split(" ").toTypedArray()
+        val counts = IntArray(rawData.size)
+        for (i in rawData.indices) {
+            counts[i] = rawData[i].toInt()
+        }
+        return counts*/
+    }
+
+    private fun parseVertexSkinData(
+        path: String,
+        effectiveJointCounts: List<Int>,
+        weights: List<Float>
+    ): List<VertexSkinData> {
+        //"/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/v[1]"
+        //EffectiveJointsCounts
+        //"/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/vcount[1]"
+
+        val rawData = xPath
+            .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/v[1]")
+            .evaluateWithFile(path)
+            .split(" ")
+        val skinData = ArrayList<VertexSkinData>()
+        var pointer = 0
+
+        effectiveJointCounts.forEach { effectiveJointCount ->
+
+        }
+
+        return skinData
+        /*val rawData: Array<String> = weightsDataNode.getChild("v").getData().split(" ").toTypedArray()
+        val skinningData: MutableList<ilapin.collada_parser.data_structures.VertexSkinData> =
+            java.util.ArrayList()
+        var pointer = 0
+        for (count in counts) {
+            val skinData =
+                VertexSkinData()
+            for (i in 0 until count) {
+                val jointId = rawData[pointer++].toInt()
+                val weightId = rawData[pointer++].toInt()
+                skinData.addJointEffect(jointId, weights.get(weightId))
+            }
+            skinData.limitJointNumber(maxWeights)
+            skinningData.add(skinData)
+        }
+        return skinningData*/
     }
 
     override fun loadAnimation(path: String): SkeletalAnimationData {
@@ -167,9 +217,34 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
     }
 
     private fun XPathExpression.evaluateWithFile(path: String): String {
-        val inputStream = context.assets.open(path)
+        val inputStream = BufferedInputStream(context.assets.open(path), 102400) // 100k buffer
         val result = evaluate(InputSource(inputStream))
         inputStream.close()
         return result
+    }
+
+    private class VertexSkinData(
+        jointIds: List<Int>,
+        weights: List<Float>
+    ) {
+        private val _jointIds = ArrayList<Int>().apply { addAll(jointIds) }
+        private val _weights = ArrayList<Float>().apply { addAll(weights) }
+
+        fun addJointEffect(jointId: Int, weight: Float) {
+            for (i in weights.indices) {
+                if (weight > weights.get(i)) {
+                    jointIds.add(i, jointId)
+                    weights.add(i, weight)
+                    return
+                }
+            }
+            jointIds.add(jointId)
+            weights.add(weight)
+        }
+    }
+
+    companion object {
+
+        private const val MAX_WEIGHTS = 3
     }
 }
