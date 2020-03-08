@@ -31,7 +31,9 @@
     { "id": "capsule", "path": "meshes/capsule.obj" },
     { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" }
   ],
-  "skeletalAnimations": [],
+  "skeletalAnimations": [
+    { "name": "female_idle", "path": "meshes/female_idle.dae" }
+  ],
   "scene": {
     "scriptPaths": [
       "scenes/utils.js",

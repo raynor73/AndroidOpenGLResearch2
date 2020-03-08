@@ -123,7 +123,18 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
     }
 
     override fun loadAnimation(path: String): SkeletalAnimationData {
-        TODO("Not yet implemented")
+        val meshBytes = context.assets.open(path).run {
+            val allBytes = readBytes()
+            close()
+            allBytes
+        }
+
+        val rootJoint = xPath
+            .compile("/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]/@id")
+            .evaluateWithBytes(meshBytes)
+
+        error("rootJoint: $rootJoint")
+        //return SkeletalAnimationData()
     }
 
     private fun parseWeights(meshBytes: ByteArray): List<Float> {

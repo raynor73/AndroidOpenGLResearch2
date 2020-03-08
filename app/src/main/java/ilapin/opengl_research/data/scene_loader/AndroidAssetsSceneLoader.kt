@@ -150,7 +150,7 @@ class AndroidAssetsSceneLoader(
             dto.name ?: error("No animation name")
             dto.path ?: error("No path for ${dto.name} animation")
 
-            val model: AnimatedModelData
+            /*val model: AnimatedModelData
             context.assets.open(dto.path).run {
                 model = ColladaLoader.loadColladaModel(this, NUMBER_OF_JOINT_WEIGHTS)
                 close()
@@ -160,11 +160,12 @@ class AndroidAssetsSceneLoader(
             context.assets.open(dto.path).run {
                 animation = ColladaLoader.loadColladaAnimation(this).toSkeletalAnimation()
                 close()
-            }
+            }*/
 
-            val rootJoint = model.jointsData.headJoint.toJoint()
+            val repo = AndroidAssetsAnimatedMeshRepository(context)
+            val animationData = repo.loadAnimation(dto.path)
 
-            skeletalAnimations[dto.name] = SkeletalAnimationData(rootJoint, animation)
+            skeletalAnimations[dto.name] = SkeletalAnimationData(animationData.rootJoint, animationData.animation)
         }
 
         val gravity = sceneInfoDto.scene.gravity
