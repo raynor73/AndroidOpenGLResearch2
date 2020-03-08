@@ -13,6 +13,7 @@ import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.xml.sax.InputSource
 import java.io.BufferedInputStream
+import java.io.ByteArrayInputStream
 import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathFactory
 
@@ -24,105 +25,121 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
     private val xPath = XPathFactory.newInstance().newXPath()
 
     override fun loadMesh(path: String): Mesh {
-        val positions = parsePositions(path)
-        val normals = parseNormals(path)
-        val textureCoordinates = parseTextureCoordinates(path)
-        val weights = parseWeights(path)
-        val vertexSkinData = parseVertexSkinData(path, parseEffectiveJointCounts(path))
+        val meshBytes = context.assets.open(path).run {
+            val allBytes = readBytes()
+            close()
+            allBytes
+        }
 
-        return Mesh(emptyList(), emptyList())
-        /*val positionsId = mesh.getChild("vertices").getChild("input").getAttribute("source").substring(1)
-        val positionsData: XmlNode =
-            meshData.getChildWithAttribute("source", "id", positionsId).getChild("float_array")
-        val count = positionsData.getAttribute("count").toInt()
-        val posData = positionsData.data.split(" ").toTypedArray()
-        for (i in 0 until count / 3) {
-            val x = posData[i * 3].toFloat()
-            val y = posData[i * 3 + 1].toFloat()
-            val z = posData[i * 3 + 2].toFloat()
-            val position = Vector4f(x, y, z, 1)
-            vertices.add(
-                Vertex(
-                    vertices.size,
-                    Vector3f(position.x, position.y, position.z),
-                    vertexWeights.get(vertices.size)
-                )
-            )
-        }*/
+        val positions = parsePositions(meshBytes)
+        val normals = parseNormals(meshBytes)
+        val textureCoordinates = parseTextureCoordinates(meshBytes)
+        val weights = parseWeights(meshBytes)
+        val vertexSkinData = parseVertexSkinData(meshBytes, parseEffectiveJointCounts(meshBytes), weights)
+
+        val polylistInputsCount = xPath
+            .compile("count(/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/input)")
+            .evaluateWithBytes(meshBytes)
+            .toInt()
+
+        val indexCounts = xPath
+            .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/vcount[1]")
+            .evaluateWithBytes(meshBytes)
+            .split(" ")
+            .mapNotNull { it.takeIf { countString -> countString.isNotBlank() }?.toInt() }
+
+        if (indexCounts.any { it != 3 }) {
+            error("Only triangles supported")
+        }
+
+        val colladaIndices = xPath
+            .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/p[1]")
+            .evaluateWithBytes(meshBytes)
+            .split(" ")
+            .map { it.toInt() }
+
+        val vertices = ArrayList<Mesh.Vertex>()
+        val indices = ArrayList<Short>()
+        val indicesMap = HashMap<ComplexIndex, Short>()
+        var currentIndex = 0.toShort()
+        for (i in 0 until colladaIndices.size / polylistInputsCount) {
+            val positionIndex = colladaIndices[i * polylistInputsCount]
+            val normalIndex = colladaIndices[i * polylistInputsCount + 1]
+            val textureCoordinateIndex = colladaIndices[i * polylistInputsCount + 2]
+
+            val complexIndex = ComplexIndex(positionIndex, normalIndex, textureCoordinateIndex)
+            val skinData = vertexSkinData[positionIndex]
+            indicesMap[complexIndex]?.let { existingIndex ->
+                indices.add(existingIndex)
+            } ?: run {
+                indices.add(currentIndex)
+                vertices.add(Mesh.Vertex(
+                    positions[positionIndex],
+                    normals[normalIndex],
+                    textureCoordinates[textureCoordinateIndex],
+                    skinData.jointIds,
+                    skinData.weights
+                ))
+                indicesMap[complexIndex] = currentIndex
+                currentIndex++
+            }
+        }
+
+        return Mesh(vertices, indices)
     }
 
-    private fun parseEffectiveJointCounts(path: String): List<Int> {
+    private fun parseEffectiveJointCounts(meshBytes: ByteArray): List<Int> {
         val jointCountsData = xPath
             .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/vcount[1]")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .split(" ")
-        return jointCountsData.map { it.toInt() }
-        /*val rawData =
-            weightsDataNode.getChild("vcount").data.split(" ").toTypedArray()
-        val counts = IntArray(rawData.size)
-        for (i in rawData.indices) {
-            counts[i] = rawData[i].toInt()
-        }
-        return counts*/
+        return jointCountsData.mapNotNull { it.takeIf { countString -> countString.isNotBlank() }?.toInt() }
     }
 
     private fun parseVertexSkinData(
-        path: String,
+        meshBytes: ByteArray,
         effectiveJointCounts: List<Int>,
         weights: List<Float>
     ): List<VertexSkinData> {
-        //"/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/v[1]"
-        //EffectiveJointsCounts
-        //"/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/vcount[1]"
-
         val rawData = xPath
             .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/v[1]")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .split(" ")
+
         val skinData = ArrayList<VertexSkinData>()
         var pointer = 0
-
         effectiveJointCounts.forEach { effectiveJointCount ->
-
+            val vertexSkinData = VertexSkinData()
+            for (i in 0 until effectiveJointCount) {
+                val jointId = rawData[pointer++].toInt()
+                val weightId = rawData[pointer++].toInt()
+                vertexSkinData.addJointEffect(jointId, weights[weightId])
+            }
+            vertexSkinData.limitJointNumber(MAX_WEIGHTS)
+            skinData.add(vertexSkinData)
         }
 
         return skinData
-        /*val rawData: Array<String> = weightsDataNode.getChild("v").getData().split(" ").toTypedArray()
-        val skinningData: MutableList<ilapin.collada_parser.data_structures.VertexSkinData> =
-            java.util.ArrayList()
-        var pointer = 0
-        for (count in counts) {
-            val skinData =
-                VertexSkinData()
-            for (i in 0 until count) {
-                val jointId = rawData[pointer++].toInt()
-                val weightId = rawData[pointer++].toInt()
-                skinData.addJointEffect(jointId, weights.get(weightId))
-            }
-            skinData.limitJointNumber(maxWeights)
-            skinningData.add(skinData)
-        }
-        return skinningData*/
     }
 
     override fun loadAnimation(path: String): SkeletalAnimationData {
         TODO("Not yet implemented")
     }
 
-    private fun parseWeights(path: String): List<Float> {
+    private fun parseWeights(meshBytes: ByteArray): List<Float> {
         val weightsContainerId = xPath
             .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/input[@semantic='WEIGHT'][1]/@source")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .substring(1)
 
         val weightsData = xPath
             .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$weightsContainerId']/float_array[1]")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .split(" ")
 
         val weightsDataCount = xPath
             .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$weightsContainerId']/float_array[1]/@count")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .toInt()
 
         val weights = ArrayList<Float>()
@@ -133,20 +150,20 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         return weights
     }
 
-    private fun parseTextureCoordinates(path: String): List<Vector2fc> {
+    private fun parseTextureCoordinates(meshBytes: ByteArray): List<Vector2fc> {
         val coordinatesContainerId = xPath
             .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/input[@semantic='TEXCOORD'][1]/@source")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .substring(1)
 
         val coordinatesData = xPath
             .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$coordinatesContainerId']/float_array[1]")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .split(" ")
 
         val coordinatesDataCount = xPath
             .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$coordinatesContainerId']/float_array[1]/@count")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .toInt()
 
         val textureCoordinates = ArrayList<Vector2fc>()
@@ -160,20 +177,20 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         return textureCoordinates
     }
 
-    private fun parseNormals(path: String): List<Vector3fc> {
+    private fun parseNormals(meshBytes: ByteArray): List<Vector3fc> {
         val normalsContainerId = xPath
             .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/input[@semantic='NORMAL'][1]/@source")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .substring(1)
 
         val normalsData = xPath
             .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$normalsContainerId']/float_array[1]")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .split(" ")
 
         val normalsDataCount = xPath
             .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$normalsContainerId']/float_array[1]/@count")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .toInt()
 
         val normals = ArrayList<Vector3fc>()
@@ -188,20 +205,20 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         return normals
     }
 
-    private fun parsePositions(path: String): List<Vector3fc> {
+    private fun parsePositions(meshBytes: ByteArray): List<Vector3fc> {
         val positionsId = xPath
             .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/vertices[1]/input[1]/@source")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .substring(1)
 
         val positionsData = xPath
             .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$positionsId']/float_array[1]")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .split(" ")
 
         val positionsDataCount = xPath
             .compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$positionsId']/float_array[1]/@count")
-            .evaluateWithFile(path)
+            .evaluateWithBytes(meshBytes)
             .toInt()
 
         val positions = ArrayList<Vector3fc>()
@@ -216,6 +233,10 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         return positions
     }
 
+    private fun XPathExpression.evaluateWithBytes(bytes: ByteArray): String {
+        return evaluate(InputSource(ByteArrayInputStream(bytes)))
+    }
+
     private fun XPathExpression.evaluateWithFile(path: String): String {
         val inputStream = BufferedInputStream(context.assets.open(path), 102400) // 100k buffer
         val result = evaluate(InputSource(inputStream))
@@ -223,23 +244,60 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         return result
     }
 
-    private class VertexSkinData(
-        jointIds: List<Int>,
-        weights: List<Float>
-    ) {
-        private val _jointIds = ArrayList<Int>().apply { addAll(jointIds) }
-        private val _weights = ArrayList<Float>().apply { addAll(weights) }
+    private data class ComplexIndex(
+        val vertexCoordinateIndex: Int,
+        val normalIndex: Int,
+        val textureCoordinateIndex: Int
+    )
+
+    private class VertexSkinData {
+
+        private val _jointIds = ArrayList<Int>()
+        private val _weights = ArrayList<Float>()
+
+        val jointIds: List<Int> = _jointIds
+        val weights: List<Float> = _weights
 
         fun addJointEffect(jointId: Int, weight: Float) {
-            for (i in weights.indices) {
-                if (weight > weights.get(i)) {
-                    jointIds.add(i, jointId)
-                    weights.add(i, weight)
+            for (i in _weights.indices) {
+                if (weight > _weights[i]) {
+                    _jointIds.add(i, jointId)
+                    _weights.add(i, weight)
                     return
                 }
             }
-            jointIds.add(jointId)
-            weights.add(weight)
+            _jointIds.add(jointId)
+            _weights.add(weight)
+        }
+
+        fun limitJointNumber(maxWeights: Int) {
+            if (_weights.size > maxWeights) {
+                refillWeightList(_weights.take(maxWeights))
+                removeExcessJointIds(maxWeights)
+            } else if (jointIds.size < maxWeights) {
+                fillEmptyWeights(maxWeights)
+            }
+        }
+
+        private fun refillWeightList(topWeights: List<Float>) {
+            _weights.clear()
+            val total = topWeights.sum()
+            for (i in topWeights.indices) {
+                _weights += topWeights[i] / total
+            }
+        }
+
+        private fun removeExcessJointIds(maxWeights: Int) {
+            val jointIdsOfTopWeights = _jointIds.take(maxWeights)
+            _jointIds.clear()
+            _jointIds += jointIdsOfTopWeights
+        }
+
+        private fun fillEmptyWeights(maxWeights: Int) {
+            while (_weights.size < maxWeights) {
+                _jointIds += 0
+                _weights += 0f
+            }
         }
     }
 
