@@ -1,16 +1,16 @@
 package ilapin.opengl_research.data.skeletal_animation
 
 import android.content.Context
+import ilapin.collada_parser.data_structures.JointData
+import ilapin.collada_parser.xml_parser.XmlNode
 import ilapin.opengl_research.NORMAL_COMPONENTS
 import ilapin.opengl_research.TEXTURE_COORDINATE_COMPONENTS
 import ilapin.opengl_research.VERTEX_COORDINATE_COMPONENTS
 import ilapin.opengl_research.domain.Mesh
 import ilapin.opengl_research.domain.skeletal_animation.AnimatedMeshRepository
+import ilapin.opengl_research.domain.skeletal_animation.Joint
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationData
-import org.joml.Vector2f
-import org.joml.Vector2fc
-import org.joml.Vector3f
-import org.joml.Vector3fc
+import org.joml.*
 import org.xml.sax.InputSource
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
@@ -88,6 +88,96 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         return Mesh(vertices, indices)
     }
 
+    override fun loadAnimation(path: String): SkeletalAnimationData {
+        val meshBytes = context.assets.open(path).run {
+            val allBytes = readBytes()
+            close()
+            allBytes
+        }
+
+        val rootJointName = xPath
+            .compile("/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]/@id")
+            .evaluateWithBytes(meshBytes)
+        val jointNames = parseJointNames(meshBytes)
+        val keyFrameTimes = parseKeyFrameTimes(meshBytes)
+        val animationDuration = keyFrameTimes.last()
+
+        //val keyFrames = parseKeyFrames(meshBytes, keyFrameTimes)
+
+        error("Implementation is not completed")
+        //return SkeletalAnimationData()
+    }
+
+    private fun parseJointWithChildrenData(meshBytes: ByteArray, nodeXPath: String, jointNames: List<String>): Joint {
+        val joint = parseJointData(meshBytes, nodeXPath, jointNames)
+        for (childNode in jointNode.getChildren("node")) {
+            val childJoint = loadJointData(childNode, false)
+            if (childJoint != null) {
+                joint.addChild(childJoint)
+            }
+        }
+        return joint
+    }
+
+    private fun parseJointData(meshBytes: ByteArray, nodeXPath: String, jointNames: List<String>): Joint {
+        val jointName = xPath.compile("$nodeXPath/@id").evaluateWithBytes(meshBytes)
+        val jointIndex = jointNames.indexOf(jointName).takeIf { it >= 0 } ?: error("Joint $jointName not found")
+        val matrixData = xPath
+            .compile("$nodeXPath/matrix[1]")
+            .evaluateWithBytes(meshBytes)
+            .split(" ")
+        val matrix = matrixData.toMatrix()
+        matrix.transpose()
+        return Joint(jointIndex, jointName, matrix)
+        /*val rootJointName = xPath
+            .compile("/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]/@id")
+            .evaluateWithBytes(meshBytes)
+
+        val rootJointIndex = jointNames.indexOf(rootJointName).takeIf { it >= 0 }
+            ?: error("Root joint $rootJointName not found")
+
+        val matrixData = xPath
+            .compile("/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]/matrix[1]")
+            .evaluateWithBytes(meshBytes)
+            .split(" ")
+
+        val matrix = matrixData.toMatrix()
+        matrix.transpose()
+        return Joint(rootJointIndex, rootJointName, matrix)*/
+    }
+
+    private fun parseJointNames(meshBytes: ByteArray): List<String> {
+        val namesContainerId = xPath
+            .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/input[@semantic='JOINT'][1]/@source")
+            .evaluateWithBytes(meshBytes)
+            .substring(1)
+
+        val namesData = xPath
+            .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$namesContainerId']/Name_array[1]")
+            .evaluateWithBytes(meshBytes)
+            .split(" ")
+
+        val namesDataCount = xPath
+            .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$namesContainerId']/Name_array[1]/@count")
+            .evaluateWithBytes(meshBytes)
+            .toInt()
+
+        val names = ArrayList<String>()
+        repeat(namesDataCount) { i ->
+            names.add(namesData[i])
+        }
+
+        return names
+    }
+
+    private fun parseKeyFrameTimes(meshBytes: ByteArray): List<Float> {
+        return xPath
+            .compile("/COLLADA/library_animations[1]/animation[1]/source[1]/float_array[1]")
+            .evaluateWithBytes(meshBytes)
+            .split(" ")
+            .map { it.toFloat() }
+    }
+
     private fun parseEffectiveJointCounts(meshBytes: ByteArray): List<Int> {
         val jointCountsData = xPath
             .compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/vcount[1]")
@@ -120,21 +210,6 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         }
 
         return skinData
-    }
-
-    override fun loadAnimation(path: String): SkeletalAnimationData {
-        val meshBytes = context.assets.open(path).run {
-            val allBytes = readBytes()
-            close()
-            allBytes
-        }
-
-        val rootJoint = xPath
-            .compile("/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]/@id")
-            .evaluateWithBytes(meshBytes)
-
-        error("rootJoint: $rootJoint")
-        //return SkeletalAnimationData()
     }
 
     private fun parseWeights(meshBytes: ByteArray): List<Float> {
@@ -253,6 +328,14 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         val result = evaluate(InputSource(inputStream))
         inputStream.close()
         return result
+    }
+
+    private fun List<String>.toMatrix(): Matrix4f {
+        val matrixData = FloatArray(16)
+        for (i in matrixData.indices) {
+            matrixData[i] = get(i).toFloat()
+        }
+        return Matrix4f().apply { set(matrixData) }
     }
 
     private data class ComplexIndex(
