@@ -33,7 +33,7 @@ function start() {
 
     layoutUi()
 
-    //scene.getSkeletalAnimatorComponent(findGameObject(scene.rootGameObject, "player")).start();
+    scene.getSkeletalAnimatorComponent(findGameObject(scene.rootGameObject, "player")).start();
 }
 
 function update(dt) {
