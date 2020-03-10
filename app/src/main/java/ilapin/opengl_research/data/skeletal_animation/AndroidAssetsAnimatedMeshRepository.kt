@@ -1,21 +1,22 @@
 package ilapin.opengl_research.data.skeletal_animation
 
 import android.content.Context
+import ilapin.collada_parser.BufferUtils
+import ilapin.collada_parser.data_structures.JointTransformData
+import ilapin.collada_parser.data_structures.KeyFrameData
 import ilapin.common.android.log.L
 import ilapin.opengl_research.NORMAL_COMPONENTS
 import ilapin.opengl_research.TEXTURE_COORDINATE_COMPONENTS
 import ilapin.opengl_research.VERTEX_COORDINATE_COMPONENTS
 import ilapin.opengl_research.app.App.Companion.LOG_TAG
 import ilapin.opengl_research.domain.Mesh
-import ilapin.opengl_research.domain.skeletal_animation.AnimatedMeshRepository
-import ilapin.opengl_research.domain.skeletal_animation.Joint
-import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimation
-import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationData
+import ilapin.opengl_research.domain.skeletal_animation.*
 import org.joml.*
 import org.w3c.dom.Document
 import org.w3c.dom.NodeList
 import org.xml.sax.InputSource
 import java.io.BufferedInputStream
+import java.io.ByteArrayInputStream
 import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
@@ -33,12 +34,6 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         val documentBuilderFactory = DocumentBuilderFactory.newInstance()
         val documentBuilder = documentBuilderFactory.newDocumentBuilder()
         val document = documentBuilder.parse(context.assets.open(path))
-
-        /*val meshBytes = context.assets.open(path).run {
-            val allBytes = readBytes()
-            close()
-            allBytes
-        }*/
 
         val positions = parsePositions(document)
         val normals = parseNormals(document)
@@ -100,12 +95,6 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         val documentBuilder = documentBuilderFactory.newDocumentBuilder()
         val document = documentBuilder.parse(context.assets.open(path))
 
-        /*val meshBytes = context.assets.open(path).run {
-            val allBytes = readBytes()
-            close()
-            allBytes
-        }*/
-
         val rootJointName = xPath
             .compile("/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]/@id")
             .evaluateWithDoc(document)
@@ -117,12 +106,63 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
             "/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]",
             jointNames
         ) ?: error("Root joint not found")
+        val keyFrames = parseKeyFrames(document, keyFrameTimes)
 
-        //val keyFrames = parseKeyFrames(meshBytes, keyFrameTimes)
-
-        //error("Implementation is not completed #1")
         return SkeletalAnimationData(rootJoint, SkeletalAnimation(animationDuration, emptyList()))
     }
+
+    private fun parseKeyFrames(xmlDoc: Document, keyFrameTimes: List<Float>): List<KeyFrame> {
+        val keyFrameNodes = xPath.compile("/COLLADA/library_animations[1]/animation").evaluateWithDoc(xmlDoc, XPathConstants.NODESET) as NodeList
+
+        val keyFrames = ArrayList<KeyFrame>()
+
+        for (i in 0 until keyFrameNodes.length) {
+            val jointName =
+                (xPath.compile("/COLLADA/library_animations[1]/animation[$i]/channel[1]/@target").evaluate(xmlDoc) as String)
+                    .split("/")[0]
+            val jointDataId =
+                (xPath.compile("/COLLADA/library_animations[1]/animation[$i]/sampler[1]/input[@semantic='OUTPUT'][1]/@source").evaluate(xmlDoc) as String)
+                    .substring(1)
+            val rawTransformData =
+                (xPath.compile("/COLLADA/library_animations[1]/animation[$i]/source[@id='$jointDataId']/float_array[1]").evaluateWithDoc(xmlDoc) as String)
+                    .split(" ")
+                    .map { it.toFloat() }
+
+            for (keyFrameIndex in keyFrameTimes.indices) {
+                val matrixData = FloatArray(16)
+                for (j in 0 until 16) {
+                    matrixData[i] = rawTransformData[keyFrameIndex * 16 + j]
+                }
+                val transform = Matrix4f().apply { set(matrixData) }
+                transform.transpose()
+            }
+
+            keyFrames += KeyFrame()
+        }
+
+        return keyFrames
+    }
+
+    /*private fun parseKeyFrame(jointName: String, rawData: Array<String>, keyFrames: Array<KeyFrameData>) {
+        val buffer = BufferUtils.createFloatBuffer(16)
+        val matrixData = FloatArray(16)
+        for (i in keyFrames.indices) {
+            for (j in 0..15) {
+                matrixData[j] = rawData[i * 16 + j].toFloat()
+            }
+            buffer.clear()
+            buffer.put(matrixData)
+            buffer.flip()
+            val transform = Matrix4f()
+            transform.set(buffer)
+            transform.transpose()
+            if (root) {
+                //because up axis in Blender is different to up axis in game
+                //Matrix4f.mul(CORRECTION, transform, transform);
+            }
+            keyFrames[i].addJointTransform(JointTransformData(jointName, transform))
+        }
+    }*/
 
     private fun parseJointWithChildrenData(xmlDoc: Document, nodeXPath: String, jointNames: List<String>): Joint? {
         val joint = parseJointData(xmlDoc, nodeXPath, jointNames) ?: return null
@@ -132,22 +172,14 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
             val childNodeName = children.item(i).nodeName
             val childNodeId = children.item(i).attributes.getNamedItem("id").nodeValue
             L.d(LOG_TAG, "\tJoin child node: $childNodeName, id='$childNodeId'")
-            //val childJoint = parseJointWithChildrenData(xmlDoc, "$nodeXPath/$childNodeName[@id='$childNodeId']", jointNames)
             parseJointWithChildrenData(xmlDoc, "$nodeXPath/$childNodeName[@id='$childNodeId']", jointNames)?.let {
                 joint.addChild(it)
             }
         }
-        /*for (childNode in jointNode.getChildren("node")) {
-            val childJoint = loadJointData(childNode, false)
-            if (childJoint != null) {
-                joint.addChild(childJoint)
-            }
-        }*/
         return joint
     }
 
     private fun parseJointData(xmlDoc: Document, nodeXPath: String, jointNames: List<String>): Joint? {
-        //L.d(LOG_TAG, "parseJointData XPath: $nodeXPath")
         val jointName = xPath.compile("$nodeXPath/@id").evaluateWithDoc(xmlDoc) as String
         val jointIndex = jointNames.indexOf(jointName).takeIf { it >= 0 } ?: run {
             L.e(LOG_TAG, "Joint $jointName not found")
@@ -157,21 +189,6 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         val matrix = matrixData.toMatrix()
         matrix.transpose()
         return Joint(jointIndex, jointName, matrix)
-        /*val rootJointName = xPath
-            .compile("/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]/@id")
-            .evaluateWithDoc(xmlDoc)
-
-        val rootJointIndex = jointNames.indexOf(rootJointName).takeIf { it >= 0 }
-            ?: error("Root joint $rootJointName not found")
-
-        val matrixData = xPath
-            .compile("/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]/matrix[1]")
-            .evaluateWithDoc(xmlDoc)
-            .split(" ")
-
-        val matrix = matrixData.toMatrix()
-        matrix.transpose()
-        return Joint(rootJointIndex, rootJointName, matrix)*/
     }
 
     private fun parseJointNames(xmlDoc: Document): List<String> {
@@ -332,9 +349,9 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         return evaluate(xmlDoc, returnType)
     }
 
-    /*private fun XPathExpression.evaluateWithBytes(bytes: ByteArray, returnType: QName = XPathConstants.STRING): Any {
+    private fun XPathExpression.evaluateWithBytes(bytes: ByteArray, returnType: QName = XPathConstants.STRING): Any {
         return evaluate(InputSource(ByteArrayInputStream(bytes)), returnType)
-    }*/
+    }
 
     private fun XPathExpression.evaluateWithFile(path: String): String {
         val inputStream = BufferedInputStream(context.assets.open(path), 102400) // 100k buffer
