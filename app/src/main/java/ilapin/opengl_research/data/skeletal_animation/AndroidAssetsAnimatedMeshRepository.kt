@@ -1,9 +1,7 @@
 package ilapin.opengl_research.data.skeletal_animation
 
 import android.content.Context
-import ilapin.collada_parser.BufferUtils
-import ilapin.collada_parser.data_structures.JointTransformData
-import ilapin.collada_parser.data_structures.KeyFrameData
+import com.google.common.collect.ArrayListMultimap
 import ilapin.common.android.log.L
 import ilapin.opengl_research.NORMAL_COMPONENTS
 import ilapin.opengl_research.TEXTURE_COORDINATE_COMPONENTS
@@ -14,13 +12,8 @@ import ilapin.opengl_research.domain.skeletal_animation.*
 import org.joml.*
 import org.w3c.dom.Document
 import org.w3c.dom.NodeList
-import org.xml.sax.InputSource
-import java.io.BufferedInputStream
-import java.io.ByteArrayInputStream
-import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.XPathConstants
-import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathFactory
 
 /**
@@ -43,11 +36,11 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
 
         val polylistInputsCount =
             (xPath.compile("count(/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/input)")
-                .evaluateWithDoc(document) as String).toInt()
+                .evaluate(document) as String).toInt()
 
         val indexCounts =
             (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/vcount[1]")
-                .evaluateWithDoc(document) as String)
+                .evaluate(document) as String)
                 .split(" ")
                 .mapNotNull { it.takeIf { countString -> countString.isNotBlank() }?.toInt() }
 
@@ -56,7 +49,7 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         }
 
         val colladaIndices =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/p[1]").evaluateWithDoc(document) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/p[1]").evaluate(document) as String)
                 .split(" ")
                 .map { it.toInt() }
 
@@ -95,9 +88,9 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         val documentBuilder = documentBuilderFactory.newDocumentBuilder()
         val document = documentBuilder.parse(context.assets.open(path))
 
-        val rootJointName = xPath
+        /*val rootJointName = xPath
             .compile("/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]/@id")
-            .evaluateWithDoc(document)
+            .evaluate(document)*/
         val jointNames = parseJointNames(document)
         val keyFrameTimes = parseKeyFrameTimes(document)
         val animationDuration = keyFrameTimes.last()
@@ -108,36 +101,53 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         ) ?: error("Root joint not found")
         val keyFrames = parseKeyFrames(document, keyFrameTimes)
 
-        return SkeletalAnimationData(rootJoint, SkeletalAnimation(animationDuration, emptyList()))
+        return SkeletalAnimationData(rootJoint, SkeletalAnimation(animationDuration, keyFrames))
     }
 
     private fun parseKeyFrames(xmlDoc: Document, keyFrameTimes: List<Float>): List<KeyFrame> {
-        val keyFrameNodes = xPath.compile("/COLLADA/library_animations[1]/animation").evaluateWithDoc(xmlDoc, XPathConstants.NODESET) as NodeList
+        val keyFrameNodes = xPath.compile("/COLLADA/library_animations[1]/animation").evaluate(xmlDoc, XPathConstants.NODESET) as NodeList
 
         val keyFrames = ArrayList<KeyFrame>()
 
+        val jointTransforms = ArrayListMultimap.create<String, Matrix4fc>()
         for (i in 0 until keyFrameNodes.length) {
             val jointName =
-                (xPath.compile("/COLLADA/library_animations[1]/animation[$i]/channel[1]/@target").evaluate(xmlDoc) as String)
+                (xPath.compile("/COLLADA/library_animations[1]/animation[${i + 1}]/channel[1]/@target").evaluate(xmlDoc) as String)
                     .split("/")[0]
             val jointDataId =
-                (xPath.compile("/COLLADA/library_animations[1]/animation[$i]/sampler[1]/input[@semantic='OUTPUT'][1]/@source").evaluate(xmlDoc) as String)
+                (xPath.compile("/COLLADA/library_animations[1]/animation[${i + 1}]/sampler[1]/input[@semantic='OUTPUT'][1]/@source").evaluate(xmlDoc) as String)
                     .substring(1)
             val rawTransformData =
-                (xPath.compile("/COLLADA/library_animations[1]/animation[$i]/source[@id='$jointDataId']/float_array[1]").evaluateWithDoc(xmlDoc) as String)
+                (xPath.compile("/COLLADA/library_animations[1]/animation[${i + 1}]/source[@id='$jointDataId']/float_array[1]").evaluate(xmlDoc) as String)
                     .split(" ")
                     .map { it.toFloat() }
 
             for (keyFrameIndex in keyFrameTimes.indices) {
                 val matrixData = FloatArray(16)
                 for (j in 0 until 16) {
-                    matrixData[i] = rawTransformData[keyFrameIndex * 16 + j]
+                    matrixData[j] = rawTransformData[keyFrameIndex * 16 + j]
                 }
                 val transform = Matrix4f().apply { set(matrixData) }
                 transform.transpose()
-            }
 
-            keyFrames += KeyFrame()
+                jointTransforms.put(jointName, transform)
+            }
+        }
+
+        keyFrameTimes.forEachIndexed { i, time ->
+            val jointLocalTransforms = HashMap<String, JointLocalTransform>()
+            jointTransforms.keys().forEach { jointName ->
+                val position = Vector3f()
+                val rotation = Quaternionf()
+                val transform = jointTransforms.get(jointName)[i] ?: error("Transform for joint $jointName at keyframe #$i not found")
+                transform.getTranslation(position)
+                transform.getNormalizedRotation(rotation)
+                jointLocalTransforms[jointName] = JointLocalTransform(position, rotation)
+            }
+            keyFrames += KeyFrame(
+                time,
+                jointLocalTransforms
+            )
         }
 
         return keyFrames
@@ -167,7 +177,7 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
     private fun parseJointWithChildrenData(xmlDoc: Document, nodeXPath: String, jointNames: List<String>): Joint? {
         val joint = parseJointData(xmlDoc, nodeXPath, jointNames) ?: return null
         L.d(LOG_TAG, "Joint ${joint.name}")
-        val children = xPath.compile("$nodeXPath/node").evaluateWithDoc(xmlDoc, XPathConstants.NODESET) as NodeList
+        val children = xPath.compile("$nodeXPath/node").evaluate(xmlDoc, XPathConstants.NODESET) as NodeList
         for (i in 0 until children.length) {
             val childNodeName = children.item(i).nodeName
             val childNodeId = children.item(i).attributes.getNamedItem("id").nodeValue
@@ -180,12 +190,12 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
     }
 
     private fun parseJointData(xmlDoc: Document, nodeXPath: String, jointNames: List<String>): Joint? {
-        val jointName = xPath.compile("$nodeXPath/@id").evaluateWithDoc(xmlDoc) as String
+        val jointName = xPath.compile("$nodeXPath/@id").evaluate(xmlDoc) as String
         val jointIndex = jointNames.indexOf(jointName).takeIf { it >= 0 } ?: run {
             L.e(LOG_TAG, "Joint $jointName not found")
             return null
         }
-        val matrixData = (xPath.compile("$nodeXPath/matrix[1]").evaluateWithDoc(xmlDoc) as String).split(" ")
+        val matrixData = (xPath.compile("$nodeXPath/matrix[1]").evaluate(xmlDoc) as String).split(" ")
         val matrix = matrixData.toMatrix()
         matrix.transpose()
         return Joint(jointIndex, jointName, matrix)
@@ -193,15 +203,15 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
 
     private fun parseJointNames(xmlDoc: Document): List<String> {
         val namesContainerId =
-            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/input[@semantic='JOINT'][1]/@source").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/input[@semantic='JOINT'][1]/@source").evaluate(xmlDoc) as String)
                 .substring(1)
 
         val namesData =
-            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$namesContainerId']/Name_array[1]").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$namesContainerId']/Name_array[1]").evaluate(xmlDoc) as String)
                 .split(" ")
 
         val namesDataCount =
-            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$namesContainerId']/Name_array[1]/@count").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$namesContainerId']/Name_array[1]/@count").evaluate(xmlDoc) as String)
                 .toInt()
 
         val names = ArrayList<String>()
@@ -213,14 +223,14 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
     }
 
     private fun parseKeyFrameTimes(xmlDoc: Document): List<Float> {
-        return (xPath.compile("/COLLADA/library_animations[1]/animation[1]/source[1]/float_array[1]").evaluateWithDoc(xmlDoc) as String)
+        return (xPath.compile("/COLLADA/library_animations[1]/animation[1]/source[1]/float_array[1]").evaluate(xmlDoc) as String)
             .split(" ")
             .map { it.toFloat() }
     }
 
     private fun parseEffectiveJointCounts(xmlDoc: Document): List<Int> {
         val jointCountsData =
-            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/vcount[1]").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/vcount[1]").evaluate(xmlDoc) as String)
                 .split(" ")
         return jointCountsData.mapNotNull { it.takeIf { countString -> countString.isNotBlank() }?.toInt() }
     }
@@ -231,7 +241,7 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         weights: List<Float>
     ): List<VertexSkinData> {
         val rawData =
-            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/v[1]").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/v[1]").evaluate(xmlDoc) as String)
                 .split(" ")
 
         val skinData = ArrayList<VertexSkinData>()
@@ -252,15 +262,15 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
 
     private fun parseWeights(xmlDoc: Document): List<Float> {
         val weightsContainerId =
-            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/input[@semantic='WEIGHT'][1]/@source").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/vertex_weights[1]/input[@semantic='WEIGHT'][1]/@source").evaluate(xmlDoc) as String)
                 .substring(1)
 
         val weightsData =
-            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$weightsContainerId']/float_array[1]").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$weightsContainerId']/float_array[1]").evaluate(xmlDoc) as String)
                 .split(" ")
 
         val weightsDataCount =
-            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$weightsContainerId']/float_array[1]/@count").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_controllers[1]/controller[1]/skin[1]/source[@id='$weightsContainerId']/float_array[1]/@count").evaluate(xmlDoc) as String)
                 .toInt()
 
         val weights = ArrayList<Float>()
@@ -273,15 +283,15 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
 
     private fun parseTextureCoordinates(xmlDoc: Document): List<Vector2fc> {
         val coordinatesContainerId =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/input[@semantic='TEXCOORD'][1]/@source").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/input[@semantic='TEXCOORD'][1]/@source").evaluate(xmlDoc) as String)
                 .substring(1)
 
         val coordinatesData =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$coordinatesContainerId']/float_array[1]").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$coordinatesContainerId']/float_array[1]").evaluate(xmlDoc) as String)
                 .split(" ")
 
         val coordinatesDataCount =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$coordinatesContainerId']/float_array[1]/@count").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$coordinatesContainerId']/float_array[1]/@count").evaluate(xmlDoc) as String)
                 .toInt()
 
         val textureCoordinates = ArrayList<Vector2fc>()
@@ -297,15 +307,15 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
 
     private fun parseNormals(xmlDoc: Document): List<Vector3fc> {
         val normalsContainerId =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/input[@semantic='NORMAL'][1]/@source").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/polylist[1]/input[@semantic='NORMAL'][1]/@source").evaluate(xmlDoc) as String)
                 .substring(1)
 
         val normalsData =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$normalsContainerId']/float_array[1]").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$normalsContainerId']/float_array[1]").evaluate(xmlDoc) as String)
                 .split(" ")
 
         val normalsDataCount =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$normalsContainerId']/float_array[1]/@count").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$normalsContainerId']/float_array[1]/@count").evaluate(xmlDoc) as String)
                 .toInt()
 
         val normals = ArrayList<Vector3fc>()
@@ -322,15 +332,15 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
 
     private fun parsePositions(xmlDoc: Document): List<Vector3fc> {
         val positionsId =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/vertices[1]/input[1]/@source").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/vertices[1]/input[1]/@source").evaluate(xmlDoc) as String)
                 .substring(1)
 
         val positionsData =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$positionsId']/float_array[1]").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$positionsId']/float_array[1]").evaluate(xmlDoc) as String)
                 .split(" ")
 
         val positionsDataCount =
-            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$positionsId']/float_array[1]/@count").evaluateWithDoc(xmlDoc) as String)
+            (xPath.compile("/COLLADA/library_geometries[1]/geometry[1]/mesh[1]/source[@id='$positionsId']/float_array[1]/@count").evaluate(xmlDoc) as String)
                 .toInt()
 
         val positions = ArrayList<Vector3fc>()
@@ -343,21 +353,6 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         }
 
         return positions
-    }
-
-    private fun XPathExpression.evaluateWithDoc(xmlDoc: Document, returnType: QName = XPathConstants.STRING): Any {
-        return evaluate(xmlDoc, returnType)
-    }
-
-    private fun XPathExpression.evaluateWithBytes(bytes: ByteArray, returnType: QName = XPathConstants.STRING): Any {
-        return evaluate(InputSource(ByteArrayInputStream(bytes)), returnType)
-    }
-
-    private fun XPathExpression.evaluateWithFile(path: String): String {
-        val inputStream = BufferedInputStream(context.assets.open(path), 102400) // 100k buffer
-        val result = evaluate(InputSource(inputStream))
-        inputStream.close()
-        return result
     }
 
     private fun List<String>.toMatrix(): Matrix4f {
