@@ -3,6 +3,8 @@ package ilapin.opengl_research.app
 import dagger.Component
 import ilapin.opengl_research.ui.MainScreenComponent
 import ilapin.opengl_research.ui.MainScreenModule
+import ilapin.opengl_research.ui.skeletal_animation_debug.SkeletalAnimationDebugScreenComponent
+import ilapin.opengl_research.ui.skeletal_animation_debug.SkeletalAnimationDebugScreenModule
 import javax.inject.Singleton
 
 /**
@@ -13,4 +15,8 @@ import javax.inject.Singleton
 interface AppComponent {
 
     fun mainScreenComponent(mainScreenModule: MainScreenModule): MainScreenComponent
+
+    fun skeletalAnimationDebugScreenComponent(
+        skeletalAnimationDebugScreenModule: SkeletalAnimationDebugScreenModule
+    ): SkeletalAnimationDebugScreenComponent
 }

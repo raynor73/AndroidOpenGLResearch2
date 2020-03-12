@@ -10,9 +10,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/NoAppBarTheme"
         android:name=".app.App"
-        tools:ignore="GoogleAppIndexingWarning">
+        tools:ignore="GoogleAppIndexingWarning,LockedOrientationActivity">
 
-        <activity android:name=".ui.MainActivity" android:screenOrientation="landscape">
+        <activity android:name=".ui.MainActivity" android:screenOrientation="landscape" />
+
+        <activity android:name=".ui.skeletal_animation_debug.SkeletalAnimationDebugActivity" android:screenOrientation="landscape">
 
             <intent-filter>
 
