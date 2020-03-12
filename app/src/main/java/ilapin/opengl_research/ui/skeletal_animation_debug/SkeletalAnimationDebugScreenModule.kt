@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.res.Configuration
 import dagger.Module
 import dagger.Provides
+import ilapin.common.android.time.LocalTimeRepository
+import ilapin.common.time.TimeRepository
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.meshloader.android.ObjMeshLoadingRepository
 import ilapin.opengl_research.AndroidDisplayMetricsRepository
@@ -13,9 +15,12 @@ import ilapin.opengl_research.data.assets_management.FrameBuffersManager
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.assets_management.ShadersManager
+import ilapin.opengl_research.data.skeletal_animation.AndroidAssetsAnimatedMeshRepository
 import ilapin.opengl_research.domain.DisplayMetricsRepository
+import ilapin.opengl_research.domain.skeletal_animation.AnimatedMeshRepository
 import ilapin.opengl_research.ui.ActivityScope
 import org.joml.Matrix4f
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import javax.inject.Named
 
@@ -86,17 +91,34 @@ class SkeletalAnimationDebugScreenModule(private val activity: SkeletalAnimation
 
     @Provides
     @ActivityScope
+    fun provideAnimatedMeshRepository(
+        @Named("Activity") context: Context
+    ): AnimatedMeshRepository {
+        return AndroidAssetsAnimatedMeshRepository(context)
+    }
+
+    @Provides
+    @ActivityScope
+    fun provideTimeRepository(): TimeRepository {
+        return LocalTimeRepository()
+    }
+
+    @Provides
+    @ActivityScope
     fun provideRenderer(
         @Named("Activity") context: Context,
         openGLErrorDetector: OpenGLErrorDetector,
         vectorsPool: ObjectsPool<Vector3f>,
         matrixPool: ObjectsPool<Matrix4f>,
+        quaternionsPool: ObjectsPool<Quaternionf>,
         shadersManager: ShadersManager,
         frameBuffersManager: FrameBuffersManager,
         texturesManager: OpenGLTexturesManager,
         geometryManager: OpenGLGeometryManager,
         displayMetricsRepository: DisplayMetricsRepository,
-        meshLoadingRepository: MeshLoadingRepository
+        meshLoadingRepository: MeshLoadingRepository,
+        animatedMeshRepository: AnimatedMeshRepository,
+        timeRepository: TimeRepository
     ): SkeletalAnimationDebugRenderer? {
         return if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             SkeletalAnimationDebugRenderer(
@@ -104,12 +126,15 @@ class SkeletalAnimationDebugScreenModule(private val activity: SkeletalAnimation
                 openGLErrorDetector,
                 matrixPool,
                 vectorsPool,
+                quaternionsPool,
                 shadersManager,
                 frameBuffersManager,
                 texturesManager,
                 geometryManager,
                 displayMetricsRepository,
-                meshLoadingRepository
+                meshLoadingRepository,
+                animatedMeshRepository,
+                timeRepository
             )
         } else {
             null

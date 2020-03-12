@@ -2,11 +2,14 @@ package ilapin.opengl_research.domain.skeletal_animation_debug
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import ilapin.common.android.log.L
+import ilapin.common.time.TimeRepository
 import ilapin.engine3d.GameObject
 import ilapin.engine3d.GameObjectComponent
 import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
+import ilapin.opengl_research.app.App.Companion.LOG_TAG
 import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.engine.MeshRendererComponent
@@ -16,10 +19,10 @@ import ilapin.opengl_research.domain.engine.CameraComponent
 import ilapin.opengl_research.domain.engine.MaterialComponent
 import ilapin.opengl_research.domain.engine.MeshComponent
 import ilapin.opengl_research.domain.engine.PerspectiveCameraComponent
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector3fc
-import org.joml.Vector4f
+import ilapin.opengl_research.domain.skeletal_animation.AnimatedMeshRepository
+import ilapin.opengl_research.domain.skeletal_animation.Joint
+import ilapin.opengl_research.domain.skeletal_animation.KeyFrame
+import org.joml.*
 
 /**
  * @author Игорь on 12.03.2020.
@@ -30,7 +33,11 @@ class SkeletalAnimationDebugScene(
     texturesManager: OpenGLTexturesManager,
     geometryManager: OpenGLGeometryManager,
     openGLErrorDetector: OpenGLErrorDetector,
-    vectorsPool: ObjectsPool<Vector3f>
+    private val vectorsPool: ObjectsPool<Vector3f>,
+    private val matrixPool: ObjectsPool<Matrix4f>,
+    private val quaternionPool: ObjectsPool<Quaternionf>,
+    animatedMeshRepository: AnimatedMeshRepository,
+    private val timeRepository: TimeRepository
 ) : Scene2 {
 
     private val _activeCameras = ArrayList<CameraComponent>()
@@ -51,10 +58,18 @@ class SkeletalAnimationDebugScene(
 
     override val renderTargets: List<FrameBufferInfo.RenderTargetFrameBufferInfo> = emptyList()
 
+    private val spherePrefab: GameObject
+
+    private val debugGameObject: GameObject
+    private val debugGameObjectTransform: TransformationComponent
+    private var debugGameObjectYAngle = 0f
+
+    private var prevTimestamp: Long? = null
+
     init {
         val cameraGameObject = GameObject("camera").apply {
             addComponent(TransformationComponent(
-                Vector3f(0f, 0f, 2f),
+                Vector3f(0f, 0.7f, 1f),
                 Quaternionf().identity(),
                 Vector3f(1f, 1f, 1f)
             ))
@@ -66,7 +81,7 @@ class SkeletalAnimationDebugScene(
         }
         rootGameObject.addChild(cameraGameObject)
 
-        val sphereGameObject = GameObject("sphere").apply {
+        spherePrefab = GameObject("sphere").apply {
             val meshName = "sphere"
             val mesh = meshLoadingRepository.loadMesh("meshes/sphere.obj").toMesh()
             geometryManager.createStaticVertexBuffer(meshName, mesh.verticesAsArray())
@@ -78,13 +93,12 @@ class SkeletalAnimationDebugScene(
 
             val meshRenderer = MeshRendererComponent(
                 displayMetricsRepository.getPixelDensityFactor(),
-                listOf("defaultLayer"),
+                listOf(DEFAULT_LAYER_NAME),
                 texturesManager,
                 geometryManager,
                 openGLErrorDetector
             )
             addComponent(meshRenderer)
-            _layerRenderers.put("defaultLayer", meshRenderer)
 
             addComponent(MaterialComponent(
                 textureName = null,
@@ -97,14 +111,84 @@ class SkeletalAnimationDebugScene(
                 receiveShadows = false
             ))
         }
-        rootGameObject.addChild(sphereGameObject)
+
+        debugGameObject = GameObject("debug").apply {
+            debugGameObjectTransform = TransformationComponent(
+                Vector3f(),
+                Quaternionf().identity(),
+                Vector3f(1f, 1f, 1f)
+            )
+            addComponent(debugGameObjectTransform)
+        }
+        rootGameObject.addChild(debugGameObject)
+
+        val skeletalAnimation = animatedMeshRepository.loadAnimation("meshes/female_idle.dae")
+
+        L.d(LOG_TAG, "Number of keyframes: ${skeletalAnimation.animation.keyFrames.size}")
+
+        addJoint(
+            skeletalAnimation.rootJoint,
+            skeletalAnimation.animation.keyFrames[0],
+            spherePrefab
+        )
+    }
+
+    private fun addJoint(/*parent: GameObject, */joint: Joint, keyFrame: KeyFrame, prefab: GameObject) {
+        val bindTransform = matrixPool.obtain()
+        val bindPosition = vectorsPool.obtain()
+        val bindRotation = quaternionPool.obtain()
+
+        val jointGameObject = prefab.copy()
+        val gameObjectTransform = jointGameObject.getComponent(TransformationComponent::class.java)
+            ?: error("Transform not found")
+        /*val jointLocalTransform = keyFrame.jointLocalTransforms[joint.name]
+            ?: error("Joint local transform not found")
+        gameObjectTransform.position = jointLocalTransform.position
+        gameObjectTransform.rotation = jointLocalTransform.rotation*/
+
+        bindTransform.set(joint.invertedBindTransform)
+        bindTransform.invert()
+        bindTransform.getTranslation(bindPosition)
+        bindTransform.getNormalizedRotation(bindRotation)
+        gameObjectTransform.position = bindPosition
+        gameObjectTransform.rotation = bindRotation
+
+        debugGameObject.addChild(jointGameObject)
+        _layerRenderers.put(
+            DEFAULT_LAYER_NAME,
+            jointGameObject.getComponent(MeshRendererComponent::class.java)
+                ?: error("Renderer component not found")
+        )
+
+        joint.children.forEach { childJoint -> addJoint(childJoint, keyFrame, prefab) }
+
+        matrixPool.recycle(bindTransform)
+        vectorsPool.recycle(bindPosition)
+        quaternionPool.recycle(bindRotation)
     }
 
     override fun update() {
-        // do nothing
+        val currentTimestamp = timeRepository.getTimestamp()
+        val dt = prevTimestamp?.let { prevTimestamp -> (currentTimestamp - prevTimestamp) / NANOS_IN_SECOND } ?: 0f
+        prevTimestamp = currentTimestamp
+
+        val rotation = quaternionPool.obtain()
+
+        debugGameObjectYAngle += ANGULAR_SPEED * dt
+        rotation.identity().rotateY(debugGameObjectYAngle)
+        debugGameObjectTransform.rotation = rotation
+
+        quaternionPool.recycle(rotation)
     }
 
     override fun deinit() {
         // do nothing
+    }
+
+    companion object {
+
+        private const val DEFAULT_LAYER_NAME = "defaultLayer"
+
+        private const val ANGULAR_SPEED = 1f // rad/sec
     }
 }

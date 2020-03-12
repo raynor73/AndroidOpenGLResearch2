@@ -4,6 +4,7 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import ilapin.common.math.lerp
+import ilapin.common.time.TimeRepository
 import ilapin.engine3d.TransformationComponent
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.opengl_research.*
@@ -14,11 +15,9 @@ import ilapin.opengl_research.data.assets_management.ShadersManager
 import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.Scene2
 import ilapin.opengl_research.domain.engine.*
+import ilapin.opengl_research.domain.skeletal_animation.AnimatedMeshRepository
 import ilapin.opengl_research.domain.skeletal_animation_debug.SkeletalAnimationDebugScene
-import org.joml.Matrix4f
-import org.joml.Matrix4fc
-import org.joml.Vector3f
-import org.joml.Vector3fc
+import org.joml.*
 import java.nio.charset.Charset
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
@@ -32,12 +31,15 @@ class SkeletalAnimationDebugRenderer(
     private val openGLErrorDetector: OpenGLErrorDetector,
     private val matrixPool: ObjectsPool<Matrix4f>,
     private val vectorsPool: ObjectsPool<Vector3f>,
+    private val quaternionsPool: ObjectsPool<Quaternionf>,
     private val shadersManager: ShadersManager,
     private val frameBuffersManager: FrameBuffersManager,
     private val texturesManager: OpenGLTexturesManager,
     private val geometryManager: OpenGLGeometryManager,
     private val displayMetricsRepository: DisplayMetricsRepository,
-    private val meshLoadingRepository: MeshLoadingRepository
+    private val meshLoadingRepository: MeshLoadingRepository,
+    private val animatedMeshRepository: AnimatedMeshRepository,
+    private val timeRepository: TimeRepository
 ) : GLSurfaceView.Renderer {
 
     private var scene: Scene2? = null
@@ -87,7 +89,11 @@ class SkeletalAnimationDebugRenderer(
             texturesManager,
             geometryManager,
             openGLErrorDetector,
-            vectorsPool
+            vectorsPool,
+            matrixPool,
+            quaternionsPool,
+            animatedMeshRepository,
+            timeRepository
         )
 
         openGLErrorDetector.dispatchOpenGLErrors("onSurfaceChanged")
