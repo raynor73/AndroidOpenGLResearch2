@@ -23,6 +23,7 @@ import ilapin.opengl_research.domain.skeletal_animation.AnimatedMeshRepository
 import ilapin.opengl_research.domain.skeletal_animation.Joint
 import ilapin.opengl_research.domain.skeletal_animation.KeyFrame
 import org.joml.*
+import kotlin.math.PI
 
 /**
  * @author Игорь on 12.03.2020.
@@ -141,7 +142,7 @@ class SkeletalAnimationDebugScene(
         keyFrame: KeyFrame,
         prefab: GameObject
     ) {
-        val bindTransform = matrixPool.obtain()
+        //val bindTransform = matrixPool.obtain()
         val currentTransform = matrixPool.obtain()
         val position = vectorsPool.obtain()
         val rotation = quaternionPool.obtain()
@@ -156,10 +157,6 @@ class SkeletalAnimationDebugScene(
         )
 
         joint.children.forEach { childJoint -> addJoint(currentTransform, childJoint, keyFrame, prefab) }
-
-        bindTransform.set(joint.invertedBindTransform)
-        bindTransform.invert()
-        currentTransform.mul(bindTransform)
 
         currentTransform.getTranslation(position)
         currentTransform.getNormalizedRotation(rotation)
@@ -176,7 +173,7 @@ class SkeletalAnimationDebugScene(
         matrixPool.recycle(currentTransform)
         vectorsPool.recycle(position)
         quaternionPool.recycle(rotation)
-        matrixPool.recycle(bindTransform)
+        //matrixPool.recycle(bindTransform)
     }
 
     override fun update() {
