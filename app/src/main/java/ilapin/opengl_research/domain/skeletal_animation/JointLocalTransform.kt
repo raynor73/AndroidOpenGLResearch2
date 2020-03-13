@@ -16,6 +16,7 @@ class JointLocalTransform(
     val transform: Matrix4fc = _transform
 
     init {
-        _transform.translate(position).rotate(rotation)
+        //_transform.translate(position).rotate(rotation)
+        _transform.rotate(rotation).translate(position)
     }
 }

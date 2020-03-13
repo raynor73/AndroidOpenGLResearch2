@@ -69,12 +69,12 @@ class SkeletalAnimationDebugScene(
     init {
         val cameraGameObject = GameObject("camera").apply {
             addComponent(TransformationComponent(
-                Vector3f(0f, 0.7f, 1f),
+                Vector3f(0f, 0.7f, 3f),
                 Quaternionf().identity(),
                 Vector3f(1f, 1f, 1f)
             ))
 
-            val cameraComponent = PerspectiveCameraComponent(vectorsPool, 90f, listOf("defaultLayer"))
+            val cameraComponent = PerspectiveCameraComponent(vectorsPool, 45f, listOf("defaultLayer"))
             addComponent(cameraComponent)
             _activeCameras += cameraComponent
             _cameraAmbientLights[cameraComponent] = Vector3f(0.1f, 0.1f, 0.1f)
@@ -127,31 +127,44 @@ class SkeletalAnimationDebugScene(
         L.d(LOG_TAG, "Number of keyframes: ${skeletalAnimation.animation.keyFrames.size}")
 
         addJoint(
+            Matrix4f().identity(),
             skeletalAnimation.rootJoint,
             skeletalAnimation.animation.keyFrames[0],
             spherePrefab
         )
     }
 
-    private fun addJoint(/*parent: GameObject, */joint: Joint, keyFrame: KeyFrame, prefab: GameObject) {
+    private fun addJoint(
+        /*parent: GameObject, */
+        parentTransform: Matrix4fc,
+        joint: Joint,
+        keyFrame: KeyFrame,
+        prefab: GameObject
+    ) {
         val bindTransform = matrixPool.obtain()
-        val bindPosition = vectorsPool.obtain()
-        val bindRotation = quaternionPool.obtain()
+        val currentTransform = matrixPool.obtain()
+        val position = vectorsPool.obtain()
+        val rotation = quaternionPool.obtain()
 
         val jointGameObject = prefab.copy()
         val gameObjectTransform = jointGameObject.getComponent(TransformationComponent::class.java)
             ?: error("Transform not found")
-        /*val jointLocalTransform = keyFrame.jointLocalTransforms[joint.name]
-            ?: error("Joint local transform not found")
-        gameObjectTransform.position = jointLocalTransform.position
-        gameObjectTransform.rotation = jointLocalTransform.rotation*/
+
+        currentTransform.set(parentTransform)
+        currentTransform.mul(
+            keyFrame.jointLocalTransforms[joint.name]?.transform ?: error("Joint ${joint.name} transform not found")
+        )
+
+        joint.children.forEach { childJoint -> addJoint(currentTransform, childJoint, keyFrame, prefab) }
 
         bindTransform.set(joint.invertedBindTransform)
         bindTransform.invert()
-        bindTransform.getTranslation(bindPosition)
-        bindTransform.getNormalizedRotation(bindRotation)
-        gameObjectTransform.position = bindPosition
-        gameObjectTransform.rotation = bindRotation
+        currentTransform.mul(bindTransform)
+
+        currentTransform.getTranslation(position)
+        currentTransform.getNormalizedRotation(rotation)
+        gameObjectTransform.position = position
+        gameObjectTransform.rotation = rotation
 
         debugGameObject.addChild(jointGameObject)
         _layerRenderers.put(
@@ -160,11 +173,10 @@ class SkeletalAnimationDebugScene(
                 ?: error("Renderer component not found")
         )
 
-        joint.children.forEach { childJoint -> addJoint(childJoint, keyFrame, prefab) }
-
+        matrixPool.recycle(currentTransform)
+        vectorsPool.recycle(position)
+        quaternionPool.recycle(rotation)
         matrixPool.recycle(bindTransform)
-        vectorsPool.recycle(bindPosition)
-        quaternionPool.recycle(bindRotation)
     }
 
     override fun update() {
