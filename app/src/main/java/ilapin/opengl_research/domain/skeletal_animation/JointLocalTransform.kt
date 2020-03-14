@@ -5,18 +5,14 @@ import org.joml.*
 /**
  * @author ilapin on 11.02.20.
  */
-class JointLocalTransform(
-    position: Vector3fc,
-    rotation: Quaternionfc
-) {
-    private val _transform = Matrix4f()
+class JointLocalTransform(transform: Matrix4fc) {
 
-    val position: Vector3fc = Vector3f(position)
-    val rotation: Quaternionfc = Quaternionf().apply { set(rotation) }
+    private val _transform = Matrix4f().apply { set(transform) }
+
+    val position: Vector3fc = Vector3f().apply { _transform.getTranslation(this) }
+    val rotation: Quaternionfc = Quaternionf().apply { _transform.getNormalizedRotation(this) }
     val transform: Matrix4fc = _transform
 
-    init {
-        //_transform.translate(position).rotate(rotation)
-        _transform.rotate(rotation).translate(position)
-    }
+    constructor(position: Vector3fc, rotation: Quaternionfc) :
+        this(Matrix4f().identity().rotate(rotation).translate(position))
 }

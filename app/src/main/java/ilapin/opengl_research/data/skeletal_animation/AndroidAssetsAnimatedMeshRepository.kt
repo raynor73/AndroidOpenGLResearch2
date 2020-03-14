@@ -137,12 +137,10 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         keyFrameTimes.forEachIndexed { i, time ->
             val jointLocalTransforms = HashMap<String, JointLocalTransform>()
             jointTransforms.keys().forEach { jointName ->
-                val position = Vector3f()
-                val rotation = Quaternionf()
-                val transform = jointTransforms.get(jointName)[i] ?: error("Transform for joint $jointName at keyframe #$i not found")
-                transform.getTranslation(position)
-                transform.getNormalizedRotation(rotation)
-                jointLocalTransforms[jointName] = JointLocalTransform(position, rotation)
+                jointLocalTransforms[jointName] = JointLocalTransform(
+                    jointTransforms.get(jointName)[i]
+                        ?: error("Transform for joint $jointName at keyframe #$i not found")
+                )
             }
             keyFrames += KeyFrame(
                 time,
@@ -152,27 +150,6 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
 
         return keyFrames
     }
-
-    /*private fun parseKeyFrame(jointName: String, rawData: Array<String>, keyFrames: Array<KeyFrameData>) {
-        val buffer = BufferUtils.createFloatBuffer(16)
-        val matrixData = FloatArray(16)
-        for (i in keyFrames.indices) {
-            for (j in 0..15) {
-                matrixData[j] = rawData[i * 16 + j].toFloat()
-            }
-            buffer.clear()
-            buffer.put(matrixData)
-            buffer.flip()
-            val transform = Matrix4f()
-            transform.set(buffer)
-            transform.transpose()
-            if (root) {
-                //because up axis in Blender is different to up axis in game
-                //Matrix4f.mul(CORRECTION, transform, transform);
-            }
-            keyFrames[i].addJointTransform(JointTransformData(jointName, transform))
-        }
-    }*/
 
     private fun parseJointWithChildrenData(xmlDoc: Document, nodeXPath: String, jointNames: List<String>): Joint? {
         val joint = parseJointData(xmlDoc, nodeXPath, jointNames) ?: return null

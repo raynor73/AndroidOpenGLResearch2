@@ -23,7 +23,6 @@ import ilapin.opengl_research.domain.skeletal_animation.AnimatedMeshRepository
 import ilapin.opengl_research.domain.skeletal_animation.Joint
 import ilapin.opengl_research.domain.skeletal_animation.KeyFrame
 import org.joml.*
-import kotlin.math.PI
 
 /**
  * @author Игорь on 12.03.2020.
