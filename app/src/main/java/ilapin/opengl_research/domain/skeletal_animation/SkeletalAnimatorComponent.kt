@@ -150,7 +150,7 @@ class SkeletalAnimatorComponent(
         vectorsPool.recycle(interpolatedPosition)
         quaternionsPool.recycle(interpolatedRotation)
 
-        return interpolatedJointTransform
+        return next//interpolatedJointTransform
     }
 
     private fun findPreviousAndNextKeyFrames(

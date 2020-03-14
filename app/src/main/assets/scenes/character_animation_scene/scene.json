@@ -27,12 +27,12 @@
   ],
   "meshes": [
     { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
-    { "id": "female", "path": "meshes/female_idle.dae" },
+    { "id": "female", "path": "meshes/female_running.dae" },
     { "id": "capsule", "path": "meshes/capsule.obj" },
     { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" }
   ],
   "skeletalAnimations": [
-    { "name": "female_idle", "path": "meshes/female_idle.dae" }
+    { "name": "female_running", "path": "meshes/female_running.dae" }
   ],
   "scene": {
     "scriptPaths": [
@@ -60,7 +60,7 @@
         "components": [
           { "type": "Mesh", "meshName": "female", "materialName": "female", "layerNames": ["defaultLayer"] },
           { "type": "SkeletalAnimator" },
-          { "type": "SkeletalAnimations", "animationNames": ["female_idle"] }
+          { "type": "SkeletalAnimations", "animationNames": ["female_running"] }
         ]
       },
       {

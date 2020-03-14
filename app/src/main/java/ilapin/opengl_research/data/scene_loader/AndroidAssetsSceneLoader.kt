@@ -16,6 +16,7 @@ import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.engine.MeshRendererComponent
 import ilapin.opengl_research.data.skeletal_animation.AndroidAssetsAnimatedMeshRepository
+import ilapin.opengl_research.data.skeletal_animation.AndroidAssetsColladaAnimatedMeshRepository
 import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.engine.*
@@ -126,7 +127,7 @@ class AndroidAssetsSceneLoader(
             safeLet(it.id, it.path) { id, path ->
                 val mesh = if (path.endsWith(COLLADA_FILE_EXTENSION, true)) {
                     // TODO Make use Collada loader through repository etc
-                    val repo = AndroidAssetsAnimatedMeshRepository(context)
+                    val repo = AndroidAssetsColladaAnimatedMeshRepository(context)
                     repo.loadMesh(path)
                     /*val modelInputStream = context.assets.open(path)
                     val mesh = ColladaLoader.loadColladaModel(
@@ -162,7 +163,7 @@ class AndroidAssetsSceneLoader(
                 close()
             }*/
 
-            val repo = AndroidAssetsAnimatedMeshRepository(context)
+            val repo = AndroidAssetsColladaAnimatedMeshRepository(context)
             val animationData = repo.loadAnimation(dto.path)
 
             skeletalAnimations[dto.name] = SkeletalAnimationData(animationData.rootJoint, animationData.animation)
