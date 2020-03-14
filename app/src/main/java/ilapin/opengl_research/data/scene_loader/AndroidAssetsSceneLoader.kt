@@ -127,7 +127,7 @@ class AndroidAssetsSceneLoader(
             safeLet(it.id, it.path) { id, path ->
                 val mesh = if (path.endsWith(COLLADA_FILE_EXTENSION, true)) {
                     // TODO Make use Collada loader through repository etc
-                    val repo = AndroidAssetsColladaAnimatedMeshRepository(context)
+                    val repo = AndroidAssetsAnimatedMeshRepository(context)
                     repo.loadMesh(path)
                     /*val modelInputStream = context.assets.open(path)
                     val mesh = ColladaLoader.loadColladaModel(
@@ -163,7 +163,7 @@ class AndroidAssetsSceneLoader(
                 close()
             }*/
 
-            val repo = AndroidAssetsColladaAnimatedMeshRepository(context)
+            val repo = AndroidAssetsAnimatedMeshRepository(context)
             val animationData = repo.loadAnimation(dto.path)
 
             skeletalAnimations[dto.name] = SkeletalAnimationData(animationData.rootJoint, animationData.animation)

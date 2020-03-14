@@ -27,12 +27,12 @@
   ],
   "meshes": [
     { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
-    { "id": "female", "path": "meshes/female_running.dae" },
+    { "id": "female", "path": "meshes/female_running2.dae" },
     { "id": "capsule", "path": "meshes/capsule.obj" },
     { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" }
   ],
   "skeletalAnimations": [
-    { "name": "female_running", "path": "meshes/female_running.dae" }
+    { "name": "female_running", "path": "meshes/female_running2.dae" }
   ],
   "scene": {
     "scriptPaths": [
@@ -66,7 +66,7 @@
       {
         "name": "player_camera",
         "parent": "player",
-        "position" : [0.0, 1.0, 3.0],
+        "position" : [0.0, 0.0, 5.0],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
