@@ -1,4 +1,4 @@
-const int MAX_JOINTS = 50;
+const int MAX_JOINTS = 64;
 const int JOINTS_PER_VERTEX = 3;
 
 attribute vec3 vertexCoordinateAttribute;

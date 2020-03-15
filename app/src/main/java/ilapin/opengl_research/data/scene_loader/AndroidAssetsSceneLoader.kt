@@ -3,8 +3,6 @@ package ilapin.opengl_research.data.scene_loader
 import android.content.Context
 import com.google.common.collect.HashMultimap
 import com.google.gson.Gson
-import ilapin.collada_parser.collada_loader.ColladaLoader
-import ilapin.collada_parser.data_structures.AnimatedModelData
 import ilapin.common.kotlin.safeLet
 import ilapin.common.time.TimeRepository
 import ilapin.engine3d.GameObject
@@ -16,14 +14,12 @@ import ilapin.opengl_research.data.assets_management.OpenGLGeometryManager
 import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.engine.MeshRendererComponent
 import ilapin.opengl_research.data.skeletal_animation.AndroidAssetsAnimatedMeshRepository
-import ilapin.opengl_research.data.skeletal_animation.AndroidAssetsColladaAnimatedMeshRepository
 import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.engine.*
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
-import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimation
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationData
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimatorComponent
@@ -129,13 +125,6 @@ class AndroidAssetsSceneLoader(
                     // TODO Make use Collada loader through repository etc
                     val repo = AndroidAssetsAnimatedMeshRepository(context)
                     repo.loadMesh(path)
-                    /*val modelInputStream = context.assets.open(path)
-                    val mesh = ColladaLoader.loadColladaModel(
-                        modelInputStream,
-                        NUMBER_OF_JOINT_WEIGHTS
-                    ).meshData.toMesh()
-                    modelInputStream.close()
-                    mesh*/
                 } else {
                     meshLoadingRepository.loadMesh(path).toMesh()
                 }
@@ -150,18 +139,6 @@ class AndroidAssetsSceneLoader(
         sceneInfoDto.skeletalAnimations?.forEach { dto ->
             dto.name ?: error("No animation name")
             dto.path ?: error("No path for ${dto.name} animation")
-
-            /*val model: AnimatedModelData
-            context.assets.open(dto.path).run {
-                model = ColladaLoader.loadColladaModel(this, NUMBER_OF_JOINT_WEIGHTS)
-                close()
-            }
-
-            val animation: SkeletalAnimation
-            context.assets.open(dto.path).run {
-                animation = ColladaLoader.loadColladaAnimation(this).toSkeletalAnimation()
-                close()
-            }*/
 
             val repo = AndroidAssetsAnimatedMeshRepository(context)
             val animationData = repo.loadAnimation(dto.path)

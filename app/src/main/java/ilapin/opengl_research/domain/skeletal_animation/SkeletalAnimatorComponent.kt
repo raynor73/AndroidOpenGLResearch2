@@ -1,11 +1,9 @@
 package ilapin.opengl_research.domain.skeletal_animation
 
-import ilapin.common.android.log.L
 import ilapin.common.time.TimeRepository
 import ilapin.engine3d.GameObjectComponent
 import ilapin.opengl_research.NANOS_IN_SECOND
 import ilapin.opengl_research.ObjectsPool
-import ilapin.opengl_research.app.App.Companion.LOG_TAG
 import org.joml.Matrix4f
 import org.joml.Matrix4fc
 import org.joml.Quaternionf
@@ -110,7 +108,6 @@ class SkeletalAnimatorComponent(
         interpolatePose(frames, progression)
     }
 
-    private val dbgVector = Vector3f()
     private fun applyPoseToJoints(
         jointTransforms: ArrayList<Matrix4fc?>,
         joint: Joint,
@@ -121,10 +118,6 @@ class SkeletalAnimatorComponent(
         currentTransform.set(parentTransform)
         currentTransform.mul(currentLocalTransform)
 
-        currentTransform.getTranslation(dbgVector)
-        if (dbgVector.length() < 0.1) {
-            L.d(LOG_TAG, "${joint.name} dbgVector.length(): ${dbgVector.length()}")
-        }
         joint.children.forEach { child -> applyPoseToJoints(jointTransforms, child, currentTransform) }
 
         currentTransform.mul(joint.invertedBindTransform)

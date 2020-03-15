@@ -144,7 +144,6 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
                         ?: error("Transform for joint $jointName at keyframe #$i not found")
                 )
             }
-            L.d(LOG_TAG, "jointLocalTransforms.size: ${jointLocalTransforms.size}")
             keyFrames += KeyFrame(
                 time,
                 jointLocalTransforms
@@ -156,12 +155,10 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
 
     private fun parseJointWithChildrenData(xmlDoc: Document, nodeXPath: String, jointNames: List<String>): Joint? {
         val joint = parseJointData(xmlDoc, nodeXPath, jointNames) ?: return null
-        L.d(LOG_TAG, "Joint ${joint.name}")
         val children = xPath.compile("$nodeXPath/node").evaluate(xmlDoc, XPathConstants.NODESET) as NodeList
         for (i in 0 until children.length) {
             val childNodeName = children.item(i).nodeName
             val childNodeId = children.item(i).attributes.getNamedItem("id").nodeValue
-            L.d(LOG_TAG, "\tJoin child node: $childNodeName, id='$childNodeId'")
             parseJointWithChildrenData(xmlDoc, "$nodeXPath/$childNodeName[@id='$childNodeId']", jointNames)?.let {
                 joint.addChild(it)
             }
@@ -198,8 +195,6 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         repeat(namesDataCount) { i ->
             names.add(namesData[i])
         }
-
-        L.d(LOG_TAG, "names.size: ${names.size}")
 
         return names
     }
