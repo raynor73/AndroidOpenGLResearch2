@@ -39,7 +39,7 @@ class MeshRendererComponent(
         lightProjectionMatrix: Matrix4fc? = null,
         shadowMapTextureInfo: TextureInfo? = null
     ) {
-        if (!isEnabled) {
+        if (!isEnabled || gameObject?.isEnabled == false) {
             return
         }
 

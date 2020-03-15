@@ -1,0 +1,506 @@
+{
+  "soundClips": [
+    { "name": "keyboard_click", "path": "sounds/keyboard_click.wav" },
+    { "name": "water_flow", "path": "sounds/water_flow.wav" }
+  ],
+  "textures": [
+    { "id": "female", "path": "textures/female.png" },
+    { "id": "fountain", "path": "textures/fountain.png" },
+    { "id": "green", "color": [0, 0.5, 0, 1] },
+    { "id": "blue", "color": [0, 0, 0.5, 1] },
+    { "id": "joystick_background", "path": "textures/joystick_background.png" },
+    { "id": "joystick_handle", "path": "textures/joystick_handle.png" },
+    { "id": "keyboard", "path": "textures/keyboard.png" },
+    { "id": "rect_button", "path": "textures/rect_button.png" },
+    { "id": "house_diffuse", "path": "textures/house_diffuse.png" },
+    { "id": "fps_text", "width": 128, "height": 32 },
+    { "id": "wood_box_side", "path": "textures/wood_box_side.jpg" },
+    { "id": "earth_diffuse", "path": "textures/2k_earth_daymap.jpg" }
+  ],
+  "materials": [
+    { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "blue", "textureName": "blue", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "white", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "female", "textureName": "female", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "fountain", "textureName": "fountain", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "keyboard", "textureName": "keyboard", "diffuseColor": [1, 1, 1, 1], "isDoubleSided": true },
+    {
+      "id": "capsule",
+      "diffuseColor": [0.5, 0.5, 0, 1],
+      "isWireframe": true,
+      "isUnlit": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
+    { "id": "cowboy", "diffuseColor": [0.5, 0, 0.5, 1] },
+    {
+      "id": "joystick_background",
+      "textureName": "joystick_background",
+      "diffuseColor": [1, 1, 1, 1],
+      "isUnlit": true,
+      "isTranslucent": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
+    {
+      "id": "joystick_handle",
+      "textureName": "joystick_handle",
+      "diffuseColor": [1, 1, 1, 1],
+      "isUnlit": true,
+      "isTranslucent": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
+    {
+      "id": "rect_button",
+      "textureName": "rect_button",
+      "diffuseColor": [1, 1, 1, 1],
+      "isUnlit": true,
+      "isTranslucent": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
+    {
+      "id": "fireball",
+      "diffuseColor": [1, 0.56, 0, 0.3],
+      "isUnlit": true,
+      "isTranslucent": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
+    { "id": "house", "textureName": "house_diffuse", "diffuseColor": [1, 1, 1, 1] },
+    {
+      "id": "fps_text",
+      "textureName": "fps_text",
+      "diffuseColor": [1, 1, 1, 1],
+      "isUnlit": true,
+      "isTranslucent": true,
+      "castShadows": false,
+      "receiveShadows": false
+    },
+    { "id": "wood_box", "textureName": "wood_box_side", "diffuseColor": [1, 1, 1, 1] },
+    { "id": "earth_ball", "textureName": "earth_diffuse", "diffuseColor": [1, 1, 1, 1] }
+  ],
+  "meshes": [
+    { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
+    { "id": "female_running", "path": "meshes/female_running2.dae" },
+    { "id": "female_idle", "path": "meshes/female_idle2.dae" },
+    { "id": "fountain", "path": "meshes/fountain.obj", "keepInStorage": true },
+    { "id": "capsule", "path": "meshes/capsule.obj" },
+    { "id": "cowboy", "path": "meshes/cowboy.dae" },
+    { "id": "keyboard", "path": "meshes/keyboard.obj" },
+    { "id": "sphere", "path": "meshes/sphere.obj" },
+    { "id": "house", "path": "meshes/house.obj", "keepInStorage": true },
+    { "id": "vertical_plane", "path": "meshes/vertical_plane.obj" },
+    { "id": "box", "path": "meshes/box.obj" },
+    { "id": "sphereUV", "path": "meshes/earth.obj"},
+    { "id": "cylinder", "path": "meshes/cylinder.obj"}
+  ],
+  "skeletalAnimations": [
+    { "name": "female_running", "path": "meshes/female_running2.dae" },
+    { "name": "female_idle", "path": "meshes/female_idle2.dae" }
+  ],
+  "scene": {
+    "scriptPaths": [
+      "scenes/utils.js",
+      "scenes/joystick_controller.js",
+      "scenes/scroll_controller.js",
+      "scenes/player_controller.js",
+      "scenes/click_detector.js",
+      "scenes/fireball_engine.js",
+      "scenes/fps_calculator.js",
+      "scenes/character_movement_scene2/character_movement_scene2.js"
+    ],
+    "activeCameras": ["player_camera", "ui_camera", "keyboard_camera"],
+    "renderTargets": [],
+    "gravity": [0.0, -9.81, 0.0],
+    "gameObjects": [
+      {
+        "name": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "GestureConsumer", "priority": 0, "left": 0, "top": 1024, "right": 768, "bottom": 0 }
+        ]
+      },
+      {
+        "name": "keyboard",
+        "parent": "root",
+        "position" : [0.0, 0.0, -2.0],
+        "rotation" : [0.0, 0.0, 10.0],
+        "scale": [0.1, 0.1, 0.1],
+        "components": [
+          { "type": "Mesh", "meshName": "keyboard", "materialName": "keyboard", "layerNames": ["keyboard_layer"] },
+          { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 200, "right": 200, "bottom": 0 },
+          {
+            "type": "SoundPlayer2D",
+            "playerName": "keyboard_click",
+            "soundClipName": "keyboard_click",
+            "duration": 157,
+            "volume": 1
+          }
+        ]
+      },
+      {
+        "name": "keyboard_camera",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          {
+            "type": "PerspectiveCamera",
+            "fov": 45,
+            "layerNames": ["keyboard_layer"],
+            "ambientLight": [0.5, 0.5, 0.5],
+            "viewportX": 0.75,
+            "viewportY": 0.75,
+            "viewportWidth": 0.25,
+            "viewportHeight": 0.25
+          }
+        ]
+      },
+      {
+        "name": "keyboard_directional_light",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [-90.0, 45.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "DirectionalLight", "color": [0.7, 0.7, 0.7], "layerNames": ["keyboard_layer"] }
+        ]
+      },
+      {
+        "name": "fountain",
+        "parent": "root",
+        "position" : [0.0, 0.01, -10.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "fountain", "materialName": "fountain", "layerNames": ["defaultLayer"] },
+          {
+            "type": "TriMeshRigidBody",
+            "meshName": "fountain",
+            "meshPosition": [0, 0, 0],
+            "meshRotation": [0, 0, 0],
+            "meshScale": [1, 1, 1]
+          }
+        ]
+      },
+      {
+        "name": "fountain_water",
+        "parent": "fountain",
+        "position" : [0.0, 0.5, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          {
+            "type": "SoundPlayer3D",
+            "playerName": "fountain",
+            "soundClipName": "water_flow",
+            "duration": 7791,
+            "maxVolumeDistance": 1,
+            "minVolumeDistance": 15,
+            "volume": 0.5
+          }
+        ]
+      },
+      {
+        "name": "ground_plane",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [50.0, 1.0, 50.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "green", "layerNames": ["defaultLayer"] },
+          {
+            "type": "TriMeshRigidBody",
+            "meshName": "quad",
+            "meshPosition": [0, 0, 0],
+            "meshRotation": [0, 0, 0],
+            "meshScale": [50, 1, 50]
+          }
+        ]
+      },
+      {
+        "name": "floating_plane",
+        "parent": "root",
+        "position" : [0.0, 2.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "blue", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "player",
+        "parent": "root",
+        "position" : [0.0, 4, 0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          {
+            "type": "PlayerCapsuleRigidBody",
+            "mass": 1,
+            "radius": 0.5,
+            "length": 1,
+            "maxForceX": 100,
+            "maxForceY": 0,
+            "maxForceZ": 100
+          }
+        ]
+      },
+      {
+        "name": "player_capsule",
+        "parent": "player",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [0.5, 0.5, 0.5],
+        "components": [
+          { "type": "Mesh", "meshName": "capsule", "materialName": "capsule", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "player_mesh",
+        "parent": "player",
+        "position" : [0.0, 0.0, -1],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1, 1, 1],
+        "components": [
+          { "type": "SoundListener" },
+          { "type": "Mesh", "meshName": "female_running", "materialName": "female", "layerNames": ["defaultLayer"] },
+          { "type": "SkeletalAnimator" },
+          { "type": "SkeletalAnimations", "animationNames": ["female_running"] }
+        ]
+      },
+      {
+        "name": "player_mesh_idle",
+        "parent": "player",
+        "position" : [0.0, 0.0, -1],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1, 1, 1],
+        "components": [
+          { "type": "Mesh", "meshName": "female_idle", "materialName": "female", "layerNames": ["defaultLayer"] },
+          { "type": "SkeletalAnimator" },
+          { "type": "SkeletalAnimations", "animationNames": ["female_idle"] }
+        ]
+      },
+      {
+        "name": "player_camera",
+        "parent": "player_mesh",
+        "position" : [0.0, 1.0, -3.0],
+        "rotation" : [0.0, 180.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "PerspectiveCamera", "fov": 45, "layerNames": ["defaultLayer"], "ambientLight": [0.5, 0.5, 0.5] }
+        ]
+      },
+      {
+        "name": "directional_light",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [-90.0, 45.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "DirectionalLight", "color": [0.7, 0.7, 0.7], "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "ui_camera",
+        "parent": "root",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          {
+            "type": "OrthoCamera",
+            "left": 0,
+            "right": 1024,
+            "bottom": 0,
+            "top": 768,
+            "layerNames": ["uiLayer"],
+            "ambientLight": [0.5, 0.5, 0.5]
+          }
+        ]
+      },
+      {
+        "name": "left_joystick",
+        "parent": "root",
+        "position" : [0.0, 0.0, -10.0],
+        "rotation" : [90.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 200, "right": 200, "bottom": 0 }
+        ]
+      },
+      {
+        "name": "left_joystick_background",
+        "parent": "left_joystick",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [200.0, 1.0, 200.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "joystick_background", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "left_joystick_handle",
+        "parent": "left_joystick",
+        "position" : [0.0, 0.1, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [70.0, 1.0, 70.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "joystick_handle", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "right_joystick",
+        "parent": "root",
+        "position" : [0.0, 0.0, -10.0],
+        "rotation" : [90.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 200, "right": 200, "bottom": 0 }
+        ]
+      },
+      {
+        "name": "right_joystick_background",
+        "parent": "right_joystick",
+        "position" : [0.0, 0.0, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [200.0, 1.0, 200.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "joystick_background", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "right_joystick_handle",
+        "parent": "right_joystick",
+        "position" : [0.0, 0.1, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [70.0, 1.0, 70.0],
+        "components": [
+          { "type": "Mesh", "meshName": "quad", "materialName": "joystick_handle", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "button",
+        "parent": "root",
+        "position" : [0.0, 0.0, -10.0],
+        "rotation" : [90.0, 0.0, 0.0],
+        "scale": [64.0, 1.0, 64.0],
+        "components": [
+          { "type": "GestureConsumer", "priority": 10, "left": 0, "top": 64, "right": 64, "bottom": 0 },
+          { "type": "Mesh", "meshName": "quad", "materialName": "rect_button", "layerNames": ["uiLayer"] }
+        ]
+      },
+      {
+        "name": "fps_text",
+        "parent": "root",
+        "position" : [0.0, 0.0, -10.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [128.0, 32.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "vertical_plane", "materialName": "fps_text", "layerNames": ["uiLayer"] },
+          {
+            "type": "Text",
+            "text": "FPS: N/A",
+            "textSize": 30,
+            "color": [0, 0.5, 0, 1],
+            "imageWidth": 128,
+            "imageHeight": 32
+          }
+        ]
+      },
+      {
+        "name": "house",
+        "parent": "root",
+        "position" : [12.0, 0.0, -12.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1, 1, 1],
+        "components": [
+          { "type": "Mesh", "meshName": "house", "materialName": "house", "layerNames": ["defaultLayer"] },
+          {
+            "type": "TriMeshRigidBody",
+            "meshName": "house",
+            "meshPosition": [0, 0, 0],
+            "meshRotation": [0, 0, 0],
+            "meshScale": [1, 1, 1]
+          }
+        ]
+      },
+      {
+        "name": "fireball_prefab",
+        "parent": "root",
+        "position" : [3.0, 1.5, -3.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [0.2, 0.2, 0.2],
+        "components": [
+          { "type": "Mesh", "meshName": "sphere", "materialName": "fireball", "layerNames": ["defaultLayer"] }
+        ]
+      },
+      {
+        "name": "wood_box",
+        "parent": "root",
+        "position" : [-5.0, 0.51, 0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "box", "materialName": "wood_box", "layerNames": ["defaultLayer"] },
+          {
+            "type": "BoxRigidBody",
+            "mass": 1,
+            "size": [1, 1, 1]
+          }
+        ]
+      },
+      {
+        "name": "earth_ball1",
+        "parent": "root",
+        "position" : [-5.0, 1.01, -2],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "sphereUV", "materialName": "earth_ball", "layerNames": ["defaultLayer"] },
+          {
+            "type": "SphereRigidBody",
+            "mass": 1,
+            "radius": 1
+          }
+        ]
+      },
+      {
+        "name": "cylinder",
+        "parent": "root",
+        "position" : [-5.0, 0.51, -6],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "cylinder", "materialName": "blue", "layerNames": ["defaultLayer"] },
+          {
+            "type": "CylinderRigidBody",
+            "mass": 1,
+            "radius": 1,
+            "length": 1
+          }
+        ]
+      },
+      {
+        "name": "platform",
+        "parent": "root",
+        "position" : [27.5, 0.0, 0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [5.0, 0.1, 5.0],
+        "components": [
+          { "type": "Mesh", "meshName": "box", "materialName": "white", "layerNames": ["defaultLayer"] },
+          {
+            "type": "BoxRigidBody",
+            "radius": 1,
+            "size": [5, 0.1, 5]
+          }
+        ]
+      }
+    ]
+  }
+}
