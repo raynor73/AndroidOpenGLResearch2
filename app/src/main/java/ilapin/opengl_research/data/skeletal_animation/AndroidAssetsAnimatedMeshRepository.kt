@@ -99,12 +99,12 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
             "/COLLADA/library_visual_scenes[1]/visual_scene[1]/node[@id='Armature']/node[1]",
             jointNames
         ) ?: error("Root joint not found")
-        val keyFrames = parseKeyFrames(document, keyFrameTimes)
+        val keyFrames = parseKeyFrames(document, jointNames, keyFrameTimes)
 
         return SkeletalAnimationData(rootJoint, SkeletalAnimation(animationDuration, keyFrames))
     }
 
-    private fun parseKeyFrames(xmlDoc: Document, keyFrameTimes: List<Float>): List<KeyFrame> {
+    private fun parseKeyFrames(xmlDoc: Document, effectiveJointNames: List<String>, keyFrameTimes: List<Float>): List<KeyFrame> {
         val keyFrameNodes = xPath.compile("/COLLADA/library_animations[1]/animation").evaluate(xmlDoc, XPathConstants.NODESET) as NodeList
 
         val keyFrames = ArrayList<KeyFrame>()
@@ -130,7 +130,9 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
                 val transform = Matrix4f().apply { set(matrixData) }
                 transform.transpose()
 
-                jointTransforms.put(jointName, transform)
+                if (effectiveJointNames.contains(jointName)) {
+                    jointTransforms.put(jointName, transform)
+                }
             }
         }
 
@@ -142,6 +144,7 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
                         ?: error("Transform for joint $jointName at keyframe #$i not found")
                 )
             }
+            L.d(LOG_TAG, "jointLocalTransforms.size: ${jointLocalTransforms.size}")
             keyFrames += KeyFrame(
                 time,
                 jointLocalTransforms
@@ -195,6 +198,8 @@ class AndroidAssetsAnimatedMeshRepository(private val context: Context) : Animat
         repeat(namesDataCount) { i ->
             names.add(namesData[i])
         }
+
+        L.d(LOG_TAG, "names.size: ${names.size}")
 
         return names
     }
