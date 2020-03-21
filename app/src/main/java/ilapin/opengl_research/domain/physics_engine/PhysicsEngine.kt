@@ -1,5 +1,6 @@
 package ilapin.opengl_research.domain.physics_engine
 
+import ilapin.engine3d.GameObject
 import ilapin.opengl_research.domain.Mesh
 import ilapin.opengl_research.toQuaternion
 import ilapin.opengl_research.toVector
@@ -33,6 +34,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     private val characterCapsules = HashMap<String, DBody>()
     private val rigidBodies = HashMap<String, DBody>()
     private val collisionShapes = HashMap<String, DGeom>()
+    private val gameObjects = HashMap<DGeom, GameObject>()
     private val linearMotors = HashMap<String, DLMotorJoint>()
     private val angularMotors = HashMap<String, DAMotorJoint>()
 
@@ -92,6 +94,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     }
 
     fun createCylinderRigidBody(
+        gameObject: GameObject,
         name: String,
         massValue: Float?,
         radius: Float,
@@ -129,6 +132,7 @@ class PhysicsEngine : DGeom.DNearCallback {
         rigidBody.quaternion = rotation.toQuaternion()
 
         space?.add(collisionShape)
+        gameObjects[collisionShape] = gameObject
 
         val motor = OdeHelper.createLMotorJoint(world, null)
         motor.numAxes = 3
@@ -392,13 +396,20 @@ class PhysicsEngine : DGeom.DNearCallback {
     fun removeRigidBody(rigidBodyName: String) {
         linearMotors.getOrElse(rigidBodyName) { error("Linear motor for $rigidBodyName not found") }.destroy()
         angularMotors.getOrElse(rigidBodyName) { error("Angular motor for $rigidBodyName not found") }.destroy()
-        space?.remove(collisionShapes[rigidBodyName] ?: error("Collision shape for $rigidBodyName not found"))
+        val collisionShape = collisionShapes[rigidBodyName] ?: error("Collision shape for $rigidBodyName not found")
+        gameObjects.remove(collisionShape) ?: error("Game object for $rigidBodyName not found")
+        space?.remove(collisionShape)
         collisionShapes.remove(rigidBodyName)
         characterCapsules.remove(rigidBodyName)
         rigidBodies.remove(rigidBodyName) ?: error("Rigid body $rigidBodyName not found")
     }
 
     fun update(dt: Float) {
+        gameObjects
+            .values
+            .mapNotNull { it.getComponent(CollisionsInfoComponent::class.java) }
+            .forEach { it.collisions.clear() }
+
         repeat(min(ceil(dt / SIMULATION_STEP_TIME).toInt(), MAX_SIMULATION_STEPS)) {
             OdeHelper.spaceCollide(space, null, this)
             world?.step(SIMULATION_STEP_TIME)
@@ -439,6 +450,10 @@ class PhysicsEngine : DGeom.DNearCallback {
         characterCapsules.clear()
         rigidBodies.clear()
         contactGroup.clear()
+        collisionShapes.clear()
+        gameObjects.clear()
+        linearMotors.clear()
+        angularMotors.clear()
 
         initODE()
     }
@@ -456,8 +471,30 @@ class PhysicsEngine : DGeom.DNearCallback {
         }
         val n = OdeHelper.collide(o1, o2, MAX_CONTACTS, contactsBuffer.geomBuffer)
         for (i in 0 until n) {
-            val contactJoint = OdeHelper.createContactJoint(world, contactGroup, contactsBuffer[i])
+            val contact = contactsBuffer[i]
+            val contactJoint = OdeHelper.createContactJoint(world, contactGroup, contact)
             contactJoint.attach(o1.body, o2.body)
+
+            val gameObject1 = gameObjects[o1] ?: error("No game object found #1")
+            val gameObject2 = gameObjects[o2] ?: error("No game object found #2")
+
+            gameObject1.getComponent(CollisionsInfoComponent::class.java)?.let {
+                it.collisions += CollisionsInfoComponent.Collision(
+                    gameObject2,
+                    contact.contactGeom.pos.toVector(),
+                    contact.contactGeom.normal.toVector(),
+                    contact.contactGeom.depth.toFloat()
+                )
+            }
+
+            gameObject2.getComponent(CollisionsInfoComponent::class.java)?.let {
+                it.collisions += CollisionsInfoComponent.Collision(
+                    gameObject1,
+                    contact.contactGeom.pos.toVector(),
+                    contact.contactGeom.normal.toVector(),
+                    contact.contactGeom.depth.toFloat()
+                )
+            }
         }
     }
 
