@@ -15,6 +15,7 @@ import ilapin.opengl_research.data.assets_management.OpenGLTexturesManager
 import ilapin.opengl_research.data.engine.MeshRendererComponent
 import ilapin.opengl_research.data.scripting_engine.RhinoScriptingEngine
 import ilapin.opengl_research.domain.engine.*
+import ilapin.opengl_research.domain.physics_engine.CollisionsInfoComponent
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.skeletal_animation.SkeletalAnimationComponent
@@ -177,5 +178,10 @@ class ScriptedScene(
     @Suppress("unused")
     fun getSkeletalAnimationComponent(gameObject: GameObject): SkeletalAnimationComponent? {
         return gameObject.getComponent(SkeletalAnimationComponent::class.java)
+    }
+
+    @Suppress("unused")
+    fun getCollisionsInfoComponent(gameObject: GameObject): CollisionsInfoComponent? {
+        return gameObject.getComponent(CollisionsInfoComponent::class.java)
     }
 }

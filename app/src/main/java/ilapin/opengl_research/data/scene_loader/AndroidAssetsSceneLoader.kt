@@ -17,6 +17,7 @@ import ilapin.opengl_research.data.skeletal_animation.AndroidAssetsAnimatedMeshR
 import ilapin.opengl_research.domain.DisplayMetricsRepository
 import ilapin.opengl_research.domain.MeshStorage
 import ilapin.opengl_research.domain.engine.*
+import ilapin.opengl_research.domain.physics_engine.CollisionsInfoComponent
 import ilapin.opengl_research.domain.physics_engine.PhysicsEngine
 import ilapin.opengl_research.domain.scene_loader.SceneData
 import ilapin.opengl_research.domain.scene_loader.SceneLoader
@@ -453,6 +454,10 @@ class AndroidAssetsSceneLoader(
                                 })
                             )
                         }
+                    }
+
+                    is ComponentDto.CollisionsInfoContainerDto -> {
+                        gameObject.addComponent(CollisionsInfoComponent())
                     }
                 }
             }

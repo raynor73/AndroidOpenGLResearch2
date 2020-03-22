@@ -130,4 +130,7 @@ sealed class ComponentDto {
     class SkeletalAnimationsDto(
         val animationNames: List<String>?
     ) : ComponentDto()
+
+    @Suppress("CanSealedSubClassBeObject")
+    class CollisionsInfoContainerDto : ComponentDto()
 }

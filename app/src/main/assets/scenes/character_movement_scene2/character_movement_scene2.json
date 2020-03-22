@@ -120,6 +120,8 @@
       "scenes/click_detector.js",
       "scenes/fireball_engine.js",
       "scenes/fps_calculator.js",
+      "scenes/objects_pool.js",
+      "scenes/collisions_visualizer.js",
       "scenes/character_movement_scene2/character_movement_scene2.js"
     ],
     "activeCameras": ["player_camera", "ui_camera", "keyboard_camera"],
@@ -200,9 +202,9 @@
         ]
       },
       {
-        "name": "star_glow",
+        "name": "star_glow_prefab",
         "parent": "root",
-        "position" : [0.0, 2, 0.0],
+        "position" : [0.0, 0.0, 0.0],
         "rotation" : [0.0, 0.0, 0.0],
         "scale": [1.0, 1.0, 1.0],
         "components": [
@@ -269,7 +271,8 @@
             "maxForceX": 100,
             "maxForceY": 0,
             "maxForceZ": 100
-          }
+          },
+          { "type": "CollisionsInfoContainer" }
         ]
       },
       {

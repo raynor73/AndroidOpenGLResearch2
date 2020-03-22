@@ -413,12 +413,13 @@ class PhysicsEngine : DGeom.DNearCallback {
     }
 
     fun update(dt: Float) {
-        gameObjects
+        val collisionInfoContainers = gameObjects
             .values
             .mapNotNull { it.getComponent(CollisionsInfoComponent::class.java) }
-            .forEach { it.collisions.clear() }
 
         repeat(min(ceil(dt / SIMULATION_STEP_TIME).toInt(), MAX_SIMULATION_STEPS)) {
+            collisionInfoContainers.forEach { it.collisions.clear() }
+
             OdeHelper.spaceCollide(space, null, this)
             world?.step(SIMULATION_STEP_TIME)
             characterCapsules.values.forEach {

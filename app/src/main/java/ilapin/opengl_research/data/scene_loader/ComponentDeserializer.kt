@@ -32,6 +32,7 @@ class ComponentDeserializer : JsonDeserializer<ComponentDto> {
                     "Text" -> ComponentDto.TextDto::class.java
                     "SkeletalAnimator" -> ComponentDto.SkeletalAnimatorDto::class.java
                     "SkeletalAnimations" -> ComponentDto.SkeletalAnimationsDto::class.java
+                    "CollisionsInfoContainer" -> ComponentDto.CollisionsInfoContainerDto::class.java
                     else -> null
                 }
             )

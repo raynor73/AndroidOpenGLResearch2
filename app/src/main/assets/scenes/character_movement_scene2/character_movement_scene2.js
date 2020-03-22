@@ -69,6 +69,8 @@ var platformAnimator;
 var platformRigidBody;
 var platformTransform;
 
+var playerCollisionsVisualizer;
+
 function start() {
     rootGestureConsumer = scene.getGestureConsumerComponent(scene.rootGameObject);
 
@@ -148,6 +150,11 @@ function start() {
     );
     platformAnimator.start();
 
+    playerCollisionsVisualizer = new CollisionsVisualizer(
+        findGameObject(scene.rootGameObject, "player"),
+        findGameObject(scene.rootGameObject, "star_glow_prefab")
+    );
+
     layoutUi();
 }
 
@@ -190,6 +197,7 @@ function update(dt) {
             keyboardClickSoundPlayer.play(false);
         }
 
+        playerCollisionsVisualizer.update();
         fireballEngine.update(dt);
         rotateKeyboard(dt);
         movePlayer(dt);
