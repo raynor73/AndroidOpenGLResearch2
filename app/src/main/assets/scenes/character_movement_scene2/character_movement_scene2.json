@@ -15,7 +15,8 @@
     { "id": "house_diffuse", "path": "textures/house_diffuse.png" },
     { "id": "fps_text", "width": 128, "height": 32 },
     { "id": "wood_box_side", "path": "textures/wood_box_side.jpg" },
-    { "id": "earth_diffuse", "path": "textures/2k_earth_daymap.jpg" }
+    { "id": "earth_diffuse", "path": "textures/2k_earth_daymap.jpg" },
+    { "id": "star_glow", "path": "textures/star_glow.png" }
   ],
   "materials": [
     { "id": "green", "textureName": "green", "diffuseColor": [1, 1, 1, 1] },
@@ -79,7 +80,17 @@
       "receiveShadows": false
     },
     { "id": "wood_box", "textureName": "wood_box_side", "diffuseColor": [1, 1, 1, 1] },
-    { "id": "earth_ball", "textureName": "earth_diffuse", "diffuseColor": [1, 1, 1, 1] }
+    { "id": "earth_ball", "textureName": "earth_diffuse", "diffuseColor": [1, 1, 1, 1] },
+    {
+      "id": "star_glow",
+      "textureName": "star_glow",
+      "diffuseColor": [1, 1, 1, 1],
+      "isUnlit": true,
+      "isTranslucent": true,
+      "castShadows": false,
+      "receiveShadows": false,
+      "isSprite": true
+    }
   ],
   "meshes": [
     { "id": "quad", "path": "meshes/planeUV.obj", "keepInStorage": true },
@@ -186,6 +197,16 @@
             "meshRotation": [0, 0, 0],
             "meshScale": [1, 1, 1]
           }
+        ]
+      },
+      {
+        "name": "star_glow",
+        "parent": "root",
+        "position" : [0.0, 2, 0.0],
+        "rotation" : [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
+        "components": [
+          { "type": "Mesh", "meshName": "vertical_plane", "materialName": "star_glow", "layerNames": ["defaultLayer"] }
         ]
       },
       {

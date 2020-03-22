@@ -245,6 +245,10 @@ class GLSurfaceViewRenderer(
         scene.layerRenderers[layerName].forEach { renderer ->
             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
                 ?: error("Not transform found for game object ${renderer.gameObject?.name}")
+            val material = renderer.gameObject?.getComponent(MaterialComponent::class.java)
+                ?: error("No material found for game object ${renderer.gameObject?.name}")
+            val cameraTransform = camera.gameObject?.getComponent(TransformationComponent::class.java)
+                ?: error("No transform found for camera game object ${camera.gameObject?.name}")
             when (camera) {
                 is PerspectiveCameraComponent -> {
                     camera.calculateViewMatrix(viewMatrix)
@@ -256,9 +260,14 @@ class GLSurfaceViewRenderer(
                     camera.calculateProjectionMatrix(projectionMatrix)
                 }
             }
+            val modelRotation = if (material.isSprite) {
+                cameraTransform.rotation
+            } else {
+                transform.rotation
+            }
             modelMatrix.identity()
                     .translate(transform.position)
-                    .rotate(transform.rotation)
+                    .rotate(modelRotation)
                     .scale(transform.scale)
             renderer.render(
                 shaderProgram,
@@ -508,14 +517,23 @@ class GLSurfaceViewRenderer(
         }
         renderers.forEach { renderer ->
             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
-                ?: error("Not transform found for game object ${renderer.gameObject?.name}")
+                ?: error("No transform found for game object ${renderer.gameObject?.name}")
+            val material = renderer.gameObject?.getComponent(MaterialComponent::class.java)
+                ?: error("No material found for game object ${renderer.gameObject?.name}")
+            val cameraTransform = camera.gameObject?.getComponent(TransformationComponent::class.java)
+                ?: error("No transform found for camera game object ${camera.gameObject?.name}")
+            val modelRotation = if (material.isSprite) {
+                cameraTransform.rotation
+            } else {
+                transform.rotation
+            }
             renderer.render(
                 shaderProgram,
                 isTranslucentRendering,
                 false,
                 modelMatrix.identity()
                     .translate(transform.position)
-                    .rotate(transform.rotation)
+                    .rotate(modelRotation)
                     .scale(transform.scale),
                 viewMatrix,
                 projectionMatrix
@@ -552,7 +570,11 @@ class GLSurfaceViewRenderer(
 
         scene.layerRenderers[layerName].forEach { renderer ->
             val transform = renderer.gameObject?.getComponent(TransformationComponent::class.java)
-                ?: error("Not transform found for game object ${renderer.gameObject?.name}")
+                ?: error("No transform found for game object ${renderer.gameObject?.name}")
+            val material = renderer.gameObject?.getComponent(MaterialComponent::class.java)
+                ?: error("No material found for game object ${renderer.gameObject?.name}")
+            val cameraTransform = camera.gameObject?.getComponent(TransformationComponent::class.java)
+                ?: error("No transform found for camera game object ${camera.gameObject?.name}")
             when (camera) {
                 is PerspectiveCameraComponent -> {
                     camera.calculateViewMatrix(viewMatrix)
@@ -564,13 +586,18 @@ class GLSurfaceViewRenderer(
                     camera.calculateProjectionMatrix(projectionMatrix)
                 }
             }
+            val modelRotation = if (material.isSprite) {
+                cameraTransform.rotation
+            } else {
+                transform.rotation
+            }
             renderer.render(
                 ambientShaderProgram,
                 isTranslucentRendering,
                 false,
                 modelMatrix.identity()
                     .translate(transform.position)
-                    .rotate(transform.rotation)
+                    .rotate(modelRotation)
                     .scale(transform.scale),
                 viewMatrix,
                 projectionMatrix

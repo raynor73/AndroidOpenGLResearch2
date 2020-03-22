@@ -14,7 +14,8 @@ class MaterialComponent(
     var isUnlit: Boolean = false,
     var isTranslucent: Boolean = false,
     var castShadows: Boolean = true,
-    var receiveShadows: Boolean = true
+    var receiveShadows: Boolean = true,
+    var isSprite: Boolean = false
 ) : GameObjectComponent() {
 
     override fun copy(): GameObjectComponent {
@@ -26,7 +27,8 @@ class MaterialComponent(
             isUnlit,
             isTranslucent,
             castShadows,
-            receiveShadows
+            receiveShadows,
+            isSprite
         )
     }
 }

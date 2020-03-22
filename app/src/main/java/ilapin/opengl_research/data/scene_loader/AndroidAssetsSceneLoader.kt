@@ -114,7 +114,8 @@ class AndroidAssetsSceneLoader(
                     isUnlit = materialDto.isUnlit ?: false,
                     isTranslucent = materialDto.isTranslucent ?: false,
                     castShadows = materialDto.castShadows ?: true,
-                    receiveShadows = materialDto.receiveShadows ?: true
+                    receiveShadows = materialDto.receiveShadows ?: true,
+                    isSprite = materialDto.isSprite ?: false
                 )
             }
         }
@@ -317,6 +318,7 @@ class AndroidAssetsSceneLoader(
                         it.radius ?: error("No radius")
                         it.length ?: error("No length")
                         physicsEngine.createCharacterCapsuleRigidBody(
+                            gameObject,
                             gameObjectName,
                             it.mass,
                             it.radius,
@@ -340,6 +342,7 @@ class AndroidAssetsSceneLoader(
                         it.meshRotation ?: error("No mesh rotation")
                         it.meshScale ?: error("No mesh scale")
                         physicsEngine.createTriMeshRigidBody(
+                            gameObject,
                             gameObjectName,
                             meshStorage.findMesh(it.meshName).applyTransform(
                                 Vector3f(it.meshPosition[0], it.meshPosition[1], it.meshPosition[2]),
@@ -361,6 +364,7 @@ class AndroidAssetsSceneLoader(
                             gameObject.getComponent(TransformationComponent::class.java) ?: error("No transform")
                         it.size?.takeIf { sizeComponents -> sizeComponents.size == 3 } ?: error("No size")
                         physicsEngine.createBoxRigidBody(
+                            gameObject,
                             gameObjectName,
                             it.mass,
                             Vector3f(it.size[0], it.size[1], it.size[2]),
@@ -381,6 +385,7 @@ class AndroidAssetsSceneLoader(
                             gameObject.getComponent(TransformationComponent::class.java) ?: error("No transform")
                         it.radius ?: error("No radius")
                         physicsEngine.createSphereRigidBody(
+                            gameObject,
                             gameObjectName,
                             it.mass,
                             it.radius,
@@ -402,6 +407,7 @@ class AndroidAssetsSceneLoader(
                         it.radius ?: error("No radius")
                         it.length ?: error("No length")
                         physicsEngine.createCylinderRigidBody(
+                            gameObject,
                             gameObjectName,
                             it.mass,
                             it.radius,

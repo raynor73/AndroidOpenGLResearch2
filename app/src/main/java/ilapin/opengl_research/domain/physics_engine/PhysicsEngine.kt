@@ -166,6 +166,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     }
 
     fun createSphereRigidBody(
+        gameObject: GameObject,
         name: String,
         massValue: Float?,
         radius: Float,
@@ -202,6 +203,7 @@ class PhysicsEngine : DGeom.DNearCallback {
         rigidBody.quaternion = rotation.toQuaternion()
 
         space?.add(collisionShape)
+        gameObjects[collisionShape] = gameObject
 
         val motor = OdeHelper.createLMotorJoint(world, null)
         motor.numAxes = 3
@@ -235,6 +237,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     }
 
     fun createBoxRigidBody(
+        gameObject: GameObject,
         name: String,
         massValue: Float?,
         size: Vector3fc,
@@ -272,6 +275,7 @@ class PhysicsEngine : DGeom.DNearCallback {
         rigidBody.quaternion = rotation.toQuaternion()
 
         space?.add(collisionShape)
+        gameObjects[collisionShape] = gameObject
 
         val motor = OdeHelper.createLMotorJoint(world, null)
         motor.numAxes = 3
@@ -305,6 +309,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     }
 
     fun createCharacterCapsuleRigidBody(
+        gameObject: GameObject,
         name: String,
         massValue: Float,
         radius: Float,
@@ -337,6 +342,7 @@ class PhysicsEngine : DGeom.DNearCallback {
         rigidBody.setAngularVel(0.0, 0.0, 0.0)
 
         space?.add(collisionShape)
+        gameObjects[collisionShape] = gameObject
 
         val motor = OdeHelper.createLMotorJoint(world, null)
         motor.numAxes = 3
@@ -357,6 +363,7 @@ class PhysicsEngine : DGeom.DNearCallback {
     }
 
     fun createTriMeshRigidBody(
+        gameObject: GameObject,
         name: String,
         mesh: Mesh,
         massValue: Float?,
@@ -374,6 +381,7 @@ class PhysicsEngine : DGeom.DNearCallback {
 
         val triMesh = OdeHelper.createTriMesh(space, triMeshData, null, null, null)
         collisionShapes[name] = triMesh
+        gameObjects[triMesh] = gameObject
 
         val mass = OdeHelper.createMass()
 

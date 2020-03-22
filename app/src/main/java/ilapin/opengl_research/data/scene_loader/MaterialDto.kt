@@ -12,5 +12,6 @@ class MaterialDto(
     val isUnlit: Boolean?,
     val isTranslucent: Boolean?,
     val castShadows: Boolean?,
-    val receiveShadows: Boolean?
+    val receiveShadows: Boolean?,
+    val isSprite: Boolean?
 )
