@@ -15,7 +15,8 @@ class MaterialComponent(
     var isTranslucent: Boolean = false,
     var castShadows: Boolean = true,
     var receiveShadows: Boolean = true,
-    var isSprite: Boolean = false
+    var isSprite: Boolean = false,
+    var textureCoordinatesModifier: TextureCoordinatesModifier = TextureCoordinatesModifier(0f, 0f, 1f, 1f)
 ) : GameObjectComponent() {
 
     override fun copy(): GameObjectComponent {
@@ -31,4 +32,11 @@ class MaterialComponent(
             isSprite
         )
     }
+
+    class TextureCoordinatesModifier(
+        val uOffset: Float,
+        val vOffset: Float,
+        val uMultiplier: Float,
+        val vMultiplier: Float
+    )
 }

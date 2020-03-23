@@ -1,6 +1,13 @@
 const int MAX_JOINTS = 64;
 const int JOINTS_PER_VERTEX = 3;
 
+struct TextureCoordinatesModifier {
+    float uOffset;
+    float vOffset;
+    float uMultiplier;
+    float vMultiplier;
+};
+
 attribute vec3 vertexCoordinateAttribute;
 attribute vec2 uvAttribute;
 attribute vec3 jointIndicesAttribute;
@@ -10,10 +17,15 @@ uniform mat4 mvpMatrixUniform;
 uniform mat4 jointTransformsUniform[MAX_JOINTS];
 uniform bool hasSkeletalAnimationUniform;
 
+uniform TextureCoordinatesModifier textureCoordinatesModifier;
+
 varying vec2 uvVarying;
 
 void main() {
-    uvVarying = uvAttribute;
+    uvVarying = vec2(
+        uvAttribute.x * textureCoordinatesModifier.uMultiplier + uOffset,
+        uvAttribute.y * textureCoordinatesModifier.vMultiplier + vOffset
+    );
 
     if (hasSkeletalAnimationUniform) {
         vec4 finalVertexCoordinate = vec4(0.0);
