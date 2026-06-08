@@ -6,7 +6,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import ilapin.opengl_research.R
 import ilapin.opengl_research.app.App
-import kotlinx.android.synthetic.main.activity_main.*
+import ilapin.opengl_research.databinding.ActivitySkeletalAnimationDebugBinding
 import javax.inject.Inject
 
 /**
@@ -18,9 +18,12 @@ class SkeletalAnimationDebugActivity : AppCompatActivity() {
     @JvmField
     var renderer: SkeletalAnimationDebugRenderer? = null
 
+    private lateinit var binding: ActivitySkeletalAnimationDebugBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_skeletal_animation_debug)
+        binding = ActivitySkeletalAnimationDebugBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         App
             .appComponent
@@ -32,7 +35,7 @@ class SkeletalAnimationDebugActivity : AppCompatActivity() {
             glView.setEGLContextClientVersion(2)
             glView.setRenderer(renderer)
             glView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
-            containerLayout.addView(glView, 0)
+            binding.containerLayout.addView(glView, 0)
         }
     }
 

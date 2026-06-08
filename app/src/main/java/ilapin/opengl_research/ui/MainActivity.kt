@@ -12,8 +12,8 @@ import ilapin.common.input.TouchEvent
 import ilapin.common.kotlin.plusAssign
 import ilapin.opengl_research.R
 import ilapin.opengl_research.app.App
+import ilapin.opengl_research.databinding.ActivityMainBinding
 import io.reactivex.disposables.CompositeDisposable
-import kotlinx.android.synthetic.main.activity_main.*
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -23,15 +23,17 @@ class MainActivity : AppCompatActivity() {
     var renderer: GLSurfaceViewRenderer? = null
 
     private val subscriptions = CompositeDisposable()
+    private lateinit var binding: ActivityMainBinding
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         App.appComponent.mainScreenComponent(MainScreenModule(this)).inject(this)
 
-        progressBar.gone()
+        binding.progressBar.gone()
 
         renderer?.let { renderer ->
             val glView = GLSurfaceView(this)
@@ -80,9 +82,9 @@ class MainActivity : AppCompatActivity() {
             glView.setEGLContextClientVersion(2)
             glView.setRenderer(renderer)
             glView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
-            containerLayout.addView(glView, 0)
+            binding.containerLayout.addView(glView, 0)
 
-            subscriptions += renderer.isLoading.subscribe { isLoading -> progressBar.setVisible(isLoading) }
+            subscriptions += renderer.isLoading.subscribe { isLoading -> binding.progressBar.setVisible(isLoading) }
 
             renderer.putMessage(
                 GLSurfaceViewRenderer.LoadAndStartSceneMessage(
