@@ -144,6 +144,8 @@ class GLSurfaceViewRenderer(
     }
 
     override fun loadAndStartScene(path: String) {
+        _isLoadingSubject.onNext(true)
+
         scene?.deinit()
         shadowMapFrameBufferInfo = null
 
@@ -175,6 +177,8 @@ class GLSurfaceViewRenderer(
             shadowMapFrameBufferInfo =
                 frameBuffersManager.findFrameBuffer(SHADOW_MAP_TEXTURE_NAME) as FrameBufferInfo.DepthFrameBufferInfo
         }
+
+        _isLoadingSubject.onNext(false)
     }
 
     fun putMessage(message: Any) {
