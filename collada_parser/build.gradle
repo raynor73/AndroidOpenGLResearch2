@@ -5,5 +5,7 @@ dependencies {
     implementation 'org.joml:joml:1.9.19'
 }
 
-sourceCompatibility = "17"
-targetCompatibility = "17"
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
